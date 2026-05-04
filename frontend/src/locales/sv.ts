@@ -967,6 +967,7 @@ export default {
     scheduledSessions: 'Schemalagda',
     workout: 'Pass',
     activity: 'Aktivitet',
+    workoutAndActivity: 'Pass & Aktivitet',
     scheduled: 'Schemalagd',
   },
   schedule: {

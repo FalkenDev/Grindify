@@ -974,6 +974,7 @@ export default {
     scheduledSessions: 'Scheduled',
     workout: 'Workouts',
     activity: 'Activities',
+    workoutAndActivity: 'Workout & Activity',
     scheduled: 'Scheduled',
   },
   schedule: {
