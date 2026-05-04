@@ -228,7 +228,7 @@
     </div>
 
     <!-- Sticky Start Button -->
-    <div v-if="workout?.exercises && workout.exercises.length > 0" class="sticky-btn-wrapper pa-5">
+    <div v-if="workout?.exercises && workout.exercises.length > 0" class="pa-5">
       <v-btn block color="primary" size="large" class="font-weight-bold" @click="startSession">
         {{ $t('workout.startSession') }}
       </v-btn>
@@ -434,14 +434,5 @@ const duplicate = async () => {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
-}
-
-.sticky-btn-wrapper {
-  position: fixed;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  background: linear-gradient(180deg, rgba(12, 14, 18, 0) 0%, rgba(12, 14, 18, 1) 40%);
-  padding-top: 24px !important;
 }
 </style>
