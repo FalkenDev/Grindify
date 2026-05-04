@@ -15,7 +15,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { ExerciseRecord, RecordType } from './exerciseRecord.entity';
 import { WorkoutSession } from '../workoutSession/workoutSession.entity';
 import { WorkoutSessionExercise } from '../workoutSession/workoutSessionExercise.entity';
@@ -405,6 +405,7 @@ export class StatisticsService {
       exerciseId: number;
       sets: { weight: number; reps: number; rpe?: number }[];
     }[],
+    manager?: EntityManager,
   ): Promise<
     {
       exerciseId: number;
@@ -420,6 +421,9 @@ export class StatisticsService {
       isNew: boolean;
     }[] = [];
     const now = new Date();
+    const recordRepo = manager
+      ? manager.getRepository(ExerciseRecord)
+      : this.recordRepo;
 
     for (const ce of completedExercises) {
       const { exerciseId, sets } = ce;
@@ -501,7 +505,7 @@ export class StatisticsService {
       for (const candidate of candidates) {
         if (candidate.value <= 0) continue;
 
-        const existing = await this.recordRepo.findOne({
+        const existing = await recordRepo.findOne({
           where: {
             user: { id: userId },
             exercise: { id: exerciseId },
@@ -510,8 +514,8 @@ export class StatisticsService {
         });
 
         if (!existing) {
-          await this.recordRepo.save(
-            this.recordRepo.create({
+          await recordRepo.save(
+            recordRepo.create({
               user: { id: userId } as any,
               exercise: { id: exerciseId } as any,
               workoutSession: { id: sessionId } as any,
@@ -532,7 +536,7 @@ export class StatisticsService {
           existing.workoutSession = { id: sessionId } as any;
           existing.achievedAt = now;
           existing.setDetails = candidate.setDetails;
-          await this.recordRepo.save(existing);
+          await recordRepo.save(existing);
           newRecords.push({
             exerciseId,
             recordType: candidate.recordType,

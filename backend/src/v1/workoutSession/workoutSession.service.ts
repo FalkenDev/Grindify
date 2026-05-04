@@ -346,6 +346,7 @@ export class WorkoutSessionService {
             userId,
             saved.id,
             completedForRecords,
+            manager,
           );
         }
       }
@@ -567,6 +568,7 @@ export class WorkoutSessionService {
           userId,
           session.id,
           completedForRecords,
+          manager,
         );
       }
 
@@ -760,6 +762,7 @@ export class WorkoutSessionService {
           userId,
           sessionId,
           exercisesForRecords,
+          manager,
         );
       }
 
