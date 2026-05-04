@@ -93,6 +93,20 @@ export const getStreakInfo = async () => {
   }
 }
 
+export const useStreakFreeze = async (date: string) => {
+  try {
+    const data = await fetchWrapper<StreakInfo>(`${apiUrl}/users/streak/freeze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date }),
+    })
+    return data
+  } catch (error) {
+    console.error('Error using streak freeze:', error)
+    throw error
+  }
+}
+
 export const updateWeeklyWorkoutGoal = async (weeklyWorkoutGoal: number) => {
   try {
     const data = await fetchWrapper<User>(`${apiUrl}/users/weekly-goal`, {

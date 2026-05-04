@@ -23,24 +23,41 @@
 
     <!-- Dynamic Stats Card -->
     <v-card
-      class="bg-cardBg pa-5 d-flex justify-space-between rounded-lg"
+      class="bg-cardBg pa-3 rounded-lg"
       :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
     >
-      <div class="d-flex align-center ga-4">
-        <v-avatar color="avatarBg" size="48">
-          <v-icon size="32" color="primary">mdi-fire</v-icon>
-        </v-avatar>
-        <div>
-          <p class="text-caption text-textSecondary">{{ $t('calendar.workoutsThisMonth') }}</p>
-          <h1 class="text-subtitle-1">{{ workoutsThisMonth }} {{ $t('calendar.workout') }}</h1>
+      <div class="d-flex justify-space-between">
+        <!-- Workouts this month -->
+        <div class="d-flex flex-column align-center" style="flex: 1 1 0">
+          <v-icon size="18" color="green">mdi-dumbbell</v-icon>
+          <span class="text-subtitle-2 font-weight-bold mt-1">{{ workoutSessionsThisMonth }}</span>
+          <span class="text-caption text-textSecondary text-center" style="font-size: 10px">{{
+            $t('calendar.workout')
+          }}</span>
         </div>
-      </div>
-      <div>
-        <p class="text-caption text-right text-textSecondary">{{ $t('calendar.currentStreak') }}</p>
-        <div class="d-flex align-center ga-1">
-          <h1 class="text-subtitle-1 text-primary text-right">
-            {{ streakInfo?.currentStreak || 0 }} {{ $t('calendar.days') }}
-          </h1>
+
+        <v-divider vertical class="mx-1" />
+
+        <!-- Activities this month -->
+        <div class="d-flex flex-column align-center" style="flex: 1 1 0">
+          <v-icon size="18" color="amber">mdi-run</v-icon>
+          <span class="text-subtitle-2 font-weight-bold mt-1">{{ activitiesThisMonth }}</span>
+          <span class="text-caption text-textSecondary text-center" style="font-size: 10px">{{
+            $t('calendar.activity')
+          }}</span>
+        </div>
+
+        <v-divider vertical class="mx-1" />
+
+        <!-- Streak freezes -->
+        <div class="d-flex flex-column align-center" style="flex: 1 1 0">
+          <v-icon size="18" color="blue-lighten-2">mdi-snowflake</v-icon>
+          <span class="text-subtitle-2 font-weight-bold text-blue-lighten-2 mt-1">{{
+            streakInfo?.streakFreezes ?? 1
+          }}</span>
+          <span class="text-caption text-textSecondary text-center" style="font-size: 10px">{{
+            $t('calendar.freezes')
+          }}</span>
         </div>
       </div>
     </v-card>
@@ -83,6 +100,7 @@
               'other-month': !day.isCurrentMonth,
               'is-today': day.isToday,
               'is-selected': day.date === selectedDate,
+              'is-frozen-week': day.isFrozenWeek,
             }"
             @click="selectDay(day)"
           >
@@ -94,6 +112,7 @@
                   'badge-activity': day.trainingType === 'activity',
                   'badge-both': day.trainingType === 'both',
                   'badge-scheduled': day.hasScheduledOnly,
+                  'badge-frozen': day.isFrozenWeek && !day.trainingType && !day.hasScheduledOnly,
                 }"
               >
                 <span class="day-number">{{ day.dayNumber }}</span>
@@ -122,11 +141,61 @@
           <div class="legend-badge badge-scheduled"></div>
           <span class="text-caption text-textSecondary">{{ $t('calendar.scheduled') }}</span>
         </div>
+        <div class="d-flex align-center ga-2">
+          <div class="legend-badge badge-frozen"></div>
+          <span class="text-caption text-textSecondary">{{ $t('calendar.frozenWeek') }}</span>
+        </div>
       </v-card-text>
     </v-card>
 
     <!-- Day Detail View -->
     <div class="d-flex flex-column ga-3 pb-16">
+      <!-- Freeze Week Card (current week only) -->
+      <v-card
+        v-if="isSelectedDateInCurrentWeek"
+        class="bg-cardBg rounded-lg pa-4"
+        :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
+      >
+        <div class="d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-3">
+            <v-avatar color="blue-darken-4" size="40">
+              <v-icon size="20" color="blue-lighten-2">mdi-snowflake</v-icon>
+            </v-avatar>
+            <div>
+              <p class="text-body-2 font-weight-bold">
+                {{
+                  streakInfo?.freezeUsedThisWeek
+                    ? $t('calendar.freezeActive')
+                    : $t('calendar.freezeWeek')
+                }}
+              </p>
+              <p class="text-caption text-textSecondary">
+                {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 1 }) }}
+              </p>
+            </div>
+          </div>
+          <v-btn
+            v-if="!streakInfo?.freezeUsedThisWeek"
+            size="small"
+            color="blue-lighten-2"
+            variant="tonal"
+            :disabled="!streakInfo || (streakInfo.streakFreezes ?? 1) <= 0"
+            @click="isFreezeDialogOpen = true"
+          >
+            {{ $t('calendar.freeze') }}
+          </v-btn>
+          <v-chip
+            v-else
+            size="small"
+            color="blue-lighten-2"
+            variant="tonal"
+            prepend-icon="mdi-check"
+          >
+            {{ $t('calendar.active') }}
+          </v-chip>
+        </div>
+      </v-card>
+
       <!-- Date Header -->
       <div class="d-flex align-center justify-space-between">
         <h3 class="text-h6 font-weight-bold">{{ selectedDateLabel }}</h3>
@@ -314,6 +383,35 @@
       @started="onScheduleStarted"
       @log-past="onLogPastFromSchedule"
     />
+
+    <!-- Freeze Confirmation Dialog -->
+    <v-dialog v-model="isFreezeDialogOpen" max-width="360">
+      <v-card class="bg-cardBg rounded-lg pa-2">
+        <v-card-title class="d-flex align-center ga-2">
+          <v-icon color="blue-lighten-2">mdi-snowflake</v-icon>
+          {{ $t('calendar.freezeDialogTitle') }}
+        </v-card-title>
+        <v-card-text>
+          <p>{{ $t('calendar.freezeDialogBody') }}</p>
+          <p class="text-caption text-textSecondary mt-2">
+            {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 1 }) }}
+          </p>
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn variant="text" @click="isFreezeDialogOpen = false">{{
+            $t('common.cancel')
+          }}</v-btn>
+          <v-btn
+            color="blue-lighten-2"
+            variant="flat"
+            :loading="isFreezeLoading"
+            @click="freezeWeek"
+          >
+            {{ $t('calendar.freeze') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -323,7 +421,7 @@ import { useWorkoutSessionStore } from '@/stores/workoutSession.store'
 import { useActivityStore } from '@/stores/activity.store'
 import { useScheduledSessionStore } from '@/stores/scheduledSession.store'
 import { useRouter } from 'vue-router'
-import { getStreakInfo } from '@/services/user.service'
+import { getStreakInfo, useStreakFreeze } from '@/services/user.service'
 import { startWorkoutSession } from '@/services/workoutSession.service'
 import type { WorkoutSession } from '@/interfaces/workoutSession.interface'
 import type { ActivityLog } from '@/interfaces/Activity.interface'
@@ -350,6 +448,8 @@ const isScheduleDialogOpen = ref(false)
 const isAddPastDialogOpen = ref(false)
 const isBottomSheetOpen = ref(false)
 const selectedScheduledSession = ref<ScheduledSessionForDate | null>(null)
+const isFreezeDialogOpen = ref(false)
+const isFreezeLoading = ref(false)
 
 // Pre-selection state for AddPastSessionDialog (from scheduled session)
 const pastSessionPreselectedType = ref<'workout' | 'activity' | undefined>(undefined)
@@ -376,6 +476,7 @@ interface CalendarDay {
   hasCompletedTraining: boolean
   trainingType: 'workout' | 'activity' | 'both' | null
   hasScheduledOnly: boolean
+  isFrozenWeek: boolean
   events: CalendarEvent[]
 }
 
@@ -405,6 +506,49 @@ const isSelectedDateFuture = computed(() => selectedDate.value > todayStr.value)
 
 const isSelectedDateFutureOrToday = computed(() => selectedDate.value >= todayStr.value)
 
+/** Whether the selected date falls in the current ISO week */
+const isSelectedDateInCurrentWeek = computed(() => {
+  const today = new Date()
+  const getMondayOfWeek = (date: Date): Date => {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = day === 0 ? -6 : 1 - day
+    d.setDate(d.getDate() + diff)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+  const monday = getMondayOfWeek(today)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  sunday.setHours(23, 59, 59, 999)
+  const selected = new Date(selectedDate.value + 'T12:00:00')
+  return selected >= monday && selected <= sunday
+})
+
+/** Set of date strings belonging to the currently frozen ISO week */
+const frozenWeekDates = computed<Set<string>>(() => {
+  const key = streakInfo.value?.streakFreezeUsedWeek
+  if (!key) return new Set()
+  const [yearStr, weekStr] = key.split('-W')
+  const year = parseInt(yearStr)
+  const week = parseInt(weekStr)
+  // Get Monday of ISO week 1 for that year
+  const jan4 = new Date(year, 0, 4)
+  const dayOfWeek = jan4.getDay() || 7
+  const week1Monday = new Date(jan4)
+  week1Monday.setDate(jan4.getDate() - dayOfWeek + 1)
+  // Advance to the target week's Monday
+  const monday = new Date(week1Monday)
+  monday.setDate(week1Monday.getDate() + (week - 1) * 7)
+  const dates = new Set<string>()
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    dates.add(toLocalDateString(d))
+  }
+  return dates
+})
+
 const selectedDateLabel = computed(() => {
   if (isSelectedDateToday.value) return t('calendar.today')
 
@@ -416,12 +560,11 @@ const selectedDateLabel = computed(() => {
   })
 })
 
-// Workouts this month (dynamic)
-const workoutsThisMonth = computed(() => {
+// Workouts this month (sessions only)
+const workoutSessionsThisMonth = computed(() => {
   const year = currentDate.value.getFullYear()
   const month = currentDate.value.getMonth()
   let count = 0
-
   if (workoutSessionStore.workoutSessions) {
     ;(workoutSessionStore.workoutSessions as WorkoutSession[]).forEach(session => {
       if (session.status === 'finished' && session.endedAt) {
@@ -430,14 +573,20 @@ const workoutsThisMonth = computed(() => {
       }
     })
   }
+  return count
+})
 
+// Activities this month (activity logs only)
+const activitiesThisMonth = computed(() => {
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
+  let count = 0
   if (activityStore.activityLogs) {
     ;(activityStore.activityLogs as ActivityLog[]).forEach(log => {
       const d = new Date(log.date)
       if (d.getFullYear() === year && d.getMonth() === month) count++
     })
   }
-
   return count
 })
 
@@ -573,6 +722,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
       hasCompletedTraining: hasCompletedTrainingEvents(events),
       trainingType: getTrainingType(events),
       hasScheduledOnly: hasScheduledOnlyEvents(events),
+      isFrozenWeek: frozenWeekDates.value.has(dateStr),
       events,
     })
   }
@@ -591,6 +741,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
       hasCompletedTraining: hasCompletedTrainingEvents(events),
       trainingType: getTrainingType(events),
       hasScheduledOnly: hasScheduledOnlyEvents(events),
+      isFrozenWeek: frozenWeekDates.value.has(dateStr),
       events,
     })
   }
@@ -609,6 +760,7 @@ const calendarDays = computed<CalendarDay[]>(() => {
       hasCompletedTraining: hasCompletedTrainingEvents(events),
       trainingType: getTrainingType(events),
       hasScheduledOnly: hasScheduledOnlyEvents(events),
+      isFrozenWeek: frozenWeekDates.value.has(dateStr),
       events,
     })
   }
@@ -733,6 +885,19 @@ async function onScheduleStarted() {
 function openCompletedSession(event: CalendarEvent) {
   if (event.type === 'scheduled') return
   router.push(`/session-history/${event.type}/${event.sessionId}`)
+}
+
+async function freezeWeek() {
+  isFreezeLoading.value = true
+  try {
+    const updated = await useStreakFreeze(selectedDate.value)
+    streakInfo.value = updated
+    isFreezeDialogOpen.value = false
+  } catch (error) {
+    console.error('Failed to use streak freeze:', error)
+  } finally {
+    isFreezeLoading.value = false
+  }
 }
 </script>
 
@@ -859,6 +1024,26 @@ function openCompletedSession(event: CalendarEvent) {
 .badge-scheduled .day-number {
   color: rgb(var(--v-theme-info));
   font-weight: 600;
+}
+
+/* Frozen week — ice-blue tint */
+.calendar-cell.is-frozen-week {
+  background: rgba(100, 181, 246, 0.07) !important;
+}
+
+/* Frozen badge — when no training logged */
+.badge-frozen {
+  background: transparent;
+  border: 2px solid rgba(100, 181, 246, 0.5);
+}
+
+.badge-frozen .day-number {
+  color: rgb(100, 181, 246);
+}
+
+.legend-badge.badge-frozen {
+  background: transparent;
+  border: 2px solid rgba(100, 181, 246, 0.5);
 }
 
 /* Legend */

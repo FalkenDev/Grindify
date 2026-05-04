@@ -259,20 +259,55 @@ export class UserService {
         lastWeekSunday,
       );
 
+      // Get the ISO week key of the previous week for freeze checking
+      const prevWeekKey = this.getISOWeekKey(lastWeekMonday);
+
       // Check if user met their goal in the previous week
       if (workoutDays < user.weeklyWorkoutGoal) {
-        // Didn't meet goal, reset streak to 0
-        user.currentStreak = 0;
+        // Didn't meet goal — check if a freeze protects this week
+        if (user.streakFreezeUsedWeek === prevWeekKey) {
+          // Freeze consumed — streak survives
+          user.streakFreezeUsedWeek = null;
+        } else {
+          user.currentStreak = 0;
+        }
       } else if (weeksPassed > 1) {
         // More than one week passed (means they didn't workout at all in between)
         // Even if they met the goal in the last tracked week, they missed weeks in between
         user.currentStreak = 0;
+        // Clear any stale freeze
+        user.streakFreezeUsedWeek = null;
+      } else {
+        // Goal met for exactly last week — award a freeze if earned
+        user.completedGoalWeeksCount = (user.completedGoalWeeksCount || 0) + 1;
+        if (
+          user.completedGoalWeeksCount % 2 === 0 &&
+          (user.streakFreezes || 0) < 2
+        ) {
+          user.streakFreezes = (user.streakFreezes || 0) + 1;
+        }
       }
       // If they met the goal and it's been exactly 1 week, streak continues
 
       // Reset weekly workout count for the new week
       user.currentWeekWorkouts = 0;
     }
+  }
+
+  /**
+   * Returns the ISO week key for a given date, e.g. "2026-W18"
+   */
+  private getISOWeekKey(date: Date): string {
+    const d = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+    );
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(
+      ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+    );
+    return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
   }
 
   /**
@@ -342,6 +377,48 @@ export class UserService {
   }
 
   /**
+   * Use a streak freeze to protect the current week from a streak reset
+   */
+  async useStreakFreeze(
+    userId: number,
+    date: string,
+  ): Promise<{
+    currentStreak: number;
+    weeklyWorkoutGoal: number;
+    currentWeekWorkouts: number;
+    progressPercentage: number;
+    streakFreezes: number;
+    freezeUsedThisWeek: boolean;
+    streakFreezeUsedWeek: string | null;
+  }> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if ((user.streakFreezes || 0) <= 0) {
+      throw new BadRequestException('No streak freezes available');
+    }
+
+    const now = new Date();
+    const currentWeekKey = this.getISOWeekKey(now);
+    const targetDate = new Date(date + 'T12:00:00');
+    const targetWeekKey = this.getISOWeekKey(targetDate);
+
+    if (targetWeekKey !== currentWeekKey) {
+      throw new BadRequestException('Can only freeze the current week');
+    }
+
+    if (user.streakFreezeUsedWeek === currentWeekKey) {
+      throw new BadRequestException('A freeze is already active this week');
+    }
+
+    user.streakFreezeUsedWeek = currentWeekKey;
+    user.streakFreezes = (user.streakFreezes || 0) - 1;
+    await this.userRepo.save(user);
+
+    return this.getStreakInfo(userId);
+  }
+
+  /**
    * Get user's current streak information
    */
   async getStreakInfo(userId: number): Promise<{
@@ -349,6 +426,9 @@ export class UserService {
     weeklyWorkoutGoal: number;
     currentWeekWorkouts: number;
     progressPercentage: number;
+    streakFreezes: number;
+    freezeUsedThisWeek: boolean;
+    streakFreezeUsedWeek: string | null;
   }> {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) {
@@ -390,11 +470,16 @@ export class UserService {
           )
         : 0;
 
+    const currentWeekKey = this.getISOWeekKey(now);
+
     return {
       currentStreak: user.currentStreak,
       weeklyWorkoutGoal: user.weeklyWorkoutGoal,
       currentWeekWorkouts: user.currentWeekWorkouts,
       progressPercentage: Math.round(progressPercentage),
+      streakFreezes: user.streakFreezes ?? 1,
+      freezeUsedThisWeek: user.streakFreezeUsedWeek === currentWeekKey,
+      streakFreezeUsedWeek: user.streakFreezeUsedWeek ?? null,
     };
   }
 
@@ -431,16 +516,35 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    const [exercises, workouts, sessions, activityLogs, weightLogs, progressPhotos, exerciseRecords] =
-      await Promise.all([
-        this.exerciseRepo.find({ where: { createdBy: { id: userId } }, relations: ['media'] }),
-        this.workoutRepo.find({ where: { createdBy: { id: userId } }, relations: ['exercises'] }),
-        this.sessionRepo.find({ where: { user: { id: userId } }, relations: ['exercises', 'exercises.sets'] }),
-        this.activityLogRepo.find({ where: { user: { id: userId } } }),
-        this.weightLogRepo.find({ where: { user: { id: userId } } }),
-        this.progressPhotoRepo.find({ where: { user: { id: userId } } }),
-        this.exerciseRecordRepo.find({ where: { user: { id: userId } }, relations: ['exercise'] }),
-      ]);
+    const [
+      exercises,
+      workouts,
+      sessions,
+      activityLogs,
+      weightLogs,
+      progressPhotos,
+      exerciseRecords,
+    ] = await Promise.all([
+      this.exerciseRepo.find({
+        where: { createdBy: { id: userId } },
+        relations: ['media'],
+      }),
+      this.workoutRepo.find({
+        where: { createdBy: { id: userId } },
+        relations: ['exercises'],
+      }),
+      this.sessionRepo.find({
+        where: { user: { id: userId } },
+        relations: ['exercises', 'exercises.sets'],
+      }),
+      this.activityLogRepo.find({ where: { user: { id: userId } } }),
+      this.weightLogRepo.find({ where: { user: { id: userId } } }),
+      this.progressPhotoRepo.find({ where: { user: { id: userId } } }),
+      this.exerciseRecordRepo.find({
+        where: { user: { id: userId } },
+        relations: ['exercise'],
+      }),
+    ]);
 
     return {
       exportedAt: new Date().toISOString(),

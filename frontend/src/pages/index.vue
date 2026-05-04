@@ -125,9 +125,18 @@
           flex: '1',
         }"
       >
-        <v-icon size="24" color="primary">mdi-bullseye</v-icon>
-        <h2 class="text-h5 text-textPrimary mt-1">
-          {{ streakInfo?.currentWeekWorkouts || 0 }}/{{ streakInfo?.weeklyWorkoutGoal || 3 }}
+        <v-icon size="24" :color="streakInfo?.freezeUsedThisWeek ? 'blue-lighten-2' : 'primary'">
+          {{ streakInfo?.freezeUsedThisWeek ? 'mdi-snowflake' : 'mdi-bullseye' }}
+        </v-icon>
+        <h2
+          class="text-h5 mt-1"
+          :class="streakInfo?.freezeUsedThisWeek ? 'text-blue-lighten-2' : 'text-textPrimary'"
+        >
+          {{
+            streakInfo?.freezeUsedThisWeek
+              ? '✓'
+              : `${streakInfo?.currentWeekWorkouts || 0}/${streakInfo?.weeklyWorkoutGoal || 3}`
+          }}
         </h2>
         <p class="text-caption text-textSecondary text-uppercase">{{ $t('home.weeklyGoal') }}</p>
       </v-card>

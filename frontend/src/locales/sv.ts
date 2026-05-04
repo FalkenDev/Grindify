@@ -969,6 +969,16 @@ export default {
     activity: 'Aktivitet',
     workoutAndActivity: 'Pass & Aktivitet',
     scheduled: 'Schemalagd',
+    frozenWeek: 'Fryst vecka',
+    freezeWeek: 'Frys denna vecka',
+    freezeActive: 'Streak-frys aktiv',
+    freeze: 'Frys',
+    freezes: 'Frysningar',
+    active: 'Aktiv',
+    freezesRemaining: '{count} frys(ar) kvar',
+    freezeDialogTitle: 'Använd streak-frys?',
+    freezeDialogBody:
+      'Detta skyddar din streak för nuvarande vecka även om du missar ditt veckliga mål. Du kan fortfarande logga träning och det räknas som vanligt.',
   },
   schedule: {
     registerWorkout: 'Registrera träning',

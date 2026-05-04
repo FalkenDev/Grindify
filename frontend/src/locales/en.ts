@@ -976,6 +976,16 @@ export default {
     activity: 'Activities',
     workoutAndActivity: 'Workout & Activity',
     scheduled: 'Scheduled',
+    frozenWeek: 'Frozen week',
+    freezeWeek: 'Freeze this week',
+    freezeActive: 'Streak freeze active',
+    freeze: 'Freeze',
+    freezes: 'Freezes',
+    active: 'Active',
+    freezesRemaining: '{count} freeze(s) remaining',
+    freezeDialogTitle: 'Use Streak Freeze?',
+    freezeDialogBody:
+      'This will protect your streak for the current week even if you miss your weekly goal. You can still log workouts and they will count normally.',
   },
   schedule: {
     registerWorkout: 'Register Workout',
