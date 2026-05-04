@@ -82,40 +82,44 @@
             :class="{
               'other-month': !day.isCurrentMonth,
               'is-today': day.isToday,
-              'has-activity': day.events.length > 0,
               'is-selected': day.date === selectedDate,
             }"
             @click="selectDay(day)"
           >
             <div class="cell-content">
-              <div class="day-number">{{ day.dayNumber }}</div>
-
-              <!-- Activity indicators -->
-              <div v-if="day.events.length > 0" class="activity-indicators">
-                <div
-                  v-for="(event, idx) in day.events.slice(0, 3)"
-                  :key="event.id"
-                  class="activity-dot"
-                  :class="event.type"
-                  :style="{ animationDelay: `${Number(idx) * 100}ms` }"
-                ></div>
+              <div
+                class="day-badge"
+                :class="{
+                  'badge-workout': day.trainingType === 'workout',
+                  'badge-activity': day.trainingType === 'activity',
+                  'badge-both': day.trainingType === 'both',
+                  'badge-scheduled': day.hasScheduledOnly,
+                }"
+              >
+                <span class="day-number">{{ day.dayNumber }}</span>
               </div>
             </div>
           </div>
         </div>
       </v-card-text>
       <v-divider />
-      <v-card-text class="d-flex align-center ga-4">
+      <v-card-text class="d-flex align-center ga-4 flex-wrap">
         <div class="d-flex align-center ga-2">
-          <div class="activity-dot workout"></div>
+          <div class="legend-badge badge-workout"></div>
           <span class="text-caption text-textSecondary">{{ $t('calendar.workout') }}</span>
         </div>
         <div class="d-flex align-center ga-2">
-          <div class="activity-dot activity"></div>
+          <div class="legend-badge badge-activity"></div>
           <span class="text-caption text-textSecondary">{{ $t('calendar.activity') }}</span>
         </div>
         <div class="d-flex align-center ga-2">
-          <div class="activity-dot scheduled"></div>
+          <div class="legend-badge badge-both"></div>
+          <span class="text-caption text-textSecondary">{{
+            $t('calendar.workoutAndActivity')
+          }}</span>
+        </div>
+        <div class="d-flex align-center ga-2">
+          <div class="legend-badge badge-scheduled"></div>
           <span class="text-caption text-textSecondary">{{ $t('calendar.scheduled') }}</span>
         </div>
       </v-card-text>
@@ -369,6 +373,9 @@ interface CalendarDay {
   dayNumber: number
   isCurrentMonth: boolean
   isToday: boolean
+  hasCompletedTraining: boolean
+  trainingType: 'workout' | 'activity' | 'both' | null
+  hasScheduledOnly: boolean
   events: CalendarEvent[]
 }
 
@@ -557,12 +564,16 @@ const calendarDays = computed<CalendarDay[]>(() => {
   for (let i = firstDayOfWeek - 1; i >= 0; i--) {
     const day = new Date(year, month - 1, prevMonthLastDay.getDate() - i)
     const dateStr = toLocalDateString(day)
+    const events = getEventsForDate(dateStr)
     days.push({
       date: dateStr,
       dayNumber: day.getDate(),
       isCurrentMonth: false,
       isToday: false,
-      events: getEventsForDate(dateStr),
+      hasCompletedTraining: hasCompletedTrainingEvents(events),
+      trainingType: getTrainingType(events),
+      hasScheduledOnly: hasScheduledOnlyEvents(events),
+      events,
     })
   }
 
@@ -571,12 +582,16 @@ const calendarDays = computed<CalendarDay[]>(() => {
     const day = new Date(year, month, i)
     day.setHours(0, 0, 0, 0)
     const dateStr = toLocalDateString(day)
+    const events = getEventsForDate(dateStr)
     days.push({
       date: dateStr,
       dayNumber: i,
       isCurrentMonth: true,
       isToday: day.getTime() === today.getTime(),
-      events: getEventsForDate(dateStr),
+      hasCompletedTraining: hasCompletedTrainingEvents(events),
+      trainingType: getTrainingType(events),
+      hasScheduledOnly: hasScheduledOnlyEvents(events),
+      events,
     })
   }
 
@@ -585,12 +600,16 @@ const calendarDays = computed<CalendarDay[]>(() => {
   for (let i = 1; i <= remainingDays; i++) {
     const day = new Date(year, month + 1, i)
     const dateStr = toLocalDateString(day)
+    const events = getEventsForDate(dateStr)
     days.push({
       date: dateStr,
       dayNumber: i,
       isCurrentMonth: false,
       isToday: false,
-      events: getEventsForDate(dateStr),
+      hasCompletedTraining: hasCompletedTrainingEvents(events),
+      trainingType: getTrainingType(events),
+      hasScheduledOnly: hasScheduledOnlyEvents(events),
+      events,
     })
   }
 
@@ -610,6 +629,26 @@ function getEventsForDate(dateStr: string): CalendarEvent[] {
   )
   const scheduled = scheduledEvents.value.filter(event => toLocalDateString(event.date) === dateStr)
   return [...completed, ...scheduled]
+}
+
+function hasCompletedTrainingEvents(events: CalendarEvent[]): boolean {
+  return events.some(event => event.type === 'workout' || event.type === 'activity')
+}
+
+function getTrainingType(events: CalendarEvent[]): 'workout' | 'activity' | 'both' | null {
+  const hasWorkout = events.some(e => e.type === 'workout')
+  const hasActivity = events.some(e => e.type === 'activity')
+  if (hasWorkout && hasActivity) return 'both'
+  if (hasWorkout) return 'workout'
+  if (hasActivity) return 'activity'
+  return null
+}
+
+function hasScheduledOnlyEvents(events: CalendarEvent[]): boolean {
+  return (
+    events.some(e => e.type === 'scheduled') &&
+    !events.some(e => e.type === 'workout' || e.type === 'activity')
+  )
 }
 
 async function selectDay(day: CalendarDay) {
@@ -728,95 +767,128 @@ function openCompletedSession(event: CalendarEvent) {
 }
 
 .calendar-cell:hover {
-  background: rgba(var(--v-theme-primary), 0.08);
-  transform: scale(1.05);
+  background: rgba(var(--v-theme-primary), 0.06) !important;
 }
 
 .calendar-cell.other-month {
-  opacity: 0.3;
+  opacity: 0.25;
 }
 
-.calendar-cell.is-today {
-  background: linear-gradient(
-    135deg,
-    rgba(var(--v-theme-primary), 0.2),
-    rgba(var(--v-theme-primary), 0.1)
-  );
-  border: 2px solid rgb(var(--v-theme-primary));
+.calendar-cell.is-today .day-badge {
+  box-shadow: 0 0 0 2px rgb(var(--v-theme-primary));
 }
 
-.calendar-cell.is-today .day-number {
+.calendar-cell.is-today
+  .day-badge:not(.badge-workout):not(.badge-activity):not(.badge-both)
+  .day-number {
   color: rgb(var(--v-theme-primary));
   font-weight: 700;
 }
 
-.calendar-cell.is-selected {
-  background: rgba(var(--v-theme-primary), 0.15);
-  border: 2px solid rgb(var(--v-theme-primary));
-}
-
-.calendar-cell.has-activity {
-  background: rgba(var(--v-theme-primary), 0.04);
+.calendar-cell.is-selected .day-badge {
+  box-shadow:
+    0 0 0 2px rgb(var(--v-theme-primary)),
+    0 0 0 4px rgba(var(--v-theme-primary), 0.2);
 }
 
 .cell-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   padding: 4px 2px;
-  position: relative;
+}
+
+/* Badge circle */
+.day-badge {
+  width: 68%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .day-number {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1;
+  user-select: none;
 }
 
-.activity-indicators {
-  display: flex;
-  position: absolute;
-  bottom: 8px;
+/* Trained: workout only — green */
+.badge-workout {
+  background: #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.45);
 }
 
-.activity-dot {
-  width: 6px;
-  height: 6px;
+.badge-workout .day-number {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Trained: activity only — amber */
+.badge-activity {
+  background: #ff8f00;
+  box-shadow: 0 2px 8px rgba(255, 143, 0, 0.45);
+}
+
+.badge-activity .day-number {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Trained: workout + activity — gradient */
+.badge-both {
+  background: linear-gradient(135deg, #4caf50 0%, #ff8f00 100%);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+}
+
+.badge-both .day-number {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Scheduled but not done — outline ring */
+.badge-scheduled {
+  background: transparent;
+  border: 2px dashed rgba(var(--v-theme-info), 0.7);
+}
+
+.badge-scheduled .day-number {
+  color: rgb(var(--v-theme-info));
+  font-weight: 600;
+}
+
+/* Legend */
+.legend-badge {
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  flex-shrink: 0;
 }
 
-/* Green for completed workouts */
-.activity-dot.workout {
+.legend-badge.badge-workout {
   background: #4caf50;
 }
 
-/* Yellow/amber for completed activities */
-.activity-dot.activity {
-  background: #ffc107;
+.legend-badge.badge-activity {
+  background: #ff8f00;
 }
 
-/* Blue for scheduled sessions */
-.activity-dot.scheduled {
-  background: #2196f3;
+.legend-badge.badge-both {
+  background: linear-gradient(135deg, #4caf50 0%, #ff8f00 100%);
 }
 
-@keyframes popIn {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+.legend-badge.badge-scheduled {
+  background: transparent;
+  border: 2px dashed rgba(var(--v-theme-info), 0.7);
 }
 
 @media (max-width: 600px) {
   .day-number {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .modern-calendar {
@@ -831,13 +903,8 @@ function openCompletedSession(event: CalendarEvent) {
     padding: 2px 1px;
   }
 
-  .activity-dot {
-    width: 5px;
-    height: 5px;
-  }
-
-  .activity-indicators {
-    gap: 2px;
+  .day-badge {
+    width: 72%;
   }
 }
 </style>
