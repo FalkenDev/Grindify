@@ -74,15 +74,15 @@
     <v-expand-transition>
       <div v-if="showDetails">
         <div
-          class="d-flex flex-row ga-2 px-5 py-2 align-center bg-blue-darken-4"
+          class="d-flex flex-row ga-2 px-5 py-2 align-center bg-green-darken-4"
         >
           <v-icon
             size="18"
-            color="grey"
+            color="white"
           >
             mdi-lightbulb-outline
           </v-icon>
-          <p class="text-subtitle-2 text-grey">
+          <p class="text-subtitle-2 text-white">
             {{ resolvedExercise ? displayDescription(resolvedExercise) : '' }}
           </p>
         </div>
