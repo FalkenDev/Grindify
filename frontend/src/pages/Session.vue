@@ -25,7 +25,7 @@
       </template>
     </BackHeader>
 
-    <div class="my-3 d-flex justify-space-between align-center bg-grey-darken-4 pa-5">
+    <div class="mb-3 d-flex justify-space-between align-center bg-grey-darken-4 pa-5">
       <p class="text-h6">
         {{ clock }}
       </p>
