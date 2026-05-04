@@ -288,12 +288,6 @@ const allSetsDone = computed(() => {
   return props.workoutSets.every((set) => set.done);
 });
 
-watch(allSetsDone, (isCompleted) => {
-  if (isCompleted) {
-    showDetails.value = false;
-  }
-});
-
 function handleRowClick(event: Event, { item }: { item: WorkoutSet }) {
   selectedSet.value = { ...item };
   isEditDialogVisible.value = true;
@@ -347,6 +341,7 @@ function deleteSet(setToDelete: WorkoutSet) {
 }
 
 function addSet() {
+  showDetails.value = true;
   emit('add:set');
 }
 
@@ -354,15 +349,9 @@ function onDoneChanged(set: WorkoutSet, isDone: boolean) {
   emit('update:set', { ...set, done: isDone });
 }
 
-watch(
-  allSetsDone,
-  (isCompleted) => {
-    if (isCompleted) {
-      showDetails.value = false;
-    }
-  },
-  { immediate: true }
-);
+watch(allSetsDone, (isCompleted) => {
+  showDetails.value = !isCompleted;
+}, { immediate: true });
 </script>
 
 <style scoped>
