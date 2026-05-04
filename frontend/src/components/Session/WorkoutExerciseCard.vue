@@ -44,6 +44,12 @@
         >
           mdi-timer-play-outline
         </v-icon>
+        <v-icon
+          v-if="!allSetsDone"
+          @click="addSet"
+        >
+          mdi-table-row-plus-after
+        </v-icon>
         <v-menu
           offset-y
           transition="slide-y-transition"
