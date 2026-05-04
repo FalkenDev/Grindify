@@ -149,6 +149,18 @@ export class UserController {
     return this.userService.getStreakInfo(+req.user.id);
   }
 
+  @Post('streak/freeze')
+  @ApiOperation({ summary: 'Use a streak freeze to protect the current week' })
+  @ApiOkResponse({
+    description: 'Updated streak info after consuming the freeze',
+  })
+  useStreakFreeze(@Req() req: RequestWithUser, @Body() body: { date: string }) {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    return this.userService.useStreakFreeze(+req.user.id, body.date);
+  }
+
   @Put('weekly-goal')
   @ApiOperation({ summary: 'Update weekly workout goal' })
   @ApiOkResponse({ type: UserWithoutPasswordDto })
@@ -179,8 +191,13 @@ export class UserController {
   }
 
   @Get('export')
-  @ApiOperation({ summary: 'Export all user data (GDPR Art. 20 data portability)' })
-  @ApiOkResponse({ description: 'JSON file containing all personal data for the authenticated user' })
+  @ApiOperation({
+    summary: 'Export all user data (GDPR Art. 20 data portability)',
+  })
+  @ApiOkResponse({
+    description:
+      'JSON file containing all personal data for the authenticated user',
+  })
   async exportData(
     @Req() req: RequestWithUser,
     @Res() res: Response,
@@ -189,7 +206,10 @@ export class UserController {
       throw new UnauthorizedException('User not authenticated');
     }
     const data = await this.userService.exportUserData(+req.user.id);
-    res.setHeader('Content-Disposition', 'attachment; filename="grindify-data-export.json"');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="grindify-data-export.json"',
+    );
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(data, null, 2));
   }

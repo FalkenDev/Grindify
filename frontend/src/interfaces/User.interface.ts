@@ -44,6 +44,9 @@ export interface StreakInfo {
   weeklyWorkoutGoal: number
   currentWeekWorkouts: number
   progressPercentage: number
+  streakFreezes: number
+  freezeUsedThisWeek: boolean
+  streakFreezeUsedWeek: string | null
 }
 
 export interface CreateUser {

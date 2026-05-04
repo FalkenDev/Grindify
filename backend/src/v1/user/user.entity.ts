@@ -65,6 +65,15 @@ export class User {
   @Column({ default: 0 })
   currentWeekWorkouts: number;
 
+  @Column({ default: 1 })
+  streakFreezes: number;
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  streakFreezeUsedWeek: string | null;
+
+  @Column({ default: 0 })
+  completedGoalWeeksCount: number;
+
   // Onboarding & Preferences
   @Column({ type: 'varchar', length: 20, nullable: true })
   unitScale: string; // 'metric' or 'imperial'
