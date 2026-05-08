@@ -473,7 +473,6 @@ interface CalendarDay {
   dayNumber: number
   isCurrentMonth: boolean
   isToday: boolean
-  hasCompletedTraining: boolean
   trainingType: 'workout' | 'activity' | 'both' | null
   hasScheduledOnly: boolean
   isFrozenWeek: boolean
