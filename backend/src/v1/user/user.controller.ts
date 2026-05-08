@@ -44,6 +44,7 @@ import {
 import { UserWithoutPasswordDto } from '../auth/dto/UserWithoutPassword.dto';
 import { UpdateUserDto } from './dto/UpdateUser.dto';
 import { UpdateUserPreferencesDto } from './dto/UpdateUserPreferences.dto';
+import { UseStreakFreezeDto } from './dto/UseStreakFreeze.dto';
 import { UploadService } from '../upload/upload.service';
 
 @ApiTags('users')
@@ -154,7 +155,7 @@ export class UserController {
   @ApiOkResponse({
     description: 'Updated streak info after consuming the freeze',
   })
-  useStreakFreeze(@Req() req: RequestWithUser, @Body() body: { date: string }) {
+  useStreakFreeze(@Req() req: RequestWithUser, @Body() body: UseStreakFreezeDto) {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
