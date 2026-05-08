@@ -473,6 +473,7 @@ interface CalendarDay {
   dayNumber: number
   isCurrentMonth: boolean
   isToday: boolean
+  hasCompletedTraining: boolean
   trainingType: 'workout' | 'activity' | 'both' | null
   hasScheduledOnly: boolean
   isFrozenWeek: boolean
@@ -789,6 +790,10 @@ function getTrainingType(events: CalendarEvent[]): 'workout' | 'activity' | 'bot
   if (hasWorkout) return 'workout'
   if (hasActivity) return 'activity'
   return null
+}
+
+function hasCompletedTrainingEvents(events: CalendarEvent[]): boolean {
+  return events.some(e => e.type === 'workout' || e.type === 'activity')
 }
 
 function hasScheduledOnlyEvents(events: CalendarEvent[]): boolean {
