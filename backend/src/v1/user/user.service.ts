@@ -291,6 +291,11 @@ export class UserService {
 
       // Reset weekly workout count for the new week
       user.currentWeekWorkouts = 0;
+
+      // Update lastStreakCheckDate to the start of the current week so that
+      // repeated calls (e.g. from getStreakInfo) don't re-run the rollover
+      // logic and incorrectly increment completedGoalWeeksCount again.
+      user.lastStreakCheckDate = currentWeekMonday;
     }
   }
 
