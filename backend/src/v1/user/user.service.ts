@@ -405,7 +405,14 @@ export class UserService {
 
     const now = new Date();
     const currentWeekKey = this.getISOWeekKey(now);
+
+    if (!date) {
+      throw new BadRequestException('date is required');
+    }
     const targetDate = new Date(date + 'T12:00:00');
+    if (Number.isNaN(targetDate.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
     const targetWeekKey = this.getISOWeekKey(targetDate);
 
     if (targetWeekKey !== currentWeekKey) {
