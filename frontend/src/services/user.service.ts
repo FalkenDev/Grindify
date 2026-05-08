@@ -103,7 +103,7 @@ export const useStreakFreeze = async (date: string) => {
     return data
   } catch (error) {
     console.error('Error using streak freeze:', error)
-    throw error
+    throw new Error('Failed to use streak freeze')
   }
 }
 
