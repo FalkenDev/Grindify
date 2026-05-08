@@ -782,10 +782,6 @@ function getEventsForDate(dateStr: string): CalendarEvent[] {
   return [...completed, ...scheduled]
 }
 
-function hasCompletedTrainingEvents(events: CalendarEvent[]): boolean {
-  return events.some(event => event.type === 'workout' || event.type === 'activity')
-}
-
 function getTrainingType(events: CalendarEvent[]): 'workout' | 'activity' | 'both' | null {
   const hasWorkout = events.some(e => e.type === 'workout')
   const hasActivity = events.some(e => e.type === 'activity')
