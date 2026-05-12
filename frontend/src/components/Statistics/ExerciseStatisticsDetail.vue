@@ -27,7 +27,7 @@
           "
           :image="exercise?.image ? getImageUrl(exercise.image) : undefined"
           icon="mdi-dumbbell"
-          @back="dialogModel = false"
+          @close="dialogModel = false"
         />
 
         <div class="mt-4 mb-2 d-flex ga-2">
