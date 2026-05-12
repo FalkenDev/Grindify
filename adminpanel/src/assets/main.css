@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Backgrounds */
+  --bg:         #09090b;
+  --bg-2:       #0c0c0e;
+  --surface:    #131316;
+  --surface-2:  #18181b;
+  --surface-3:  #1f1f23;
+  --surface-hi: #27272a;
+
+  /* Borders */
+  --border:        #1f1f23;
+  --border-2:      #2a2a2f;
+  --border-strong: #3f3f46;
+
+  /* Text */
+  --text:   #fafafa;
+  --text-2: #d4d4d8;
+  --mute:   #a1a1aa;
+  --dim:    #71717a;
+  --faint:  #52525b;
+  --ghost:  #3f3f46;
+
+  /* Accent — lime (default) */
+  --lime:       #c4f74a;
+  --lime-2:     #a3e635;
+  --lime-deep:  #84cc16;
+  --lime-ink:   #1a2009;
+  --lime-soft:  rgba(196, 247, 74, 0.12);
+  --lime-soft-2: rgba(196, 247, 74, 0.22);
+
+  /* Semantic colors */
+  --emerald:      #34d399;
+  --emerald-soft: rgba(52, 211, 153, 0.14);
+  --amber:        #f59e0b;
+  --amber-soft:   rgba(245, 158, 11, 0.14);
+  --red:          #f87171;
+  --red-soft:     rgba(248, 113, 113, 0.14);
+  --blue:         #60a5fa;
+  --blue-soft:    rgba(96, 165, 250, 0.14);
+  --violet:       #a78bfa;
+  --violet-soft:  rgba(167, 139, 250, 0.14);
+
+  /* Radii */
+  --r-card:  16px;
+  --r-inner: 12px;
+  --r-pill:  999px;
+  --r-chip:  8px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.03) inset, 0 0 0 1px var(--border);
+  --shadow-pop:  0 24px 60px -20px rgba(0,0,0,0.6), 0 8px 24px -12px rgba(0,0,0,0.45), 0 0 0 1px var(--border-2);
+
+  /* Layout */
+  --side-w:          248px;
+  --side-w-collapsed: 64px;
+  --top-h:           60px;
+}
+
+/* ── Base resets ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.02em; }
+
+::selection { background: var(--lime-soft-2); color: var(--text); }
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a2a2f; border-radius: 8px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+/* ── Page header ──────────────────────────────────────────────── */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.page-head .titles h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.page-head .titles p {
+  margin: 4px 0 0;
+  color: var(--mute);
+  font-size: 13.5px;
+}
+
+.page-head .actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── App shell ────────────────────────────────────────────────── */
+#app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--side-w) 1fr;
+  transition: grid-template-columns 0.2s ease;
+}
+
+#app.collapsed {
+  grid-template-columns: var(--side-w-collapsed) 1fr;
+}
+
+@media (max-width: 900px) {
+  #app { grid-template-columns: 1fr; }
+}
+
+/* ── Main content area ────────────────────────────────────────── */
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 28px 40px;
+}
