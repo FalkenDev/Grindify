@@ -639,6 +639,116 @@ export default {
       description:
         'Rope at face height. Pull to nose/forehead with external rotation (thumbs back); squeeze rear delts.',
     },
+    cable_lateral_raise: {
+      name: 'Cable lateral raise',
+      description:
+        'Raise your arms out to the sides with a cable pulley. Keep soft elbows and control the return.',
+    },
+    machine_chest_press: {
+      name: 'Machine chest press',
+      description:
+        'Press forward from a chest press machine with a supported back. Keep shoulder blades down and drive through the mid chest.',
+    },
+    machine_shoulder_press: {
+      name: 'Machine shoulder press',
+      description:
+        'Seated shoulder press in a machine. Push the weight up from shoulder height and keep the path controlled.',
+    },
+    reverse_pec_deck: {
+      name: 'Reverse pec deck',
+      description:
+        'Face the machine and perform a rear-delt fly. Keep shoulders down and squeeze the shoulder blades together.',
+    },
+    cable_crunch: {
+      name: 'Cable crunch',
+      description:
+        'Kneel in front of a cable tower and crunch the torso down. Keep your core tight and move with control.',
+    },
+    assisted_pull_up_machine: {
+      name: 'Assisted pull-up machine',
+      description:
+        'Use the assisted pull-up machine to train pull-ups with support. Focus on a full range of motion and scapula control.',
+    },
+    hack_squat_machine: {
+      name: 'Hack squat machine',
+      description:
+        'Position your feet shoulder-width on the platform and squat with your back supported. Drive through the heels and keep the knees aligned.',
+    },
+    hip_thrust_machine: {
+      name: 'Hip thrust machine',
+      description:
+        'Perform hip thrusts with the machine pad over your hips. Drive through the heels and squeeze the glutes at the top.',
+    },
+    lying_leg_curl: {
+      name: 'Lying leg curl',
+      description:
+        'Lie face down and curl the legs toward your glutes. Keep your hips stable and control the eccentric phase.',
+    },
+    back_extension: {
+      name: 'Back extension',
+      description:
+        'Hinge at the hips on a back extension bench. Keep a neutral spine and extend by contracting the glutes and hamstrings.',
+    },
+    pec_deck: {
+      name: 'Pec deck',
+      description:
+        'Sit with your chest against the pad and bring the handles together. Keep a slight bend in the elbows and squeeze the chest.',
+    },
+    ab_crunch_machine: {
+      name: 'Ab crunch machine',
+      description:
+        'Sit in the machine and crunch the torso down. Keep the lower body stable and drive the movement with your abs.',
+    },
+    smith_machine_bench_press: {
+      name: 'Smith machine bench press',
+      description:
+        'Bench press on a Smith machine. Use a controlled bar path and keep your shoulders stable while pressing.',
+    },
+    smith_machine_incline_press: {
+      name: 'Smith machine incline press',
+      description:
+        'Incline press on a Smith machine. Press from the upper chest while maintaining shoulder control and a steady tempo.',
+    },
+    chest_supported_machine_row: {
+      name: 'Chest-supported machine row',
+      description:
+        'Row with your chest supported on the machine pad. Pull the handles to the torso with a strong back contraction.',
+    },
+    cable_row_wide_grip: {
+      name: 'Cable row (wide grip)',
+      description:
+        'Use a wide grip handle for a cable row. Pull to the upper abdomen and keep the elbows wide to target the upper back.',
+    },
+    preacher_curl_machine: {
+      name: 'Preacher curl machine',
+      description:
+        'Curl with your arms supported on a preacher bench. Keep the upper arms fixed and lift with the biceps using a slow negative.',
+    },
+    cable_curl: {
+      name: 'Cable curl',
+      description:
+        'Curl using a cable machine for constant tension. Keep the elbows fixed and squeeze the biceps at the top.',
+    },
+    rope_overhead_triceps_extension: {
+      name: 'Rope overhead triceps extension',
+      description:
+        'With a rope attachment overhead, extend the arms down. Keep the elbows close and feel the stretch in the triceps long head.',
+    },
+    bulgarian_split_squat: {
+      name: 'Bulgarian split squat',
+      description:
+        'Rear foot elevated and front leg lunging. Keep the weight on the front heel and lower until the front thigh is parallel.',
+    },
+    adductor_machine: {
+      name: 'Adductor machine',
+      description:
+        'Squeeze the legs together using the adductor machine. Control the movement and avoid locking the knees.',
+    },
+    abductor_machine: {
+      name: 'Abductor machine',
+      description:
+        'Push the legs apart with the abductor machine. Keep the movement smooth and focus on the outer hip muscles.',
+    },
     biceps_curl_barbell_or_dumbbell: {
       name: 'Biceps curl (barbell/dumbbell)',
       description:
@@ -1263,6 +1373,8 @@ export default {
     traps: 'Traps',
     lowerBack: 'Lower Back',
     upperChest: 'Upper Chest',
+    adductors: 'Adductors',
+    abductors: 'Abductors',
     hipFlexors: 'Hip Flexors',
   },
   pwa: {

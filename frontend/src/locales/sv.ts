@@ -633,6 +633,116 @@ export default {
       description:
         'Rep i ansiktshöjd. Dra mot näsa/panna med utåtrotation (tummarna bakåt); spänn bakre deltan.',
     },
+    cable_lateral_raise: {
+      name: 'Kabellyft åt sidan',
+      description:
+        'Lyft armarna åt sidan med kabel. Håll lätt böjda armbågar och kontrollera återgången.',
+    },
+    machine_chest_press: {
+      name: 'Bröstpress i maskin',
+      description:
+        'Pressa framåt i en bröstpressmaskin med ryggen stödd. Håll skulderbladen nere och tryck från mitten av bröstet.',
+    },
+    machine_shoulder_press: {
+      name: 'Axelpress i maskin',
+      description:
+        'Sittande axelpress i maskin. Pressa vikten upp från axelhöjd och håll rörelsen kontrollerad.',
+    },
+    reverse_pec_deck: {
+      name: 'Omvänd pec deck',
+      description:
+        'Stå vänd mot maskinen och utför en bakre deltahöjning. Håll axlarna nere och kläm ihop skulderbladen.',
+    },
+    cable_crunch: {
+      name: 'Kabel crunch',
+      description:
+        'Knä framför en kabelstation och krulla bålen nedåt. Håll bålen spänd och rör dig kontrollerat.',
+    },
+    assisted_pull_up_machine: {
+      name: 'Assisterad chinsmaskin',
+      description:
+        'Använd assisterad chinsmaskin för att träna pull-ups med stöd. Fokusera på full rörelse och skulderbladskontroll.',
+    },
+    hack_squat_machine: {
+      name: 'Hack squat-maskin',
+      description:
+        'Placera fötterna axelbrett på plattformen och böj med ryggen stödd. Tryck genom hälarna och håll knäna i linje.',
+    },
+    hip_thrust_machine: {
+      name: 'Hip thrust-maskin',
+      description:
+        'Utför hip thrusts med maskinpadd över höfterna. Tryck genom hälarna och kläm sätesmusklerna i toppen.',
+    },
+    lying_leg_curl: {
+      name: 'Lårcurl liggande',
+      description:
+        'Ligg på mage och curl benen mot sätesmusklerna. Håll höfterna stabila och kontrollera det excentriska jobbet.',
+    },
+    back_extension: {
+      name: 'Rygglyft',
+      description:
+        'Böj i höften på en rygglyftsbänk. Håll neutral rygg och sträck upp genom säte och baksida lår.',
+    },
+    pec_deck: {
+      name: 'Pec deck',
+      description:
+        'Sitt med bröstet mot dynan och för handtagen ihop. Håll lätt böjda armbågar och pressa bröstet.',
+    },
+    ab_crunch_machine: {
+      name: 'Magcrunch-maskin',
+      description:
+        'Sitt i maskinen och krulla bålen nedåt. Håll underkroppen stabil och driv rörelsen med magen.',
+    },
+    smith_machine_bench_press: {
+      name: 'Bänkpress i Smith-maskin',
+      description:
+        'Bänkpress i Smith-maskin. Använd en kontrollerad stångbana och håll axlarna stabila när du pressar.',
+    },
+    smith_machine_incline_press: {
+      name: 'Lutande press i Smith-maskin',
+      description:
+        'Lutande press i Smith-maskin. Pressa från övre bröstet och bibehåll axelkontroll och jämn takt.',
+    },
+    chest_supported_machine_row: {
+      name: 'Bröststött maskinrodd',
+      description:
+        'Rodd med bröstet stödd mot maskindynan. Dra handtagen mot bålen med ett starkt ryggkontraktion.',
+    },
+    cable_row_wide_grip: {
+      name: 'Kabelrodd bredfattning',
+      description:
+        'Använd bredfattat handtag för kabelrodd. Dra mot övre magen och håll armbågarna breda för att träffa övre ryggen.',
+    },
+    preacher_curl_machine: {
+      name: 'Preacher curl-maskin',
+      description:
+        'Curl med armarna stödda på en preacherbänk. Håll överarmarna stilla och lyft med biceps med långsamt negativt.',
+    },
+    cable_curl: {
+      name: 'Kabelcurl',
+      description:
+        'Curl med kabelmaskin för konstant spänning. Håll armbågarna fasta och kläm biceps i toppen.',
+    },
+    rope_overhead_triceps_extension: {
+      name: 'Tricepspress overhead med rep',
+      description:
+        'Med repfäste ovanför huvudet, sträck armarna nedåt. Håll armbågarna nära och känn stretch i triceps långhuvud.',
+    },
+    bulgarian_split_squat: {
+      name: 'Bulgarsk utfall',
+      description:
+        'Bakre fot upphöjd och främre benet i utfall. Håll vikten på främre hälen och sänk tills låret är parallellt.',
+    },
+    adductor_machine: {
+      name: 'Adduktormaskin',
+      description:
+        'Pressa ihop benen med adduktormaskin. Kontrollera rörelsen och undvik att låsa knäna.',
+    },
+    abductor_machine: {
+      name: 'Abduktormaskin',
+      description:
+        'Pressa benen utåt med abduktormaskin. Håll rörelsen mjuk och fokusera på utsidan av höften.',
+    },
     biceps_curl_barbell_or_dumbbell: {
       name: 'Bicepscurl med skivstång/hantlar',
       description:
@@ -1255,6 +1365,8 @@ export default {
     traps: 'Trapezius',
     lowerBack: 'Ländrygg',
     upperChest: 'Övre bröst',
+    adductors: 'Adduktorer',
+    abductors: 'Abduktorer',
     hipFlexors: 'Höftböjare',
   },
   pwa: {
