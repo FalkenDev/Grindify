@@ -1,0 +1,61 @@
+import type { Config } from 'tailwindcss'
+
+export default {
+  darkMode: ['class'],
+  content: ['./index.html', './src/**/*.{vue,ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        bg: 'var(--bg)',
+        'bg-2': 'var(--bg-2)',
+        surface: 'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+        'surface-3': 'var(--surface-3)',
+        'surface-hi': 'var(--surface-hi)',
+        border: 'var(--border)',
+        'border-2': 'var(--border-2)',
+        'border-strong': 'var(--border-strong)',
+        text: 'var(--text)',
+        'text-2': 'var(--text-2)',
+        mute: 'var(--mute)',
+        dim: 'var(--dim)',
+        faint: 'var(--faint)',
+        ghost: 'var(--ghost)',
+        lime: 'var(--lime)',
+        'lime-2': 'var(--lime-2)',
+        'lime-deep': 'var(--lime-deep)',
+        'lime-ink': 'var(--lime-ink)',
+        emerald: 'var(--emerald)',
+        amber: 'var(--amber)',
+        red: 'var(--red)',
+        blue: 'var(--blue)',
+        violet: 'var(--violet)',
+        'lime-soft': 'var(--lime-soft)',
+        'lime-soft-2': 'var(--lime-soft-2)',
+        'emerald-soft': 'var(--emerald-soft)',
+        'amber-soft': 'var(--amber-soft)',
+        'red-soft': 'var(--red-soft)',
+        'blue-soft': 'var(--blue-soft)',
+        'violet-soft': 'var(--violet-soft)',
+      },
+      fontFamily: {
+        sans: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'JetBrains Mono', 'Menlo', 'monospace'],
+      },
+      borderRadius: {
+        card: 'var(--r-card)',
+        inner: 'var(--r-inner)',
+        chip: 'var(--r-chip)',
+        pill: 'var(--r-pill)',
+      },
+      height: {
+        topbar: 'var(--top-h)',
+      },
+      width: {
+        sidebar: 'var(--side-w)',
+        'sidebar-collapsed': 'var(--side-w-collapsed)',
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config

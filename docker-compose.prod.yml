@@ -53,6 +53,22 @@ services:
     env_file:
       - .env
 
+  adminpanel:
+    build:
+      context: .
+      dockerfile: Dockerfile.adminpanel
+      target: production
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: grindify_adminpanel
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${ADMINPANEL_PORT:-3001}:3001"
+    env_file:
+      - .env
+
 volumes:
   postgres_data:
   uploads_data:
