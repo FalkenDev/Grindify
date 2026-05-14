@@ -178,12 +178,14 @@ import type { MuscleGroup } from '@/interfaces/MuscleGroup.interface'
 import { useExerciseStore } from '@/stores/exercise.store'
 import { useMuscleGroupStore } from '@/stores/muscleGroup.store'
 import { useI18n } from 'vue-i18n'
-import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { displayExerciseName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const muscleGroupStore = useMuscleGroupStore()
 const searchQuery = ref('')
 const exerciseStore = useExerciseStore()
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 const isLoading = ref(false)
 const viewExercise = ref<Exercise | null>(null)
 const isViewExerciseOpen = ref(false)
@@ -209,7 +211,7 @@ const resetFilters = () => {
   selectedTypes.value = []
 }
 
-const displayName = (exercise: Exercise) => displayExerciseName({ t }, exercise)
+const displayName = (exercise: Exercise) => displayExerciseName(exercise, lang.value)
 
 const getPrimaryMuscle = (exercise: Exercise): string | null => {
   if (exercise.primaryMuscleGroups?.length)
@@ -236,7 +238,7 @@ const onCreateExerciseClose = async () => {
 const exercises = computed<Exercise[]>(() =>
   exerciseStore.exercises.filter((exercise: Exercise) => {
     const name = displayName(exercise).toLowerCase()
-    const desc = (exercise.description ?? '').toLowerCase()
+    const desc = resolveI18n(exercise.description, lang.value).toLowerCase()
     const query = (searchQuery.value || '').toLowerCase()
     const matchesSearch = name.includes(query) || desc.includes(query)
 

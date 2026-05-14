@@ -234,7 +234,7 @@
               </v-avatar>
               <div>
                 <p class="text-body-1 font-weight-bold">
-                  {{ session.type === 'workout' ? session.workout?.title : session.activity?.name }}
+                  {{ session.type === 'workout' ? session.workout?.title : (session.activity ? displayActivityName(session.activity, lang) : '') }}
                 </p>
                 <div class="d-flex align-center ga-2">
                   <v-chip size="x-small" color="blue" variant="flat">
@@ -430,8 +430,11 @@ import type { StreakInfo } from '@/interfaces/User.interface'
 import ScheduleSessionDialog from '@/components/Session/ScheduleSessionDialog.vue'
 import AddPastSessionDialog from '@/components/Session/AddPastSessionDialog.vue'
 import ScheduledSessionBottomSheet from '@/components/Session/ScheduledSessionBottomSheet.vue'
+import { displayActivityName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const { t, locale } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 const router = useRouter()
 
 const dateLocale = computed(() => (locale.value === 'sv' ? 'sv-SE' : 'en-US'))
@@ -657,7 +660,7 @@ const allCompletedEvents = computed<CalendarEvent[]>(() => {
       events.push({
         id: `activity-${log.id}`,
         sessionId: log.id,
-        name: log.activity?.name || 'Activity',
+        name: log.activity ? displayActivityName(log.activity, lang.value) : 'Activity',
         date: new Date(log.date),
         type: 'activity',
         rawData: log,
@@ -676,7 +679,7 @@ const scheduledEvents = computed<CalendarEvent[]>(() => {
     .map(s => ({
       id: `scheduled-${s.id}-${s.resolvedDate}`,
       sessionId: s.id,
-      name: s.type === 'workout' ? s.workout?.title || 'Workout' : s.activity?.name || 'Activity',
+      name: s.type === 'workout' ? s.workout?.title || 'Workout' : (s.activity ? displayActivityName(s.activity, lang.value) : 'Activity'),
       date: new Date(s.resolvedDate + 'T12:00:00'),
       type: 'scheduled' as const,
       rawData: s,

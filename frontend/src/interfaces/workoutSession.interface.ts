@@ -15,6 +15,7 @@
 
 import type { Workout } from './Workout.interface'
 import type { Exercise as UserExercise } from './Exercise.interface'
+import type { I18nString } from './i18n.types'
 
 export interface PerformedSet {
   setNumber: number
@@ -70,7 +71,7 @@ export interface WorkoutSession {
   scheduledSessionId?: number
   caloriesBurned?: number | null
   newRecords?: {
-    exercise?: { name: string }
+    exercise?: { title: I18nString }
     value: number
     recordType: string
   }[]

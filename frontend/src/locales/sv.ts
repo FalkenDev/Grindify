@@ -493,6 +493,14 @@ export default {
     editSession: 'Redigera pass',
     logUpdated: 'Passet uppdaterades!',
     failedToUpdateLog: 'Kunde inte uppdatera pass',
+    global: 'Global',
+    personalized: 'Personaliserad',
+    personalize: 'Personalisera',
+    personalizeTitle: 'Personalisera {name}?',
+    personalizeBody: 'Skapa din egen kopia av den här aktiviteten. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
+    transferHistory: 'Överför historik',
+    startFresh: 'Börja om',
+    personalizeFailed: 'Kunde inte personalisera aktiviteten',
   },
   exercise: {
     created: 'Övningen skapades!',
@@ -513,6 +521,15 @@ export default {
     failedToDelete: 'Kunde inte ta bort övning',
     failedToLoadGlobal: 'Kunde inte ladda globala övningar',
     failedToAdd: 'Kunde inte lägga till övningar',
+    global: 'Global',
+    personalized: 'Personaliserad',
+    personalize: 'Personalisera',
+    personalizedBanner: 'Den här övningen har personaliserats från det globala biblioteket åt dig.',
+    personalizeTitle: 'Personalisera {name}?',
+    personalizeBody: 'Skapa din egen kopia av den här övningen. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
+    transferHistory: 'Överför historik',
+    startFresh: 'Börja om',
+    personalizeFailed: 'Kunde inte personalisera övningen',
     createExercise: 'Skapa övning',
     createNewExercise: 'Skapa ny övning',
     searchExercises: 'Sök övningar',
@@ -522,191 +539,6 @@ export default {
       compound: 'Sammansatt',
       isolation: 'Isolation',
       bodyweight: 'Kroppsvikt',
-    },
-    bench_press: {
-      name: 'Bänkpress',
-      description:
-        'Bänkpress med skivstång på plan bänk. Spänn skulderbladen, lätt svank, fötter i golvet. Sänk till mitten av bröstet och pressa upp med armbågar i ca 45°.',
-    },
-    incline_dumbbell_press: {
-      name: 'Hantelpress lutande',
-      description:
-        'Pressa hantlar på lutande bänk (30–45°). Sänk kontrollerat mot bröstet och pressa upp och lätt inåt.',
-    },
-    seated_dumbbell_shoulder_press: {
-      name: 'Axelpress med hantlar sittande',
-      description:
-        'Sittande vertikal press. Håll revbenen nere och underarmar lodräta. Sänk till ungefär öronhöjd och pressa utan att rycka med axlarna.',
-    },
-    dumbbell_lateral_raise: {
-      name: 'Hantellyft åt sidan',
-      description:
-        'Lyft hantlarna lätt framåt och ut till axelhöjd. Lätt böjda armbågar, strikt kontroll och långsam excentrisk fas.',
-    },
-    cable_triceps_pushdown: {
-      name: 'Triceps pushdown i kabelmaskin',
-      description:
-        'Med rep eller stång: håll armbågarna intill kroppen. Sträck ut helt och återgå kontrollerat till ca 90°.',
-    },
-    cable_chest_fly: {
-      name: 'Kabel-flyes',
-      description:
-        'Från höga/mellersta trissor. Lätt framåtlutning, kramande rörelse med mjuka armbågar. Spänn bröstet och återgå långsamt.',
-    },
-    back_squat: {
-      name: 'Knäböj',
-      description:
-        'Skivstång på övre rygg, spänn bålen, knän följer tår. Böj så djupt du kontrollerar och tryck upp igen.',
-    },
-    barbell_hip_thrust: {
-      name: 'Hip thrust med skivstång',
-      description:
-        'Övre ryggen mot bänk, stång över höften. Tucka bäckenet, tryck genom hälarna och lås ut med sätesmusklerna.',
-    },
-    leg_press: {
-      name: 'Benpress',
-      description:
-        'Fötter axelbrett på plattan. Sänk djupt kontrollerat utan att tippa bäckenet; pressa genom mellanfoten.',
-    },
-    seated_leg_curl: {
-      name: 'Lårcurl sittande',
-      description:
-        'Ställ in rullen ovanför hälarna. Curl till full knäflexion med stilla höfter; kontrollera återgången.',
-    },
-    leg_extension: {
-      name: 'Benspark',
-      description:
-        'Rulle ovanför anklarna. Sträck nära låsning kontrollerat; 2–3 s excentrisk fas kan kännas snällare för knät.',
-    },
-    calf_raise_machine_or_leg_press: {
-      name: 'Vadpress i maskin/benpress',
-      description:
-        'Fullt rörelseomfång i fotleden. Paus i botten, stark tåhöjning i toppen. Undvik studs.',
-    },
-    standing_barbell_overhead_press: {
-      name: 'Militärpress (stående)',
-      description:
-        'Stå stabilt, spänn säte och bål. Pressa rakt upp; skjut in huvudet i toppläget.',
-    },
-    seated_cable_row: {
-      name: 'Rodd i kabelmaskin sittande',
-      description:
-        'Neutral rygg, bröst upp. Dra mot nedre revben med armbågar nära; spänn lats/mittrygg och återgå långsamt.',
-    },
-    incline_bench_press: {
-      name: 'Bänkpress lutande',
-      description:
-        'Skivstång på lutande bänk (30–45°). Sänk till övre bröstet och pressa med armbågar i ca 45–60°.',
-    },
-    walking_lunge: {
-      name: 'Utfall stegande',
-      description:
-        'Ta ett steg fram och sänk kontrollerat. Främre knät följer tår; pressa upp via främre hälen och växla ben.',
-    },
-    overhead_triceps_extension_rope_or_db: {
-      name: 'Tricepsextension ovanför huvudet (rep/hantel)',
-      description:
-        'Armar ovanför huvudet, armbågar in. Sänk bakom huvudet för stretch; sträck ut helt utan att fladdra med armbågarna.',
-    },
-    hammer_curl: {
-      name: 'Hammarcurl',
-      description:
-        'Hantelcurl med neutral fattning. Armbågarna nära kroppen; kontrollera nedvägen i ca 2 sek.',
-    },
-    deadlift: {
-      name: 'Marklyft',
-      description:
-        'Höftfällning med neutral rygg, stång nära smalben. Tryck golvet bort och stå upp. Återställ eller kontrollera varje rep.',
-    },
-    lat_pulldown: {
-      name: 'Latsdrag',
-      description:
-        'Greppa lite bredare än axlar. Dra stången mot övre bröstet; armbågar ner och bak; långsam återgång.',
-    },
-    seated_row_cable: {
-      name: 'Sittande kabelrodd (mot naveln)',
-      description:
-        'Neutral rygg; dra mot naveln/nedre revben. Spänn skulderbladen och kontrollera återgången.',
-    },
-    face_pull: {
-      name: 'Face pull',
-      description:
-        'Rep i ansiktshöjd. Dra mot näsa/panna med utåtrotation (tummarna bakåt); spänn bakre deltan.',
-    },
-    biceps_curl_barbell_or_dumbbell: {
-      name: 'Bicepscurl med skivstång/hantlar',
-      description:
-        'Curl med supinerat grepp, armbågar intill kroppen, axlar nere. Fullt rörelseomfång och kontrollerad nedväg.',
-    },
-    sit_up: {
-      name: 'Situps',
-      description:
-        'Tippa bäckenet bakåt och rulla upp kota för kota. Dra inte i nacken; kontrollera nedvägen.',
-    },
-    lying_leg_raise: {
-      name: 'Benlyft liggande',
-      description:
-        'Tippa bäckenet bakåt; lyft raka ben utan att svanka. Stanna innan ländryggen tappar kontakten.',
-    },
-    side_lying_leg_raise_obliques: {
-      name: 'Sidolyft för obliques (liggande på sidan)',
-      description:
-        'Ligg på sidan; lyft med sneda magmuskler, håll höfter staplade och kontrollera tempot.',
-    },
-    pull_ups: {
-      name: 'Pull-ups',
-      description:
-        'En klassisk kroppsviktövning som bygger en bred och stark rygg. Latsdrag kan användas som nybörjaralternativ.',
-    },
-    plank: {
-      name: 'Plankan',
-      description:
-        'En statisk bålövning som aktiverar hela bålen och förbättrar stabilitet och hållning.',
-    },
-    bent_over_barbell_row: {
-      name: 'Framåtlutad rodd (skivstång)',
-      description:
-        'En klassisk sammansatt ryggövning med skivstång. En av de bästa övningarna för att bygga ryggtjocklek.',
-    },
-    landmine_row: {
-      name: 'Landmine-rodd',
-      description:
-        'En roddvariant där ena änden av skivstången är fixerad. Mer ryggvänlig än traditionell framåtlutad rodd.',
-    },
-    single_arm_dumbbell_row: {
-      name: 'Enarms hantelrodd',
-      description:
-        'En unilateral roddövning med hantel som erbjuder stort rörelseomfång och hjälper till att korrigera muskelimbalanser.',
-    },
-    shrugs: {
-      name: 'Axellyft (Shrugs)',
-      description:
-        'En isolationsövning för övre trapeziusmuskeln. Lyft axlarna rakt uppåt med belastning och kläm ihop i topposition.',
-    },
-    romanian_deadlift: {
-      name: 'Rumänsk marklyft',
-      description:
-        'En höftgångsrörelse fokuserad på baksida lår och säte genom en kontrollerad stretch och kontraktion.',
-    },
-    russian_twists: {
-      name: 'Ryska twists',
-      description:
-        'En roterande bålövning som aktiverar sneda magmuskler. Sitt med böjda knän, luta bakåt och rotera åt sidorna.',
-    },
-    straight_arm_pulldown: {
-      name: 'Raka-arms nedrag (kabel)',
-      description:
-        'En isolationsövning för lats med raka armar genom hela rörelsen. Utmärkt för att träna kontakten med latsmuskeln.',
-    },
-    push_ups: {
-      name: 'Armhävningar',
-      description:
-        'En grundläggande kroppsviktövning som tränar bröst, triceps och axlar med krav på bålstabilitet.',
-    },
-    tbar_row: {
-      name: 'T-stångsrodd',
-      description:
-        'En sammansatt ryggövning med tung belastning. Utmärkt för att bygga ryggtjocklek och styrka.',
     },
   },
   exerciseDetails: {

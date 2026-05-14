@@ -166,7 +166,7 @@
               <v-icon size="18">mdi-dumbbell</v-icon>
             </v-avatar>
             <div>
-              <p class="text-body-2 font-weight-bold">{{ exercise.name }}</p>
+              <p class="text-body-2 font-weight-bold">{{ resolveI18n(exercise.title, lang) }}</p>
               <div class="d-flex ga-1">
                 <v-chip
                   v-for="mg in exercise.muscleGroups?.slice(0, 2)"
@@ -226,6 +226,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import StatisticsHeroCard from '@/components/Statistics/StatisticsHeroCard.vue'
 import ActivityHeatmap from '@/components/Statistics/ActivityHeatmap.vue'
 import WeeklyVolumeChart from '@/components/Statistics/WeeklyVolumeChart.vue'
@@ -241,6 +243,7 @@ import type { Exercise } from '@/interfaces/Exercise.interface'
 import type { Workout } from '@/interfaces/Workout.interface'
 
 const { t } = useI18n()
+const { lang } = useUserLanguage()
 const statisticsStore = useStatisticsStore()
 const exerciseStore = useExerciseStore()
 const workoutStore = useWorkoutStore()
@@ -265,7 +268,7 @@ const filteredExercises = computed(() => {
   if (!search) return exerciseStore.exercises
   return exerciseStore.exercises.filter(
     e =>
-      e.name.toLowerCase().includes(search) ||
+      resolveI18n(e.title, lang.value).toLowerCase().includes(search) ||
       e.muscleGroups?.some(mg => mg.name.toLowerCase().includes(search))
   )
 })

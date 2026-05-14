@@ -24,21 +24,28 @@
     "
   >
     <!-- Header -->
-    <BackHeader :title="activity.name" show-menu @close="emit('close')">
+    <BackHeader :title="activityName" show-menu @close="emit('close')">
       <template #menuAppend>
         <v-list
           class="bg-cardBg"
           width="140"
           style="border: 1px solid rgb(var(--v-theme-borderColor))"
         >
-          <v-list-item @click="isEditOpen = true">
-            <v-list-item-title>{{ $t('common.edit') }}</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="isDeleteDialogOpen = true">
-            <v-list-item-title class="text-error">{{
-              $t('activity.deleteActivity')
-            }}</v-list-item-title>
-          </v-list-item>
+          <template v-if="activity.isGlobal">
+            <v-list-item @click="isDuplicateDialogOpen = true">
+              <v-list-item-title>{{ $t('activity.personalize') }}</v-list-item-title>
+            </v-list-item>
+          </template>
+          <template v-else>
+            <v-list-item @click="isEditOpen = true">
+              <v-list-item-title>{{ $t('common.edit') }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="isDeleteDialogOpen = true">
+              <v-list-item-title class="text-error">{{
+                $t('activity.deleteActivity')
+              }}</v-list-item-title>
+            </v-list-item>
+          </template>
         </v-list>
       </template>
     </BackHeader>
@@ -52,7 +59,13 @@
       <!-- Label + Title -->
       <div class="pt-4">
         <p class="text-primary text-body-1 text-capitalize">{{ $t('settings.activities') }}</p>
-        <h1 class="text-h5 font-weight-bold">{{ activity.name }}</h1>
+        <h1 class="text-h5 font-weight-bold">{{ activityName }}</h1>
+        <v-chip v-if="activity.isGlobal" size="x-small" color="primary" variant="outlined" class="mt-1">
+          {{ $t('activity.global') }}
+        </v-chip>
+        <v-chip v-else-if="activity.personalizedFromGlobalId" size="x-small" color="secondary" variant="outlined" class="mt-1">
+          {{ $t('activity.personalized') }}
+        </v-chip>
       </div>
 
       <!-- Stat Cards -->
@@ -99,9 +112,9 @@
       </div>
 
       <!-- About -->
-      <div v-if="activity.description">
+      <div v-if="activityDescription">
         <h2 class="text-h6">{{ $t('exerciseDetails.about') }}</h2>
-        <p class="text-body-1 text-textSecondary mt-1">{{ activity.description }}</p>
+        <p class="text-body-1 text-textSecondary mt-1">{{ activityDescription }}</p>
       </div>
 
       <!-- Tracked Metrics -->
@@ -236,11 +249,19 @@
     />
   </v-dialog>
 
+  <!-- Personalize (duplicate) Dialog -->
+  <DuplicateActivityDialog
+    v-model="isDuplicateDialogOpen"
+    :activity-id="activity.id"
+    :activity-name="activityName"
+    @duplicated="emit('close')"
+  />
+
   <!-- Delete Confirmation -->
   <AcceptDialog
     v-model="isDeleteDialogOpen"
     :title="$t('activity.deleteActivity')"
-    :description="`${$t('activity.deleteActivity')} &quot;${activity.name}&quot;?`"
+    :description="`${$t('activity.deleteActivity')} &quot;${activityName}&quot;?`"
     @accept="deleteThisActivity"
     @cancel="isDeleteDialogOpen = false"
   />
@@ -254,22 +275,30 @@ import type { Activity, ActivityLog } from '@/interfaces/Activity.interface'
 import BackHeader from '@/components/BackHeader.vue'
 import EditActivity from './EditActivity.vue'
 import EditActivityLog from './EditActivityLog.vue'
+import DuplicateActivityDialog from './DuplicateActivityDialog.vue'
 import AcceptDialog from '@/components/basicUI/AcceptDialog.vue'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { displayActivityName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{ activity: Activity }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
+const { lang } = useUserLanguage()
 const activityStore = useActivityStore()
 
 const activity = computed(
   () => activityStore.activities.find(a => a.id === props.activity.id) ?? props.activity
 )
 
+const activityName = computed(() => displayActivityName(activity.value, lang.value))
+const activityDescription = computed(() => resolveI18n(activity.value?.description, lang.value))
+
 const isEditOpen = ref(false)
 const isEditLogOpen = ref(false)
 const isDeleteDialogOpen = ref(false)
+const isDuplicateDialogOpen = ref(false)
 const selectedLog = ref<ActivityLog | null>(null)
 
 

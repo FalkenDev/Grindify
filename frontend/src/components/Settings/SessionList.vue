@@ -135,8 +135,11 @@ import type { WorkoutSession } from '@/interfaces/workoutSession.interface'
 import type { ActivityLog } from '@/interfaces/Activity.interface'
 import { useI18n } from 'vue-i18n'
 import SessionDetail from '@/pages/SessionDetail.vue'
+import { displayExerciseName, displayActivityName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const searchQuery = ref('')
 const workoutSessionStore = useWorkoutSessionStore()
@@ -172,14 +175,14 @@ const sessions = computed<UnifiedSession[]>(() => {
         if (
           ws.exercises?.some(
             ex =>
-              ex.exercise?.name?.toLowerCase().includes(query) ||
-              ex.exercise?.description?.toLowerCase().includes(query)
+              (ex.exercise ? displayExerciseName(ex.exercise, lang.value) : '').toLowerCase().includes(query) ||
+              resolveI18n(ex.exercise?.description, lang.value).toLowerCase().includes(query)
           )
         )
           return true
       } else {
         const al = session.data as ActivityLog
-        if (al.activity?.name?.toLowerCase().includes(query)) return true
+        if (al.activity && displayActivityName(al.activity, lang.value).toLowerCase().includes(query)) return true
         if (al.notes?.toLowerCase().includes(query)) return true
       }
 
@@ -258,7 +261,7 @@ function title(session: UnifiedSession) {
     )
   } else {
     return (
-      (session.data as ActivityLog).activity?.name ||
+      ((session.data as ActivityLog).activity ? displayActivityName((session.data as ActivityLog).activity!, lang.value) : '') ||
       t('sessionList.activityFallback', { id: (session.data as ActivityLog).id })
     )
   }

@@ -57,10 +57,10 @@
             </v-avatar>
             <div class="d-flex flex-column">
               <v-list-item-title class="text-body-1 font-weight-bold">
-                {{ activity.name }}
+                {{ displayActivityName(activity, lang) }}
               </v-list-item-title>
-              <p v-if="activity.description" class="text-textSecondary text-caption">
-                {{ activity.description }}
+              <p v-if="resolveI18n(activity.description, lang)" class="text-textSecondary text-caption">
+                {{ resolveI18n(activity.description, lang) }}
               </p>
             </div>
           </div>
@@ -108,7 +108,7 @@
         style="border: 1px solid rgb(var(--v-theme-borderColor))"
       >
         <v-card-title>{{ $t('activity.deleteActivity') }}</v-card-title>
-        <v-card-text>Are you sure you want to delete "{{ activityToDelete?.name }}"?</v-card-text>
+        <v-card-text>Are you sure you want to delete "{{ activityToDelete ? displayActivityName(activityToDelete, lang) : '' }}"?</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="isDeleteDialogOpen = false">
@@ -132,8 +132,11 @@ import ActivityDetails from '@/components/Activity/ActivityDetails.vue'
 import CreateActivity from '@/components/Activity/CreateActivity.vue'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { displayActivityName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const { t } = useI18n()
+const { lang } = useUserLanguage()
 const emit = defineEmits<{ close: [] }>()
 const activityStore = useActivityStore()
 
@@ -145,8 +148,8 @@ const filteredActivities = computed(() => {
   const q = (searchQuery.value || '').trim().toLowerCase()
   if (!q) return activities.value
   return activities.value.filter((a: Activity) => {
-    const name = a.name.toLowerCase()
-    const desc = (a.description ?? '').toLowerCase()
+    const name = displayActivityName(a, lang.value).toLowerCase()
+    const desc = resolveI18n(a.description, lang.value).toLowerCase()
     return name.includes(q) || desc.includes(q)
   })
 })

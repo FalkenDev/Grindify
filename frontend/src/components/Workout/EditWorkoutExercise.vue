@@ -194,7 +194,8 @@ import { updateExerciseInWorkout, removeExercisesFromWorkout } from '@/services/
 import { useWorkoutStore } from '@/stores/workout.store'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
-import { displayExerciseName, displayExerciseDescription } from '@/utils/exerciseDisplay'
+import { displayExerciseName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import { parseDecimalInput, parseIntInput } from '@/utils/decimalInput'
 
 const props = defineProps<{
@@ -207,27 +208,12 @@ const props = defineProps<{
 const isViewExercise = ref(props.isViewExercise)
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
-const displayName = computed(() =>
-  displayExerciseName(
-    { t },
-    {
-      name: props.selectedExercise.exercise.name,
-      i18nKey: props.selectedExercise.exercise.i18nKey,
-      isNameCustom: props.selectedExercise.exercise.isNameCustom,
-    }
-  )
-)
+const displayName = computed(() => displayExerciseName(props.selectedExercise.exercise, lang.value))
 
 const displayDescription = computed(() =>
-  displayExerciseDescription(
-    { t },
-    {
-      description: props.selectedExercise.exercise.description,
-      i18nKey: props.selectedExercise.exercise.i18nKey,
-    },
-    t('common.noDescription')
-  )
+  resolveI18n(props.selectedExercise.exercise.description, lang.value) || t('common.noDescription')
 )
 
 const exerciseStore = useExerciseStore()

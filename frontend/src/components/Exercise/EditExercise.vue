@@ -193,6 +193,8 @@ import { useMuscleGroupStore } from '@/stores/muscleGroup.store'
 import { useExerciseStore } from '@/stores/exercise.store'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { resolveI18n, resolveI18nArray } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{
   exercise: Exercise
@@ -206,6 +208,7 @@ const emit = defineEmits<{
 const muscleGroupStore = useMuscleGroupStore()
 const exerciseStore = useExerciseStore()
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const isSaving = ref(false)
 const isDeleting = ref(false)
@@ -219,15 +222,15 @@ const exerciseTypeItems = [
 ]
 
 const form = ref({
-  name: props.exercise.name || '',
-  description: props.exercise.description || '',
+  name: resolveI18n(props.exercise.title, lang.value),
+  description: resolveI18n(props.exercise.description, lang.value),
   exerciseType: props.exercise.exerciseType || (null as ExerciseType | null | undefined),
   muscleGroupIds: props.exercise.muscleGroups?.map(mg => mg.id) || ([] as number[]),
   primaryMuscleGroupIds: props.exercise.primaryMuscleGroups?.map(mg => mg.id) || ([] as number[]),
   equipment: props.exercise.equipment || ([] as string[]),
-  instructions: props.exercise.instructions || ([] as string[]),
-  proTips: props.exercise.proTips || ([] as string[]),
-  mistakes: props.exercise.mistakes || ([] as string[]),
+  instructions: resolveI18nArray(props.exercise.instructions, lang.value),
+  proTips: resolveI18nArray(props.exercise.proTips, lang.value),
+  mistakes: resolveI18nArray(props.exercise.mistakes, lang.value),
 })
 
 const muscleGroupItems = computed(() =>

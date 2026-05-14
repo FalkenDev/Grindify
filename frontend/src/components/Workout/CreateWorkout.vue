@@ -247,10 +247,12 @@ import AddExerciseList from '@/components/Exercise/AddExerciseList.vue'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
 import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import { useRouter } from 'vue-router'
 import type { WorkoutInitialData } from '@/utils/sessionToWorkout'
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 const router = useRouter()
 
 const emit = defineEmits<{
@@ -349,7 +351,7 @@ const findExerciseData = (exerciseId: number) => {
 const getExerciseName = (exerciseId: number) => {
   const data = findExerciseData(exerciseId)
   if (!data) return t('exercise.exerciseFallback', { id: exerciseId })
-  return displayExerciseName({ t }, data)
+  return displayExerciseName(data, lang.value)
 }
 
 // -- Exercise management --

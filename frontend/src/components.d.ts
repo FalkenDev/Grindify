@@ -24,6 +24,8 @@ declare module 'vue' {
     CreateExercise: typeof import('./components/Exercise/CreateExercise.vue')['default']
     CreateWorkout: typeof import('./components/Workout/CreateWorkout.vue')['default']
     DraggableTextList: typeof import('./components/basicUI/DraggableTextList.vue')['default']
+    DuplicateActivityDialog: typeof import('./components/Activity/DuplicateActivityDialog.vue')['default']
+    DuplicateExerciseDialog: typeof import('./components/Exercise/DuplicateExerciseDialog.vue')['default']
     EditActivity: typeof import('./components/Activity/EditActivity.vue')['default']
     EditActivityLog: typeof import('./components/Activity/EditActivityLog.vue')['default']
     EditExercise: typeof import('./components/Exercise/EditExercise.vue')['default']

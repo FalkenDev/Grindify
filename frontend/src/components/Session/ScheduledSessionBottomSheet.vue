@@ -31,7 +31,7 @@
             {{
               scheduledSession.type === 'workout'
                 ? scheduledSession.workout?.title
-                : scheduledSession.activity?.name
+                : (scheduledSession.activity ? displayActivityName(scheduledSession.activity, lang) : '')
             }}
           </p>
           <div class="d-flex align-center ga-2">
@@ -109,6 +109,8 @@ import { useWorkoutSessionStore } from '@/stores/workoutSession.store'
 import { startWorkoutSession } from '@/services/workoutSession.service'
 import { useRouter } from 'vue-router'
 import type { ScheduledSessionForDate } from '@/interfaces/ScheduledSession.interface'
+import { displayActivityName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{
   modelValue: boolean
@@ -128,6 +130,7 @@ const sheetOpen = computed({
 })
 
 const router = useRouter()
+const { lang } = useUserLanguage()
 const scheduledSessionStore = useScheduledSessionStore()
 const workoutSessionStore = useWorkoutSessionStore()
 

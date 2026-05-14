@@ -13,34 +13,36 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import type { Composer } from 'vue-i18n'
+import type { I18nString, I18nStringArray, SupportedLanguage } from '@/interfaces/i18n.types'
 
-import type { Exercise } from '@/interfaces/Exercise.interface'
+export function resolveI18n(
+  field: I18nString | null | undefined,
+  lang: SupportedLanguage,
+): string {
+  if (!field) return ''
+  if (lang !== 'default' && field[lang]) return field[lang]!
+  return field.default ?? ''
+}
 
-type Translator = Pick<Composer, 't'>
-
-function translatedOrFallback(translator: Translator, key: string, fallback: string): string {
-  const translated = translator.t(key)
-  return translated === key ? fallback : translated
+export function resolveI18nArray(
+  field: I18nStringArray | null | undefined,
+  lang: SupportedLanguage,
+): string[] {
+  if (!field) return []
+  if (lang !== 'default' && field[lang]?.length) return field[lang]!
+  return field.default ?? []
 }
 
 export function displayExerciseName(
-  translator: Translator,
-  exercise: Pick<Exercise, 'name' | 'i18nKey' | 'isNameCustom'>
+  exercise: { title: I18nString },
+  lang: SupportedLanguage,
 ): string {
-  if (exercise.isNameCustom && exercise.name) return exercise.name
-  if (exercise.i18nKey)
-    return translatedOrFallback(translator, `${exercise.i18nKey}.name`, exercise.name)
-  return exercise.name
+  return resolveI18n(exercise.title, lang)
 }
 
-export function displayExerciseDescription(
-  translator: Translator,
-  exercise: Pick<Exercise, 'description' | 'i18nKey'>,
-  fallback: string
+export function displayActivityName(
+  activity: { title: I18nString },
+  lang: SupportedLanguage,
 ): string {
-  const current = (exercise.description ?? '').trim()
-  if (exercise.i18nKey)
-    return translatedOrFallback(translator, `${exercise.i18nKey}.description`, current || fallback)
-  return current || fallback
+  return resolveI18n(activity.title, lang)
 }
