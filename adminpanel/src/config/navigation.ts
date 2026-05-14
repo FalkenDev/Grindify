@@ -66,6 +66,13 @@ export const ADMIN_NAV: NavEntry[] = [
     path: '/activities',
     description: 'Configure activity types and metrics',
   },
+  {
+    id: 'a-muscle-groups',
+    label: 'Muscle Groups',
+    icon: 'Layers',
+    path: '/muscle-groups',
+    description: 'Edit muscle group display names and translations',
+  },
   { section: 'Data' },
   {
     id: 'a-analytics',

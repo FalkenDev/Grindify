@@ -71,6 +71,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/muscle-groups',
+      name: 'muscle-groups',
+      component: () => import('@/views/MuscleGroupsView.vue'),
+      meta: {
+        title: 'Muscle Groups',
+        description: 'Edit muscle group display names and translations',
+        navId: 'a-muscle-groups',
+      },
+    },
+    {
       path: '/analytics',
       name: 'analytics',
       component: () => import('@/views/AnalyticsView.vue'),
