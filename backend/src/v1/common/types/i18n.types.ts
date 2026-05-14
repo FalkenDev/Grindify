@@ -13,25 +13,16 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
-import { I18nString } from '../../common/types/i18n.types';
-
-export class MuscleGroupResponseDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty({ description: 'Internal key identifier, e.g. muscleGroups.chest' })
-  name: string;
-
-  @ApiProperty()
-  nameI18n: I18nString;
-
-  @ApiProperty({ required: false })
-  descriptionI18n?: I18nString;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
+export interface I18nString {
+  default: string | null;
+  eng?: string;
+  swe?: string;
 }
+
+export interface I18nStringArray {
+  default?: string[];
+  eng?: string[];
+  swe?: string[];
+}
+
+export type SupportedLanguage = 'default' | 'eng' | 'swe';

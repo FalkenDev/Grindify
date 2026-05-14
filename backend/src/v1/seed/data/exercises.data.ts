@@ -16,9 +16,11 @@
 import { ExerciseType } from '../../exercise/exercise.entity';
 
 export interface ExerciseSeedDef {
-  i18nKey: string;
+  i18nKey?: string;
   defaultName: string;
   defaultDescription: string;
+  swedenName?: string;
+  swedenDescription?: string;
   muscleGroups: string[];
   primaryMuscleGroup?: string;
   exerciseType?: ExerciseType;
@@ -26,6 +28,9 @@ export interface ExerciseSeedDef {
   instructions?: string[];
   proTips?: string[];
   mistakes?: string[];
+  swedenInstructions?: string[];
+  swedenProTips?: string[];
+  swedenMistakes?: string[];
 }
 
 export const exercisesToSeed: ExerciseSeedDef[] = [

@@ -19,6 +19,7 @@ import {
   IsNumber,
   IsDateString,
   IsBoolean,
+  IsIn,
   ValidateIf,
 } from 'class-validator';
 
@@ -81,4 +82,8 @@ export class UpdateUserPreferencesDto {
   @IsOptional()
   @IsNumber()
   startWeight?: number;
+
+  @IsOptional()
+  @IsIn(['default', 'eng', 'swe'])
+  language?: 'default' | 'eng' | 'swe';
 }

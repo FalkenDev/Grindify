@@ -86,6 +86,9 @@ export class UserWithoutPasswordDto {
   @ApiProperty({ required: false })
   startWeight?: number;
 
+  @ApiProperty({ default: 'default' })
+  language: 'default' | 'eng' | 'swe';
+
   constructor(user: User) {
     this.id = user.id;
     this.email = user.email;
@@ -110,5 +113,6 @@ export class UserWithoutPasswordDto {
     this.weightGoalType = user.weightGoalType ?? undefined;
     this.startWeight = user.startWeight;
     this.role = user.role ?? 'user';
+    this.language = user.language ?? 'default';
   }
 }

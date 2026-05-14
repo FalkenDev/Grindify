@@ -313,7 +313,7 @@ export class StatisticsService {
       for (const ex of s.exercises ?? []) {
         if (ex.exercise) {
           const curr = exerciseCount.get(ex.exercise.id) ?? {
-            name: ex.exercise.name,
+            name: ex.exercise.title?.default ?? '',
             count: 0,
           };
           curr.count++;
@@ -388,7 +388,7 @@ export class StatisticsService {
         .map((mg) => ({ name: mg.name, volume: Math.round(mg.volume) })),
       recentPRs: recentPRs.map((r) => ({
         exerciseId: r.exercise?.id,
-        exerciseName: r.exercise?.name,
+        exerciseName: r.exercise?.title?.default ?? '',
         recordType: r.recordType,
         value: Number(r.value),
         date: r.achievedAt,

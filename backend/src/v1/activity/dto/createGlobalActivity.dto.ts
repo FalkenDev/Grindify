@@ -13,50 +13,57 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import {
+  IsOptional,
+  IsArray,
+  IsEnum,
+  IsBoolean,
+  IsObject,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { ActivityIcon } from '../activity.entity';
-import { I18nString } from '../../common/types/i18n.types';
+import { I18nStringDto } from '../../exercise/dto/createGlobalExercise.dto';
 
-export class ActivityResponseDto {
-  @ApiProperty()
-  id: number;
+export class CreateGlobalActivityDto {
+  @ApiProperty({ type: I18nStringDto })
+  @IsObject()
+  @ValidateNested()
+  @Type(() => I18nStringDto)
+  title: I18nStringDto;
 
-  @ApiProperty()
-  title: I18nString;
-
-  @ApiProperty({ required: false })
-  description?: I18nString;
-
-  @ApiProperty()
-  isGlobal: boolean;
-
-  @ApiProperty({ required: false })
-  personalizedFromGlobalId?: number;
-
-  @ApiProperty({ required: false })
-  personalizedAt?: Date;
+  @ApiProperty({ type: I18nStringDto, required: false })
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => I18nStringDto)
+  description?: I18nStringDto;
 
   @ApiProperty({ enum: ActivityIcon })
+  @IsEnum(ActivityIcon)
   icon: ActivityIcon;
 
-  @ApiProperty({ required: false, type: [String] })
+  @ApiProperty({ type: [String], required: false })
+  @IsOptional()
+  @IsArray()
   equipment?: string[];
 
   @ApiProperty()
+  @IsBoolean()
   trackDistance: boolean;
 
   @ApiProperty()
+  @IsBoolean()
   trackPace: boolean;
 
   @ApiProperty()
+  @IsBoolean()
   trackElevation: boolean;
 
   @ApiProperty()
+  @IsBoolean()
   trackCalories: boolean;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }
+
+export class UpdateGlobalActivityDto extends CreateGlobalActivityDto {}

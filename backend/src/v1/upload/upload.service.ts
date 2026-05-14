@@ -50,12 +50,14 @@ export class UploadService {
    * Process and optimize an exercise image
    * Optimized for mobile - smaller dimensions and size
    */
-  async processExerciseImage(file: Express.Multer.File): Promise<string> {
+  async processExerciseImage(
+    file: Express.Multer.File,
+  ): Promise<{ url: string; fileSize: number }> {
     const filename = `${randomBytes(16).toString('hex')}.webp`;
     const filepath = path.join(this.exercisesDir, filename);
 
     // Optimize for mobile: max 800px width, high compression
-    await sharp(file.buffer)
+    const info = await sharp(file.buffer)
       .rotate()
       .resize(800, 800, {
         fit: 'inside',
@@ -64,7 +66,7 @@ export class UploadService {
       .webp({ quality: 80 })
       .toFile(filepath);
 
-    return `/uploads/exercises/${filename}`;
+    return { url: `/uploads/exercises/${filename}`, fileSize: info.size };
   }
 
   /**
@@ -114,6 +116,30 @@ export class UploadService {
       .toFile(filepath);
 
     return { url: `/uploads/exercises/media/${filename}`, type: 'image' };
+  }
+
+  async readFileAsBuffer(relativeUrl: string): Promise<Buffer | null> {
+    if (!relativeUrl) return null;
+    try {
+      const filepath = path.join(process.cwd(), relativeUrl);
+      return await fs.readFile(filepath);
+    } catch {
+      return null;
+    }
+  }
+
+  async writeExerciseImageFromBuffer(buffer: Buffer, ext: string): Promise<string> {
+    const filename = `${randomBytes(16).toString('hex')}.${ext}`;
+    const filepath = path.join(this.exercisesDir, filename);
+    await fs.writeFile(filepath, buffer);
+    return `/uploads/exercises/${filename}`;
+  }
+
+  async writeExerciseMediaFromBuffer(buffer: Buffer, ext: string): Promise<string> {
+    const filename = `${randomBytes(16).toString('hex')}.${ext}`;
+    const filepath = path.join(this.mediaDir, filename);
+    await fs.writeFile(filepath, buffer);
+    return `/uploads/exercises/media/${filename}`;
   }
 
   /**

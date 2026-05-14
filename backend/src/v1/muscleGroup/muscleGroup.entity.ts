@@ -22,17 +22,22 @@ import {
   ManyToMany,
 } from 'typeorm';
 import { Exercise } from '../exercise/exercise.entity';
+import { I18nString } from '../common/types/i18n.types';
 
 @Entity()
 export class MuscleGroup {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // Internal identifier key, e.g. 'chest', 'muscleGroups.back' — not shown directly to users
   @Column({ unique: true })
   name: string;
 
-  @Column({ nullable: true })
-  description: string;
+  @Column({ name: 'nameI18n', type: 'jsonb' })
+  nameI18n: I18nString;
+
+  @Column({ name: 'descriptionI18n', type: 'jsonb', nullable: true })
+  descriptionI18n?: I18nString;
 
   @ManyToMany(() => Exercise, (exercise) => exercise.muscleGroups)
   exercises: Exercise[];

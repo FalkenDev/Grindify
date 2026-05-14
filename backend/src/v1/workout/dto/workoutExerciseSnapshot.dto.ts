@@ -15,6 +15,7 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { MuscleGroupResponseDto } from 'src/v1/muscleGroup/dto/muscleGroupResponse.dto';
+import { I18nString } from 'src/v1/common/types/i18n.types';
 
 export class PrimaryMuscleGroupSnapshotDto {
   @ApiProperty()
@@ -29,10 +30,19 @@ export class ExerciseSnapshotDto {
   id!: number;
 
   @ApiProperty()
-  name!: string;
+  title!: I18nString;
+
+  @ApiProperty({ required: false, nullable: true })
+  description?: I18nString | null;
+
+  @ApiProperty()
+  isGlobal!: boolean;
+
+  @ApiProperty({ required: false, nullable: true })
+  personalizedFromGlobalId?: number | null;
 
   @ApiProperty({ required: false })
-  description?: string;
+  deletedAt?: Date;
 
   @ApiProperty({ type: [PrimaryMuscleGroupSnapshotDto] })
   primaryMuscleGroups!: PrimaryMuscleGroupSnapshotDto[];

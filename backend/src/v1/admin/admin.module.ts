@@ -20,9 +20,20 @@ import { AdminService } from './admin.service';
 import { User } from '../user/user.entity';
 import { Workout } from '../workout/workout.entity';
 import { WorkoutSession } from '../workoutSession/workoutSession.entity';
+import { ExerciseModule } from '../exercise/exercise.module';
+import { ActivityModule } from '../activity/activity.module';
+import { MuscleGroupModule } from '../muscleGroup/muscleGroup.module';
+import { ExerciseImage } from '../exercise/exerciseImage.entity';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Workout, WorkoutSession])],
+  imports: [
+    TypeOrmModule.forFeature([User, Workout, WorkoutSession, ExerciseImage]),
+    ExerciseModule,
+    ActivityModule,
+    MuscleGroupModule,
+    UploadModule,
+  ],
   controllers: [AdminController],
   providers: [AdminService],
 })

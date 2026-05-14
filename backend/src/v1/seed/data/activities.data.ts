@@ -15,10 +15,24 @@
 
 import { ActivityIcon } from '../../activity/activity.entity';
 
-export const activitiesToSeed = [
+export interface ActivitySeedDef {
+  name: string;
+  swedenName?: string;
+  description?: string;
+  swedenDescription?: string;
+  icon: ActivityIcon;
+  trackDistance: boolean;
+  trackPace: boolean;
+  trackElevation: boolean;
+  trackCalories: boolean;
+}
+
+export const activitiesToSeed: ActivitySeedDef[] = [
   {
     name: 'Running',
+    swedenName: 'Löpning',
     description: 'Outdoor running sessions',
+    swedenDescription: 'Utomhuslöpning',
     icon: ActivityIcon.RUNNING,
     trackDistance: true,
     trackPace: true,
@@ -27,7 +41,9 @@ export const activitiesToSeed = [
   },
   {
     name: 'Walking',
+    swedenName: 'Promenad',
     description: 'Walking and hiking',
+    swedenDescription: 'Promenader och vandring',
     icon: ActivityIcon.WALKING,
     trackDistance: true,
     trackPace: true,
@@ -36,7 +52,9 @@ export const activitiesToSeed = [
   },
   {
     name: 'Cycling',
+    swedenName: 'Cykling',
     description: 'Road and mountain biking',
+    swedenDescription: 'Landsvägscykling och mountainbike',
     icon: ActivityIcon.CYCLING,
     trackDistance: true,
     trackPace: false,
@@ -45,7 +63,9 @@ export const activitiesToSeed = [
   },
   {
     name: 'Floorball',
+    swedenName: 'Innebandy',
     description: 'Floorball training and matches',
+    swedenDescription: 'Innebandyträning och matcher',
     icon: ActivityIcon.OTHER,
     trackDistance: false,
     trackPace: false,
@@ -54,7 +74,9 @@ export const activitiesToSeed = [
   },
   {
     name: 'Football',
+    swedenName: 'Fotboll',
     description: 'Football training and matches',
+    swedenDescription: 'Fotbollsträning och matcher',
     icon: ActivityIcon.FOOTBALL,
     trackDistance: false,
     trackPace: false,
@@ -63,7 +85,9 @@ export const activitiesToSeed = [
   },
   {
     name: 'Swimming',
+    swedenName: 'Simning',
     description: 'Swimming sessions',
+    swedenDescription: 'Simträning',
     icon: ActivityIcon.SWIMMING,
     trackDistance: true,
     trackPace: false,
@@ -72,7 +96,9 @@ export const activitiesToSeed = [
   },
   {
     name: 'Kayaking',
+    swedenName: 'Kajakpaddling',
     description: 'Kayaking and canoeing',
+    swedenDescription: 'Kajak och kanot',
     icon: ActivityIcon.KAYAKING,
     trackDistance: true,
     trackPace: false,
