@@ -59,7 +59,7 @@ export const fetchWrapper = async <T = unknown>(
             await handleUserNotFound();
             return Promise.reject('User not found - logged out');
           }
-        } catch (e) {
+        } catch {
           // Not JSON or different error, continue with normal error handling
         }
       }

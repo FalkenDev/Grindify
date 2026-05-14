@@ -217,7 +217,7 @@ export const useWorkoutSessionStore = defineStore(
             for (let i = 1; i <= (base.sets || 1); i++) {
               sets.push({
                 set: i,
-                weight: ((base as any).setWeights as number[] | null | undefined)?.[i - 1] ?? base.weight ?? 0,
+                weight: base.setWeights?.[i - 1] ?? base.weight ?? 0,
                 reps: base.reps ?? 0,
                 done: false,
                 previous: 'N/A',

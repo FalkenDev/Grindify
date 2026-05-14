@@ -453,7 +453,7 @@ import { useWeightLogStore } from '@/stores/weightLog.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProgressPhotoStore } from '@/stores/progressPhoto.store'
 import * as weightLogService from '@/services/weightLog.service'
-import { updateUser, updateUserPreferences } from '@/services/user.service'
+import { updateUserPreferences } from '@/services/user.service'
 import type { WeightLog } from '@/interfaces/WeightLog.interface'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
@@ -517,12 +517,10 @@ const setupGoalDurationUnit = ref<'weeks' | 'months'>('weeks')
 const isSavingSetup = ref(false)
 
 // Goal settings panel
-const goalSettingsOpen = ref(false)
 const goalSettingsTargetWeight = ref<number | null>(null)
 const goalSettingsGoalType = ref<string | null>(null)
 const goalSettingsDurationValue = ref<number | undefined>(undefined)
 const goalSettingsDurationUnit = ref<'weeks' | 'months'>('weeks')
-const isSavingGoalSettings = ref(false)
 
 const goalTypeItems = computed(() => [
   { title: t('weightLog.goalLose'), value: 'lose' },
@@ -898,43 +896,6 @@ const saveFirstTimeSetup = async () => {
 
 const close = () => {
   dialogOpen.value = false
-}
-
-// Save goal settings from the expandable panel
-const saveGoalSettings = async () => {
-  isSavingGoalSettings.value = true
-  try {
-    const prefs: Record<string, unknown> = {}
-
-    if (goalSettingsTargetWeight.value && goalSettingsTargetWeight.value > 0) {
-      prefs.targetWeight = Number(toKg(goalSettingsTargetWeight.value).toFixed(2))
-    } else {
-      prefs.targetWeight = null
-    }
-
-    prefs.weightGoalType = goalSettingsGoalType.value || null
-
-    if (goalSettingsDurationValue.value && goalSettingsDurationValue.value > 0) {
-      prefs.goalTimeframe =
-        goalSettingsDurationUnit.value === 'months'
-          ? Math.round(goalSettingsDurationValue.value * 4.333)
-          : goalSettingsDurationValue.value
-    } else {
-      prefs.goalTimeframe = null
-    }
-
-    await updateUserPreferences(prefs)
-    await weightLogStore.refreshAll()
-    await authStore.refreshUser()
-    emit('weight-updated')
-    toast.success(t('weightLog.goalSettingsSaved'), { progressBar: true, duration: 1000 })
-    goalSettingsOpen.value = false
-  } catch (error) {
-    console.error('Failed to save goal settings:', error)
-    toast.error(t('weightLog.goalSettingsFailed'), { progressBar: true, duration: 1000 })
-  } finally {
-    isSavingGoalSettings.value = false
-  }
 }
 
 // Load data when dialog opens

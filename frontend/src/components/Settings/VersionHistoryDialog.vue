@@ -239,6 +239,7 @@
               </v-expansion-panel-title>
 
               <v-expansion-panel-text>
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="text-body-2 release-notes" v-html="renderReleaseBody(release.body)" />
 
                 <div v-if="release.htmlUrl" class="d-flex justify-end mt-3">
