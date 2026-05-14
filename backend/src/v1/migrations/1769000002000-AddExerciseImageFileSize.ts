@@ -15,26 +15,20 @@
 
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class RemoveCardioFromExercises1768837747655
+export class AddExerciseImageFileSize1769000002000
   implements MigrationInterface
 {
+  name = 'AddExerciseImageFileSize1769000002000';
+
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Remove trackingMode and defaultDistance from exercise table (if they exist)
-    await queryRunner.query(`ALTER TABLE "exercise" DROP COLUMN IF EXISTS "defaultDistance"`);
-    await queryRunner.query(`ALTER TABLE "exercise" DROP COLUMN IF EXISTS "trackingMode"`);
+    await queryRunner.query(
+      `ALTER TABLE "exercise_image" ADD COLUMN "fileSize" integer NULL`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Add back trackingMode and defaultDistance to exercise table
-    await queryRunner.query(`
-      ALTER TABLE "exercise" 
-      ADD "trackingMode" character varying NOT NULL DEFAULT 'strength'
-    `);
-    
-    await queryRunner.query(`
-      ALTER TABLE "exercise" 
-      ADD "defaultDistance" numeric(6,2)
-    `);
-
+    await queryRunner.query(
+      `ALTER TABLE "exercise_image" DROP COLUMN "fileSize"`,
+    );
   }
 }
