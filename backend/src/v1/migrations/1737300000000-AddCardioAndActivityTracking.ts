@@ -48,28 +48,6 @@ export class AddCardioAndActivityTracking1737300000000
       }),
     );
 
-    // 2. Add trackingMode and defaultDistance to global_exercise table
-    await queryRunner.addColumn(
-      'global_exercise',
-      new TableColumn({
-        name: 'trackingMode',
-        type: 'enum',
-        enum: ['strength', 'cardio'],
-        default: "'strength'",
-      }),
-    );
-
-    await queryRunner.addColumn(
-      'global_exercise',
-      new TableColumn({
-        name: 'defaultDistance',
-        type: 'decimal',
-        precision: 6,
-        scale: 2,
-        isNullable: true,
-      }),
-    );
-
     // 3. Add distance to workout_exercise table
     await queryRunner.addColumn(
       'workout_exercise',
@@ -366,10 +344,6 @@ export class AddCardioAndActivityTracking1737300000000
 
     // Remove distance from workout_exercise
     await queryRunner.dropColumn('workout_exercise', 'distance');
-
-    // Remove columns from global_exercise
-    await queryRunner.dropColumn('global_exercise', 'defaultDistance');
-    await queryRunner.dropColumn('global_exercise', 'trackingMode');
 
     // Remove columns from exercise
     await queryRunner.dropColumn('exercise', 'defaultDistance');

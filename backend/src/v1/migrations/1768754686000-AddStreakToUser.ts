@@ -15,7 +15,7 @@
 
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export class AddStreakToUser1768754686 implements MigrationInterface {
+export class AddStreakToUser1768754686000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Add weeklyWorkoutGoal column
     await queryRunner.addColumn(
