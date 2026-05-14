@@ -13,25 +13,19 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
-import { I18nString } from '../../common/types/i18n.types';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 
-export class MuscleGroupResponseDto {
-  @ApiProperty()
+@Entity()
+export class ExerciseImage {
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: 'Internal key identifier, e.g. muscleGroups.chest' })
-  name: string;
+  @Column()
+  url: string;
 
-  @ApiProperty()
-  nameI18n: I18nString;
+  @Column({ type: 'int', nullable: true })
+  fileSize: number | null;
 
-  @ApiProperty({ required: false })
-  descriptionI18n?: I18nString;
-
-  @ApiProperty()
+  @CreateDateColumn()
   createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }

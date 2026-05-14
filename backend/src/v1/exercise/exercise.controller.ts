@@ -21,6 +21,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   Req,
   UseGuards,
   UnauthorizedException,
@@ -58,13 +59,16 @@ export class ExerciseController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all exercises for the logged-in user' })
+  @ApiOperation({ summary: 'Get exercises (filter: all | global | mine)' })
   @ApiOkResponse({ type: [ExerciseResponseDto] })
-  getAllExercises(@Req() req: RequestWithUser): Promise<ExerciseResponseDto[]> {
+  getAllExercises(
+    @Req() req: RequestWithUser,
+    @Query('filter') filter?: 'all' | 'global' | 'mine',
+  ): Promise<ExerciseResponseDto[]> {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.exerciseService.findAll(+req.user.id);
+    return this.exerciseService.findAll(+req.user.id, filter ?? 'all');
   }
 
   @Post()
@@ -153,10 +157,24 @@ export class ExerciseController {
     }
 
     // Process and save the image
-    const imageUrl = await this.uploadService.processExerciseImage(file);
+    const { url: imageUrl } = await this.uploadService.processExerciseImage(file);
 
     // Update the exercise with the new image URL
     return this.exerciseService.updateImage(id, imageUrl, +req.user.id);
+  }
+
+  @Post(':id/duplicate')
+  @ApiOperation({ summary: 'Duplicate a global exercise for personal use' })
+  @ApiCreatedResponse({ type: ExerciseResponseDto })
+  duplicateExercise(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { transferStats?: boolean },
+    @Req() req: RequestWithUser,
+  ): Promise<ExerciseResponseDto> {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    return this.exerciseService.duplicateGlobalExercise(id, +req.user.id, body.transferStats ?? false);
   }
 
   // --- Media endpoints ---

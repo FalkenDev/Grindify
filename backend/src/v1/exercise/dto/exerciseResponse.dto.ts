@@ -16,6 +16,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MuscleGroupResponseDto } from 'src/v1/muscleGroup/dto/muscleGroupResponse.dto';
 import { ExerciseType } from '../exercise.entity';
+import { I18nString, I18nStringArray } from '../../common/types/i18n.types';
 
 export class ExerciseMediaResponseDto {
   @ApiProperty()
@@ -36,40 +37,40 @@ export class ExerciseResponseDto {
   id: number;
 
   @ApiProperty()
-  name: string;
-
-  @ApiProperty({
-    required: false,
-    description: 'Optional i18n key for the exercise name',
-  })
-  i18nKey?: string;
-
-  @ApiProperty({
-    required: false,
-    description: 'If true, the user has overridden the default translated name',
-  })
-  isNameCustom?: boolean;
+  title: I18nString;
 
   @ApiProperty({ required: false })
-  description?: string;
+  description?: I18nString;
+
+  @ApiProperty()
+  isGlobal: boolean;
 
   @ApiProperty({ required: false })
-  image?: string;
+  personalizedFromGlobalId?: number;
+
+  @ApiProperty({ required: false })
+  personalizedAt?: Date;
+
+  @ApiProperty({ required: false, nullable: true })
+  image?: string | null;
 
   @ApiProperty({ required: false, enum: ExerciseType })
   exerciseType?: ExerciseType;
 
   @ApiProperty({ required: false, type: [String] })
-  equipment?: string[];
+  equipment: string[];
 
-  @ApiProperty({ required: false, type: [String] })
-  instructions?: string[];
+  @ApiProperty({ required: false })
+  equipmentI18n?: I18nStringArray;
 
-  @ApiProperty({ required: false, type: [String] })
-  proTips?: string[];
+  @ApiProperty({ required: false })
+  instructions?: I18nStringArray;
 
-  @ApiProperty({ required: false, type: [String] })
-  mistakes?: string[];
+  @ApiProperty({ required: false })
+  proTips?: I18nStringArray;
+
+  @ApiProperty({ required: false })
+  mistakes?: I18nStringArray;
 
   @ApiProperty()
   createdAt: Date;

@@ -14,24 +14,17 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { I18nString } from '../../common/types/i18n.types';
 
-export class MuscleGroupResponseDto {
+export class ExerciseImageResponseDto {
   @ApiProperty()
   id: number;
 
-  @ApiProperty({ description: 'Internal key identifier, e.g. muscleGroups.chest' })
-  name: string;
-
   @ApiProperty()
-  nameI18n: I18nString;
+  url: string;
 
-  @ApiProperty({ required: false })
-  descriptionI18n?: I18nString;
+  @ApiProperty({ required: false, nullable: true })
+  fileSize: number | null;
 
   @ApiProperty()
   createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }

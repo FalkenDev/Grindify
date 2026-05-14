@@ -21,9 +21,9 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
-  Unique,
 } from 'typeorm';
 import { User } from '../user/user.entity';
+import { I18nString } from '../common/types/i18n.types';
 
 export enum ActivityIcon {
   RUNNING = 'run',
@@ -49,17 +49,28 @@ export enum ActivityIcon {
   OTHER = 'dots-horizontal',
 }
 
+// Partial unique indexes (not decorator) handle uniqueness:
+// - Global activities: UNIQUE (name) WHERE createdById IS NULL
+// - User activities:   UNIQUE (name, createdById) WHERE createdById IS NOT NULL
 @Entity()
-@Unique(['name', 'createdBy'])
 export class Activity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @Column({ type: 'jsonb' })
+  title: I18nString;
+
+  @Column({ name: 'descriptionI18n', type: 'jsonb', nullable: true })
+  descriptionI18n?: I18nString;
+
+  @Column({ default: false })
+  isGlobal: boolean;
 
   @Column({ nullable: true })
-  description?: string;
+  personalizedFromGlobalId?: number;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  personalizedAt?: Date;
 
   @Column({
     type: 'enum',
@@ -68,13 +79,12 @@ export class Activity {
   })
   icon: ActivityIcon;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  createdBy: User;
+  @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
+  createdBy: User | null;
 
   @Column({ type: 'simple-array', nullable: true })
   equipment?: string[];
 
-  // Configuration flags for which fields to track
   @Column({ default: false })
   trackDistance: boolean;
 

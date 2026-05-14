@@ -117,6 +117,9 @@ export class User {
   @Column({ type: 'varchar', length: 20, default: 'user' })
   role: 'user' | 'superadmin';
 
+  @Column({ type: 'varchar', length: 10, default: 'default' })
+  language: 'default' | 'eng' | 'swe';
+
   @Column({ nullable: true, select: false })
   emailVerificationToken: string;
 

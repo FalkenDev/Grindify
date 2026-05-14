@@ -47,6 +47,19 @@ export class MuscleGroupService implements OnModuleInit {
       this.logger.log('No muscle groups found – seeding defaults…');
       await this.muscleGroupRepo.save(muscleGroupsToSeed);
       this.logger.log(`Seeded ${muscleGroupsToSeed.length} muscle group(s)`);
+      return;
+    }
+    // Backfill nameI18n for muscle groups that don't have it yet (migration may have added the column)
+    const missing = await this.muscleGroupRepo
+      .createQueryBuilder('mg')
+      .where('mg.nameI18n IS NULL')
+      .getMany();
+    if (missing.length > 0) {
+      for (const mg of missing) {
+        mg.nameI18n = { default: mg.name };
+      }
+      await this.muscleGroupRepo.save(missing);
+      this.logger.log(`Backfilled nameI18n for ${missing.length} muscle group(s)`);
     }
   }
 

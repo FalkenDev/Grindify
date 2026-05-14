@@ -20,8 +20,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from '../user/user.module';
-import { ActivityModule } from '../activity/activity.module';
-import { ExerciseModule } from '../exercise/exercise.module';
 import { EmailModule } from '../email/email.module';
 import { GithubStrategy } from '../strategies/github.strategy';
 import { GoogleStrategy } from '../strategies/google.strategy';
@@ -51,8 +49,6 @@ const googleStrategyProvider = {
 @Module({
   imports: [
     UserModule,
-    ActivityModule,
-    ExerciseModule,
     EmailModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     ConfigModule,

@@ -341,7 +341,8 @@ export class WorkoutService {
         workout.targetMuscleGroups?.map((mg) => ({
           id: mg.id,
           name: mg.name,
-          description: mg.description,
+          nameI18n: mg.nameI18n,
+          descriptionI18n: mg.descriptionI18n,
           createdAt: mg.createdAt,
           updatedAt: mg.updatedAt,
         })) ?? [],
@@ -357,8 +358,10 @@ export class WorkoutService {
             pauseSeconds: e.pauseSeconds,
             exercise: {
               id: e.exercise.id,
-              name: e.exercise.name,
-              description: e.exercise.description,
+              title: e.exercise.title,
+              description: e.exercise.descriptionI18n ?? null,
+              isGlobal: e.exercise.isGlobal,
+              personalizedFromGlobalId: e.exercise.personalizedFromGlobalId ?? null,
               primaryMuscleGroups:
                 e.exercise.primaryMuscleGroups?.map((mg) => ({
                   id: mg.id,
@@ -369,6 +372,8 @@ export class WorkoutService {
                 e.exercise.muscleGroups?.map((mg) => ({
                   id: mg.id,
                   name: mg.name,
+                  nameI18n: mg.nameI18n,
+                  descriptionI18n: mg.descriptionI18n,
                   createdAt: mg.createdAt,
                   updatedAt: mg.updatedAt,
                 })) ?? [],
