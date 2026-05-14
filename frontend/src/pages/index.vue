@@ -89,7 +89,7 @@
             </v-avatar>
             <div>
               <p class="text-body-2 font-weight-bold">
-                {{ session.type === 'workout' ? session.workout?.title : session.activity?.name }}
+                {{ session.type === 'workout' ? session.workout?.title : (session.activity ? displayActivityName(session.activity, lang) : '') }}
               </p>
               <v-chip size="x-small" :color="session.isCompleted ? 'green' : 'blue'" variant="flat">
                 {{ session.isCompleted ? $t('schedule.completed') : $t('schedule.scheduled') }}
@@ -172,8 +172,11 @@ import type { StreakInfo } from '@/interfaces/User.interface'
 import type { WorkoutSession } from '@/interfaces/workoutSession.interface'
 import type { ScheduledSessionForDate } from '@/interfaces/ScheduledSession.interface'
 import { useRouter } from 'vue-router'
+import { displayActivityName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const router = useRouter()
+const { lang } = useUserLanguage()
 const workoutSessionStore = useWorkoutSessionStore()
 const activityStore = useActivityStore()
 const authStore = useAuthStore()

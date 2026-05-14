@@ -165,7 +165,8 @@ import type { MuscleGroup } from '@/interfaces/MuscleGroup.interface'
 import { useExerciseStore } from '@/stores/exercise.store'
 import { useMuscleGroupStore } from '@/stores/muscleGroup.store'
 import { useI18n } from 'vue-i18n'
-import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { displayExerciseName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{
   initialSelectedIds: number[]
@@ -179,6 +180,7 @@ const emit = defineEmits<{
 const muscleGroupStore = useMuscleGroupStore()
 const exerciseStore = useExerciseStore()
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const searchQuery = ref('')
 const selectedIds = ref<number[]>([...props.initialSelectedIds])
@@ -189,7 +191,7 @@ const isFilterMenuOpen = ref(false)
 const selectedMuscleGroups = ref<number[]>([])
 const selectedTypes = ref<string[]>([])
 
-const displayName = (exercise: Exercise) => displayExerciseName({ t }, exercise)
+const displayName = (exercise: Exercise) => displayExerciseName(exercise, lang.value)
 
 const activeFilterCount = computed(
   () => selectedMuscleGroups.value.length + selectedTypes.value.length
@@ -212,7 +214,7 @@ const muscleGroups = computed(() =>
 const exercises = computed<Exercise[]>(() =>
   exerciseStore.exercises.filter((exercise: Exercise) => {
     const name = displayName(exercise).toLowerCase()
-    const desc = (exercise.description ?? '').toLowerCase()
+    const desc = resolveI18n(exercise.description, lang.value).toLowerCase()
     const query = (searchQuery.value || '').toLowerCase()
     const matchesSearch = name.includes(query) || desc.includes(query)
 

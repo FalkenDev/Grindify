@@ -13,6 +13,8 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import type { I18nString } from './i18n.types'
+
 export type WorkoutType = 'strength' | 'cardio' | 'hiit' | 'flexibility' | 'endurance'
 
 export interface Workout {
@@ -39,13 +41,13 @@ export interface Exercise {
   exerciseId: number
   exercise: {
     id: number
-    name: string
-    i18nKey?: string
-    isNameCustom?: boolean
-    description?: string | null
+    title: I18nString
+    description?: I18nString | null
     img: string
     muscleGroups: MuscleGroup[]
     primaryMuscleGroups?: { id: number; name: string }[]
+    isGlobal: boolean
+    personalizedFromGlobalId?: number | null
     createdBy: string
     createdAt: string
     updatedAt: string
@@ -119,7 +121,8 @@ export interface UpdateWorkoutExercise {
 export interface MuscleGroup {
   id: number
   name: string
-  description: string
+  nameI18n?: I18nString
+  descriptionI18n?: I18nString
   createdAt: string
   updatedAt: string
 }

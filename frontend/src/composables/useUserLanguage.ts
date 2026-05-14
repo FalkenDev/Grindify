@@ -13,13 +13,12 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import type { I18nString } from './i18n.types'
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
+import type { SupportedLanguage } from '@/interfaces/i18n.types'
 
-export interface MuscleGroup {
-  id: number
-  name: string
-  nameI18n?: I18nString
-  descriptionI18n?: I18nString
-  createdAt: string
-  updatedAt: string
+export function useUserLanguage() {
+  const authStore = useAuthStore()
+  const lang = computed<SupportedLanguage>(() => authStore.user?.language ?? 'default')
+  return { lang }
 }

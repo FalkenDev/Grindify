@@ -276,7 +276,8 @@ import WeightAndRepsSettings from '@/components/Workout/WeightAndRepsSettings.vu
 import ExerciseDetails from '@/components/Exercise/ExerciseDetails.vue'
 import { fetchExerciseById } from '@/services/exercise.service'
 import { useI18n } from 'vue-i18n'
-import { displayExerciseName, displayExerciseDescription } from '@/utils/exerciseDisplay'
+import { displayExerciseName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import router from '@/router'
 import { useRoute } from 'vue-router'
 import BackHeader from '@/components/BackHeader.vue'
@@ -285,6 +286,7 @@ const props = defineProps<{ workoutId?: number }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 const route = useRoute()
 
 const workoutStore = useWorkoutStore()
@@ -331,10 +333,10 @@ const targetMuscleNames = computed<string[]>(() => {
 
 // --- Helpers ---
 const displayName = (exercise: NonNullable<Exercise['exercise']>) =>
-  displayExerciseName({ t }, exercise)
+  displayExerciseName(exercise, lang.value)
 
 const displayDesc = (exercise: NonNullable<Exercise['exercise']>) =>
-  displayExerciseDescription({ t }, exercise, '')
+  resolveI18n(exercise.description, lang.value)
 
 const openExerciseDetails = async (workoutExercise: Exercise) => {
   try {

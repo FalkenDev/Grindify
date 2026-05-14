@@ -13,6 +13,8 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import type { I18nString, I18nStringArray } from './i18n.types'
+
 export type ExerciseType = 'compound' | 'isolation' | 'bodyweight'
 
 export interface ExerciseMedia {
@@ -24,19 +26,20 @@ export interface ExerciseMedia {
 
 export interface Exercise {
   id: number
-  name: string
-  i18nKey?: string
-  isNameCustom?: boolean
-  description?: string | null
+  title: I18nString
+  description?: I18nString | null
   image?: string | null
   exerciseType?: ExerciseType | null
   muscleGroups: MuscleGroup[]
   primaryMuscleGroups?: MuscleGroup[]
   equipment?: string[]
-  instructions?: string[]
-  proTips?: string[]
-  mistakes?: string[]
+  instructions?: I18nStringArray
+  proTips?: I18nStringArray
+  mistakes?: I18nStringArray
   media?: ExerciseMedia[]
+  isGlobal: boolean
+  personalizedFromGlobalId?: number | null
+  personalizedAt?: string | null
   createdBy: string
   createdAt: string
   updatedAt: string
@@ -73,7 +76,8 @@ export interface UpdateExercise {
 export interface MuscleGroup {
   id: number
   name: string
-  description: string
+  nameI18n?: I18nString
+  descriptionI18n?: I18nString
   createdAt: string
   updatedAt: string
 }

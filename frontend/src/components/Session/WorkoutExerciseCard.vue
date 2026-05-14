@@ -201,7 +201,8 @@
 // TODO: Maybe have a info icon that shows exercise details in a dialog instead of a dropdown
 
 import { useI18n } from 'vue-i18n';
-import { displayExerciseDescription, displayExerciseName } from '@/utils/exerciseDisplay';
+import { displayExerciseName, resolveI18n } from '@/utils/exerciseDisplay';
+import { useUserLanguage } from '@/composables/useUserLanguage';
 
 import type {
   Exercise as ExerciseProp,
@@ -209,6 +210,7 @@ import type {
 } from '@/interfaces/Workout.interface';
 
 const { t } = useI18n({ useScope: 'global' });
+const { lang } = useUserLanguage();
 
 const props = defineProps({
   exercise: {
@@ -247,10 +249,10 @@ const emit = defineEmits<{
 const resolvedExercise = computed(() => props.exercise.exercise);
 
 const displayName = (exercise: NonNullable<typeof resolvedExercise.value>) =>
-  displayExerciseName({ t }, exercise);
+  displayExerciseName(exercise, lang.value);
 
 const displayDescription = (exercise: NonNullable<typeof resolvedExercise.value>) =>
-  displayExerciseDescription({ t }, exercise, t('exerciseCatalog.noDescription'));
+  resolveI18n(exercise.description, lang.value) || t('exerciseCatalog.noDescription');
 const showDetails = ref(true);
 
 const isEditDialogVisible = ref(false);

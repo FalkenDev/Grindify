@@ -38,19 +38,37 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth.store'
+import { updateUserPreferences } from '@/services/user.service'
+import type { SupportedLanguage } from '@/interfaces/i18n.types'
 
 const emit = defineEmits<{
   close: []
 }>()
 
 const appStore = useAppStore()
+const authStore = useAuthStore()
 const { locale } = useI18n({ useScope: 'global' })
 
 const currentLocale = computed(() => locale.value)
 
-const selectLanguage = (nextLocale: 'en' | 'sv') => {
+const LOCALE_TO_LANG: Record<string, SupportedLanguage> = {
+  en: 'eng',
+  sv: 'swe',
+}
+
+const selectLanguage = async (nextLocale: 'en' | 'sv') => {
   appStore.setLocale(nextLocale)
   locale.value = nextLocale
+
+  const lang = LOCALE_TO_LANG[nextLocale] ?? 'default'
+  try {
+    await updateUserPreferences({ language: lang })
+    if (authStore.user) authStore.user.language = lang
+  } catch {
+    // locale already switched locally; backend sync failure is non-fatal
+  }
+
   emit('close')
 }
 </script>

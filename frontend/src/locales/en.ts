@@ -497,6 +497,14 @@ export default {
     editSession: 'Edit Session',
     logUpdated: 'Session updated!',
     failedToUpdateLog: 'Failed to update session',
+    global: 'Global',
+    personalized: 'Personalized',
+    personalize: 'Personalize',
+    personalizeTitle: 'Personalize {name}?',
+    personalizeBody: 'Create your own copy of this activity. You can transfer your existing history to the new copy, or start fresh.',
+    transferHistory: 'Transfer history',
+    startFresh: 'Start fresh',
+    personalizeFailed: 'Failed to personalize activity',
   },
   exercise: {
     createExercise: 'Create exercise',
@@ -528,191 +536,15 @@ export default {
     failedToDelete: 'Failed to delete exercise',
     failedToLoadGlobal: 'Failed to load global exercises',
     failedToAdd: 'Failed to add exercises',
-
-    bench_press: {
-      name: 'Bench press',
-      description:
-        'Barbell press on a flat bench. Set your shoulder blades, keep a small arch, feet on the floor. Lower to mid-chest and press up with elbows ~45°.',
-    },
-    incline_dumbbell_press: {
-      name: 'Incline dumbbell press',
-      description:
-        'Press dumbbells on a 30–45° incline bench. Lower under control to chest line, press up and slightly inward.',
-    },
-    seated_dumbbell_shoulder_press: {
-      name: 'Seated dumbbell shoulder press',
-      description:
-        'Seated vertical press. Keep ribs down and forearms vertical. Lower to around ear height and press without shrugging.',
-    },
-    dumbbell_lateral_raise: {
-      name: 'Dumbbell lateral raise',
-      description:
-        'Raise dumbbells slightly forward and out to shoulder height. Soft elbows, strict control, slow eccentric.',
-    },
-    cable_triceps_pushdown: {
-      name: 'Cable triceps pushdown',
-      description:
-        'With rope or bar, keep elbows pinned. Fully extend, then return under control to ~90°.',
-    },
-    cable_chest_fly: {
-      name: 'Cable chest fly',
-      description:
-        'From high/mid pulleys. Slight forward lean, hug motion with soft elbows. Squeeze chest and return slowly.',
-    },
-    back_squat: {
-      name: 'Back squat',
-      description:
-        'Bar on upper back, brace your core, knees track toes. Squat as deep as you can control and drive back up.',
-    },
-    barbell_hip_thrust: {
-      name: 'Barbell hip thrust',
-      description:
-        'Upper back on bench, bar over hips. Posteriorly tilt pelvis, drive through heels, lock out with glutes.',
-    },
-    leg_press: {
-      name: 'Leg press',
-      description:
-        'Feet shoulder-width on the sled. Lower deep with control without pelvic tuck; press through mid-foot.',
-    },
-    seated_leg_curl: {
-      name: 'Seated leg curl',
-      description:
-        'Set the pad above the heels. Curl to full knee flexion with hips still; control the eccentric.',
-    },
-    leg_extension: {
-      name: 'Leg extension',
-      description:
-        'Pad above the ankles. Extend close to lockout with control; 2–3s eccentric for knee-friendly loading.',
-    },
-    calf_raise_machine_or_leg_press: {
-      name: 'Calf raise (machine/leg press)',
-      description:
-        'Full ankle range of motion. Pause at the bottom; strong toe raise at the top. No bouncing.',
-    },
-    standing_barbell_overhead_press: {
-      name: 'Standing barbell overhead press',
-      description:
-        'Stand stable, brace glutes and core. Press straight up; bring head through in the top position.',
-    },
-    seated_cable_row: {
-      name: 'Seated cable row',
-      description:
-        'Neutral spine, chest up. Pull to lower ribs with elbows close; squeeze lats/mid-back, return slowly.',
-    },
-    incline_bench_press: {
-      name: 'Incline bench press (barbell)',
-      description:
-        'Barbell press on a 30–45° incline. Lower to upper chest; press with elbows ~45–60°.',
-    },
-    walking_lunge: {
-      name: 'Walking lunge',
-      description:
-        'Step forward and lower under control. Front knee tracks toes; drive up through the front heel and alternate.',
-    },
-    overhead_triceps_extension_rope_or_db: {
-      name: 'Overhead triceps extension (rope/dumbbell)',
-      description:
-        'Arms overhead, elbows in. Lower behind head for a stretch; extend fully without flaring elbows.',
-    },
-    hammer_curl: {
-      name: 'Hammer curl',
-      description:
-        'Dumbbell curl with neutral grip. Elbows by your sides; control the eccentric for ~2 seconds.',
-    },
-    deadlift: {
-      name: 'Deadlift',
-      description:
-        'Hip hinge with neutral spine, bar close to shins. Push the floor away and stand tall. Reset or control each rep.',
-    },
-    lat_pulldown: {
-      name: 'Lat pulldown',
-      description:
-        'Grip slightly wider than shoulders. Pull bar to upper chest; elbows down and back; slow eccentric.',
-    },
-    seated_row_cable: {
-      name: 'Seated cable row (to navel)',
-      description:
-        'Neutral spine; pull to navel/lower ribs. Squeeze shoulder blades; control the return.',
-    },
-    face_pull: {
-      name: 'Face pull',
-      description:
-        'Rope at face height. Pull to nose/forehead with external rotation (thumbs back); squeeze rear delts.',
-    },
-    biceps_curl_barbell_or_dumbbell: {
-      name: 'Biceps curl (barbell/dumbbell)',
-      description:
-        'Curl with a supinated grip, elbows by your sides, shoulders down. Full range of motion; controlled negative.',
-    },
-    sit_up: {
-      name: 'Sit-up',
-      description:
-        'Posteriorly tilt pelvis; roll up vertebra by vertebra. Don’t pull on your neck; control the descent.',
-    },
-    lying_leg_raise: {
-      name: 'Lying leg raise',
-      description:
-        'Posteriorly tilt pelvis; raise straight legs without arching. Stop before lower back extends.',
-    },
-    side_lying_leg_raise_obliques: {
-      name: 'Side-lying leg raise (obliques)',
-      description: 'Lie on your side; lift using obliques, keep hips stacked, control tempo.',
-    },
-    pull_ups: {
-      name: 'Pull-ups',
-      description:
-        'A classic bodyweight exercise that builds a wide and strong back. Lat pulldown can be used as a beginner alternative.',
-    },
-    plank: {
-      name: 'Plank',
-      description:
-        'A static core exercise that activates the entire trunk and improves stability and posture.',
-    },
-    bent_over_barbell_row: {
-      name: 'Bent-over Barbell Row',
-      description:
-        'A classic compound back exercise with a barbell. One of the best exercises for building back thickness.',
-    },
-    landmine_row: {
-      name: 'Landmine Row',
-      description:
-        'A compound rowing variation where one end of the barbell is fixed. More spine-friendly than traditional bent-over rows.',
-    },
-    single_arm_dumbbell_row: {
-      name: 'Single-arm Dumbbell Row',
-      description:
-        'A unilateral rowing exercise with a dumbbell offering great range of motion and helping to identify and correct muscle imbalances.',
-    },
-    shrugs: {
-      name: 'Shrugs',
-      description:
-        'An isolation exercise targeting the upper trapezius. Elevate shoulders straight up with load and squeeze at the top.',
-    },
-    romanian_deadlift: {
-      name: 'Romanian Deadlift',
-      description:
-        'A hip hinge movement focused on the hamstrings and glutes through a controlled stretch and contraction.',
-    },
-    russian_twists: {
-      name: 'Russian Twists',
-      description:
-        'A rotational core exercise targeting the obliques. Sit with knees bent, lean back, and rotate side to side.',
-    },
-    straight_arm_pulldown: {
-      name: 'Straight-arm Pulldown',
-      description:
-        'An isolation exercise targeting the lats with arms straight throughout. Excellent for lat mind-muscle connection.',
-    },
-    push_ups: {
-      name: 'Push-ups',
-      description:
-        'A fundamental bodyweight exercise training chest, triceps, and shoulders while requiring core stability.',
-    },
-    tbar_row: {
-      name: 'T-bar Row',
-      description:
-        'A compound back exercise with heavy loading. Excellent for building overall back thickness and strength.',
-    },
+    global: 'Global',
+    personalized: 'Personalized',
+    personalize: 'Personalize',
+    personalizedBanner: 'This exercise has been personalized from the global library for you.',
+    personalizeTitle: 'Personalize {name}?',
+    personalizeBody: 'Create your own copy of this exercise. You can transfer your existing history to the new copy, or start fresh.',
+    transferHistory: 'Transfer history',
+    startFresh: 'Start fresh',
+    personalizeFailed: 'Failed to personalize exercise',
   },
   exerciseDetails: {
     primary: 'Primary',

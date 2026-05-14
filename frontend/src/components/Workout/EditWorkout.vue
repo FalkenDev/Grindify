@@ -298,10 +298,12 @@ import AcceptDialog from '@/components/basicUI/AcceptDialog.vue'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
 import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import router from '@/router'
 import { parseDecimalInput } from '@/utils/decimalInput'
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const props = defineProps<{
   workout: Workout | null
@@ -441,7 +443,7 @@ const findExerciseData = (exerciseId: number) => {
 const getExerciseName = (exerciseId: number) => {
   const data = findExerciseData(exerciseId)
   if (!data) return t('exercise.exerciseFallback', { id: exerciseId })
-  return displayExerciseName({ t }, data)
+  return displayExerciseName(data, lang.value)
 }
 
 // -- Exercise management --

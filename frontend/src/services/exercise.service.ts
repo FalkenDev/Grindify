@@ -18,13 +18,27 @@ import type { CreateExercise, Exercise, UpdateExercise } from '@/interfaces/Exer
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8393/v1'
 
-export const fetchAllExercises = async () => {
+export const fetchAllExercises = async (filter: 'all' | 'global' | 'mine' = 'all') => {
   try {
-    const data = await fetchWrapper<Exercise[]>(`${apiUrl}/exercises`)
+    const data = await fetchWrapper<Exercise[]>(`${apiUrl}/exercises?filter=${filter}`)
     return Array.isArray(data) ? data : []
   } catch (error) {
     console.error('Error fetching exercises:', error)
     throw new Error('Failed to fetch exercises')
+  }
+}
+
+export const duplicateExercise = async (exerciseId: number, transferStats: boolean = false) => {
+  try {
+    const data = await fetchWrapper<Exercise>(`${apiUrl}/exercises/${exerciseId}/duplicate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transferStats }),
+    })
+    return data
+  } catch (error) {
+    console.error('Error duplicating exercise:', error)
+    throw new Error('Failed to duplicate exercise')
   }
 }
 

@@ -13,6 +13,8 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import type { I18nString } from './i18n.types'
+
 export enum ActivityIcon {
   RUNNING = 'run',
   WALKING = 'walk',
@@ -39,14 +41,17 @@ export enum ActivityIcon {
 
 export interface Activity {
   id: number
-  name: string
-  description?: string
+  title: I18nString
+  description?: I18nString | null
   icon: ActivityIcon
   equipment?: string[]
   trackDistance: boolean
   trackPace: boolean
   trackElevation: boolean
   trackCalories: boolean
+  isGlobal: boolean
+  personalizedFromGlobalId?: number | null
+  personalizedAt?: string | null
   createdAt: string
   updatedAt: string
 }
