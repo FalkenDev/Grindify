@@ -27,7 +27,7 @@ const baseSession: WorkoutSession = {
   exercises: [
     {
       exerciseId: 10,
-      exercise: { id: 10, name: 'Bench Press' } as any,
+      exercise: { id: 10, name: 'Bench Press' } as unknown as NonNullable<WorkoutSession['exercises'][0]['exercise']>,
       sets: [
         { setNumber: 1, weight: 80, reps: 10 },
         { setNumber: 2, weight: 85, reps: 8 },
@@ -36,7 +36,7 @@ const baseSession: WorkoutSession = {
     },
     {
       exerciseId: 20,
-      exercise: { id: 20, name: 'Squat' } as any,
+      exercise: { id: 20, name: 'Squat' } as unknown as NonNullable<WorkoutSession['exercises'][0]['exercise']>,
       sets: [
         { setNumber: 1, weight: 100, reps: 5 },
       ],

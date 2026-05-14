@@ -247,16 +247,6 @@ const rules = {
   positive: (v: number) => v > 0 || t('common.mustBePositive'),
 }
 
-// Get tracked metric labels for an activity
-function getMetrics(activity: Activity): string[] {
-  const metrics: string[] = []
-  if (activity.trackDistance) metrics.push(t('activity.trackDistance'))
-  if (activity.trackPace) metrics.push(t('activity.trackPace'))
-  if (activity.trackElevation) metrics.push(t('activity.trackElevation'))
-  if (activity.trackCalories) metrics.push(t('activity.trackCalories'))
-  return metrics
-}
-
 
 function openLogDialog(activity: Activity) {
   selectedActivity.value = activity
