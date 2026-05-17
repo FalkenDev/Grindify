@@ -64,6 +64,9 @@
         <v-chip v-else-if="exercise.personalizedFromGlobalId" size="x-small" color="secondary" variant="outlined" class="mt-1">
           {{ $t('exercise.personalized') }}
         </v-chip>
+        <v-chip v-else size="x-small" color="grey" variant="outlined" class="mt-1">
+          {{ $t('exercise.myExercise') }}
+        </v-chip>
       </div>
 
       <!-- 7-day personalization banner -->

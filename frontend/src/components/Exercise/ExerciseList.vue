@@ -111,38 +111,90 @@
       class="flex-grow-1 overflow-y-auto pa-0 bg-background d-flex ga-3 flex-column"
       style="padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px))"
     >
-      <v-list-item
-        v-for="exercise in exercises"
-        :key="exercise.id"
-        class="border-sm py-2 bg-cardBg rounded-lg mx-5"
-        two-line
-        @click.stop="openViewExercise(exercise)"
-      >
-        <div class="d-flex justify-space-between align-center w-100">
-          <div class="d-flex align-center ga-4">
-            <v-avatar color="avatarBg" size="50" tile class="rounded-lg">
-              <v-icon color="primary">mdi-dumbbell</v-icon>
-            </v-avatar>
-            <div class="d-flex flex-column">
-              <v-list-item-title class="text-body-1 font-weight-bold">
-                {{ displayName(exercise) }}
-              </v-list-item-title>
-              <div class="d-flex ga-2 align-center">
-                <v-chip v-if="getPrimaryMuscle(exercise)" size="x-small">
-                  {{ getPrimaryMuscle(exercise) }}
-                </v-chip>
-                <p
-                  v-if="exercise.exerciseType"
-                  class="text-textSecondary text-caption text-capitalize"
-                >
-                  {{ exercise.exerciseType }}
-                </p>
+      <template v-if="ownExercises.length > 0">
+        <p class="text-caption text-textSecondary font-weight-bold text-uppercase mx-5 mb-2">
+          {{ $t('exercise.myExercises') }}
+        </p>
+        <v-list-item
+          v-for="exercise in ownExercises"
+          :key="exercise.id"
+          class="border-sm py-2 bg-cardBg rounded-lg mx-5"
+          two-line
+          @click.stop="openViewExercise(exercise)"
+        >
+          <div class="d-flex justify-space-between align-center w-100">
+            <div class="d-flex align-center ga-4">
+              <v-avatar color="avatarBg" size="50" tile class="rounded-lg">
+                <v-icon color="primary">mdi-dumbbell</v-icon>
+              </v-avatar>
+              <div class="d-flex flex-column">
+                <v-list-item-title class="text-body-1 font-weight-bold">
+                  {{ displayName(exercise) }}
+                </v-list-item-title>
+                <div class="d-flex ga-2 align-center">
+                  <v-chip v-if="getPrimaryMuscle(exercise)" size="x-small">
+                    {{ getPrimaryMuscle(exercise) }}
+                  </v-chip>
+                  <v-chip size="x-small" color="grey" variant="outlined">
+                    {{ $t('exercise.myExercise') }}
+                  </v-chip>
+                  <p
+                    v-if="exercise.exerciseType"
+                    class="text-textSecondary text-caption text-capitalize"
+                  >
+                    {{ exercise.exerciseType }}
+                  </p>
+                </div>
               </div>
             </div>
+            <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
           </div>
-          <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
-        </div>
-      </v-list-item>
+        </v-list-item>
+      </template>
+
+      <template v-if="globalExercises.length > 0">
+        <p
+          class="text-caption text-textSecondary font-weight-bold text-uppercase mx-5 mb-2"
+          :class="{ 'mt-4': ownExercises.length > 0 }"
+        >
+          {{ $t('exercise.globalExercises') }}
+        </p>
+        <v-list-item
+          v-for="exercise in globalExercises"
+          :key="exercise.id"
+          class="border-sm py-2 bg-cardBg rounded-lg mx-5"
+          two-line
+          @click.stop="openViewExercise(exercise)"
+        >
+          <div class="d-flex justify-space-between align-center w-100">
+            <div class="d-flex align-center ga-4">
+              <v-avatar color="avatarBg" size="50" tile class="rounded-lg">
+                <v-icon color="primary">mdi-dumbbell</v-icon>
+              </v-avatar>
+              <div class="d-flex flex-column">
+                <v-list-item-title class="text-body-1 font-weight-bold">
+                  {{ displayName(exercise) }}
+                </v-list-item-title>
+                <div class="d-flex ga-2 align-center">
+                  <v-chip v-if="getPrimaryMuscle(exercise)" size="x-small">
+                    {{ getPrimaryMuscle(exercise) }}
+                  </v-chip>
+                  <v-chip size="x-small" color="primary" variant="outlined">
+                    {{ $t('exercise.global') }}
+                  </v-chip>
+                  <p
+                    v-if="exercise.exerciseType"
+                    class="text-textSecondary text-caption text-capitalize"
+                  >
+                    {{ exercise.exerciseType }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <v-icon color="grey-lighten-1">mdi-chevron-right</v-icon>
+          </div>
+        </v-list-item>
+      </template>
 
       <div class="d-flex justify-center mt-2 mx-5">
         <v-btn
@@ -235,7 +287,7 @@ const onCreateExerciseClose = async () => {
   await exerciseStore.setExercises(true)
 }
 
-const exercises = computed<Exercise[]>(() =>
+const filteredExercises = computed<Exercise[]>(() =>
   exerciseStore.exercises.filter((exercise: Exercise) => {
     const name = displayName(exercise).toLowerCase()
     const desc = resolveI18n(exercise.description, lang.value).toLowerCase()
@@ -253,6 +305,9 @@ const exercises = computed<Exercise[]>(() =>
     return matchesSearch && matchesMuscleGroup && matchesType
   })
 )
+
+const ownExercises = computed(() => filteredExercises.value.filter(e => !e.isGlobal))
+const globalExercises = computed(() => filteredExercises.value.filter(e => e.isGlobal))
 </script>
 
 <style scoped>
