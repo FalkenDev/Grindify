@@ -143,6 +143,15 @@ export class AuthController {
     return { user };
   }
 
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ description: 'Logged out successfully' })
+  logout(@Res({ passthrough: true }) res: Response) {
+    const cookiePath = process.env.AUTH_COOKIE_PATH || '/';
+    res.clearCookie('auth_token', { path: cookiePath });
+    return { ok: true };
+  }
+
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Verification email sent' })

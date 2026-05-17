@@ -13,7 +13,7 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exercise } from './exercise.entity';
@@ -21,7 +21,9 @@ import { MuscleGroupService } from '../muscleGroup/muscleGroup.service';
 import { exercisesToSeed } from '../seed/data/exercises.data';
 
 @Injectable()
-export class ExerciseSeedService {
+export class ExerciseSeedService implements OnModuleInit {
+  private readonly logger = new Logger(ExerciseSeedService.name);
+
   constructor(
     @InjectRepository(Exercise)
     private readonly exerciseRepo: Repository<Exercise>,
@@ -29,12 +31,19 @@ export class ExerciseSeedService {
   ) {}
 
   /**
-   * Seeds the default exercise catalog for a newly registered user.
-   * Each exercise is created as a user-owned Exercise with an i18n key
-   * for localized display names.
+   * Seeds the global exercise catalog on application start if none exist yet.
+   * Global exercises are shared across all users and managed via the admin panel.
    */
-  async seedDefaultExercises(userId: number): Promise<void> {
-    // Fetch all muscle groups once and build a name→entity map
+  async onModuleInit(): Promise<void> {
+    await this.seedGlobalExercises();
+  }
+
+  async seedGlobalExercises(): Promise<void> {
+    const existing = await this.exerciseRepo.count({ where: { isGlobal: true } });
+    if (existing > 0) return;
+
+    this.logger.log('No global exercises found – seeding defaults…');
+
     const allMuscleGroups = await this.muscleGroupService.findAll();
     const mgMap = new Map(allMuscleGroups.map((mg) => [mg.name, mg]));
 
@@ -45,23 +54,42 @@ export class ExerciseSeedService {
         .map((name) => mgMap.get(name))
         .filter((mg): mg is NonNullable<typeof mg> => !!mg);
 
+      const primaryMuscleGroups = def.primaryMuscleGroup
+        ? [mgMap.get(def.primaryMuscleGroup)].filter((mg): mg is NonNullable<typeof mg> => !!mg)
+        : [];
+
       const exercise = this.exerciseRepo.create({
-        name: def.defaultName,
-        i18nKey: def.i18nKey,
-        isNameCustom: false,
-        description: def.defaultDescription ?? '',
+        title: {
+          default: def.defaultName,
+          eng: def.defaultName,
+          swe: def.swedenName ?? def.defaultName,
+        },
+        descriptionI18n: {
+          default: def.defaultDescription,
+          eng: def.defaultDescription,
+          swe: def.swedenDescription ?? def.defaultDescription,
+        },
+        isGlobal: true,
+        createdBy: null,
         exerciseType: def.exerciseType,
-        equipment: def.equipment,
-        instructions: def.instructions,
-        proTips: def.proTips,
-        mistakes: def.mistakes,
+        equipmentI18n: def.equipment ? { default: def.equipment, eng: def.equipment } : undefined,
+        instructionsI18n: def.instructions?.length
+          ? { default: def.instructions, eng: def.instructions }
+          : undefined,
+        proTipsI18n: def.proTips?.length
+          ? { default: def.proTips, eng: def.proTips }
+          : undefined,
+        mistakesI18n: def.mistakes?.length
+          ? { default: def.mistakes, eng: def.mistakes }
+          : undefined,
         muscleGroups,
-        createdBy: { id: userId } as any,
+        primaryMuscleGroups,
       });
 
       exercises.push(exercise);
     }
 
     await this.exerciseRepo.save(exercises);
+    this.logger.log(`Seeded ${exercises.length} global exercise(s)`);
   }
 }

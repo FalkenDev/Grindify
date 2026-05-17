@@ -15,16 +15,26 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { ActivityIcon } from '../activity.entity';
+import { I18nString } from '../../common/types/i18n.types';
 
 export class ActivityResponseDto {
   @ApiProperty()
   id: number;
 
   @ApiProperty()
-  name: string;
+  title: I18nString;
 
   @ApiProperty({ required: false })
-  description?: string;
+  description?: I18nString;
+
+  @ApiProperty()
+  isGlobal: boolean;
+
+  @ApiProperty({ required: false })
+  personalizedFromGlobalId?: number;
+
+  @ApiProperty({ required: false })
+  personalizedAt?: Date;
 
   @ApiProperty({ enum: ActivityIcon })
   icon: ActivityIcon;

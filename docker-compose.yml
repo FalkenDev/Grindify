@@ -68,6 +68,29 @@ services:
           path: ./frontend
           target: /app
 
+  adminpanel:
+    build:
+      context: .
+      dockerfile: Dockerfile.adminpanel
+      target: development
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: grindify_adminpanel
+    ports:
+      - "${ADMINPANEL_PORT:-3001}:3001"
+    volumes:
+      - ./adminpanel:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    env_file:
+      - .env
+    develop:
+      watch:
+        - action: sync
+          path: ./adminpanel
+          target: /app
+
 volumes:
   postgres_data:
   uploads_data:

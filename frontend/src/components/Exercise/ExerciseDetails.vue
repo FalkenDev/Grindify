@@ -23,19 +23,26 @@
       overscroll-behavior: none;
     "
   >
-    <BackHeader :title="exercise.name" :show-menu="!hideMenu" @close="emit('close')">
+    <BackHeader :title="exerciseName" :show-menu="!hideMenu" @close="emit('close')">
       <template #menuAppend>
         <v-list
           class="bg-cardBg"
-          width="100"
+          width="130"
           style="border: 1px solid rgb(var(--v-theme-borderColor))"
         >
-          <v-list-item @click="isEditOpen = true">
-            <v-list-item-title>{{ $t('common.edit') }}</v-list-item-title>
-          </v-list-item>
-          <v-list-item @click="isDeleteDialogOpen = true">
-            <v-list-item-title>{{ $t('common.delete') }}</v-list-item-title>
-          </v-list-item>
+          <template v-if="exercise.isGlobal">
+            <v-list-item @click="isDuplicateDialogOpen = true">
+              <v-list-item-title>{{ $t('exercise.personalize') }}</v-list-item-title>
+            </v-list-item>
+          </template>
+          <template v-else>
+            <v-list-item @click="isEditOpen = true">
+              <v-list-item-title>{{ $t('common.edit') }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item @click="isDeleteDialogOpen = true">
+              <v-list-item-title>{{ $t('common.delete') }}</v-list-item-title>
+            </v-list-item>
+          </template>
         </v-list>
       </template>
     </BackHeader>
@@ -50,8 +57,29 @@
         <p v-if="exercise.exerciseType" class="text-primary text-body-1 text-capitalize">
           {{ exercise.exerciseType }}
         </p>
-        <h1 class="text-h5 font-weight-bold">{{ exercise.name }}</h1>
+        <h1 class="text-h5 font-weight-bold">{{ exerciseName }}</h1>
+        <v-chip v-if="exercise.isGlobal" size="x-small" color="primary" variant="outlined" class="mt-1">
+          {{ $t('exercise.global') }}
+        </v-chip>
+        <v-chip v-else-if="exercise.personalizedFromGlobalId" size="x-small" color="secondary" variant="outlined" class="mt-1">
+          {{ $t('exercise.personalized') }}
+        </v-chip>
+        <v-chip v-else size="x-small" color="grey" variant="outlined" class="mt-1">
+          {{ $t('exercise.myExercise') }}
+        </v-chip>
       </div>
+
+      <!-- 7-day personalization banner -->
+      <v-alert
+        v-if="showPersonalizedBanner"
+        type="info"
+        density="compact"
+        closable
+        class="text-body-2"
+        @click:close="dismissPersonalizedBanner"
+      >
+        {{ $t('exercise.personalizedBanner') }}
+      </v-alert>
 
       <!-- Primary Muscle Card -->
       <div v-if="primaryMuscleName" class="d-flex ga-3">
@@ -66,9 +94,9 @@
       </div>
 
       <!-- About -->
-      <div v-if="exercise.description">
+      <div v-if="exerciseDescription">
         <h1 class="text-h6">{{ $t('exerciseDetails.about') }}</h1>
-        <p class="text-body-1 text-textSecondary mt-1">{{ exercise.description }}</p>
+        <p class="text-body-1 text-textSecondary mt-1">{{ exerciseDescription }}</p>
       </div>
 
       <!-- Target Muscles -->
@@ -127,10 +155,10 @@
       </div>
 
       <!-- How to Perform -->
-      <div v-if="exercise.instructions && exercise.instructions.length > 0">
+      <div v-if="resolvedInstructions.length > 0">
         <h1 class="text-h6">{{ $t('exerciseDetails.howToPerform') }}</h1>
         <div class="my-2 d-flex ga-4 flex-column">
-          <div v-for="(step, i) in exercise.instructions" :key="i" class="d-flex ga-2 align-center">
+          <div v-for="(step, i) in resolvedInstructions" :key="i" class="d-flex ga-2 align-center">
             <v-avatar color="avatarBg" size="24" class="text-primary text-caption">{{
               i + 1
             }}</v-avatar>
@@ -140,13 +168,13 @@
       </div>
 
       <!-- Pro Tips -->
-      <div v-if="exercise.proTips && exercise.proTips.length > 0">
+      <div v-if="resolvedProTips.length > 0">
         <h1 class="text-h6">{{ $t('exerciseDetails.proTips') }}</h1>
         <v-card
           class="bg-cardBg pa-3 rounded-lg my-2 py-4 d-flex flex-column ga-4"
           style="border: 1px solid rgb(var(--v-theme-borderColor)); box-shadow: none"
         >
-          <div v-for="(tip, i) in exercise.proTips" :key="i" class="d-flex align-center ga-3">
+          <div v-for="(tip, i) in resolvedProTips" :key="i" class="d-flex align-center ga-3">
             <v-icon color="primary" size="20">mdi-lightbulb-on-outline</v-icon>
             <p class="text-body-2 text-textSecondary">{{ tip }}</p>
           </div>
@@ -154,13 +182,13 @@
       </div>
 
       <!-- Avoid These Mistakes -->
-      <div v-if="exercise.mistakes && exercise.mistakes.length > 0">
+      <div v-if="resolvedMistakes.length > 0">
         <h1 class="text-h6">{{ $t('exerciseDetails.mistakes') }}</h1>
         <v-card
           class="bg-cardBg pa-3 rounded-lg my-2 py-4 d-flex flex-column ga-4"
           style="border: 1px solid rgb(var(--v-theme-borderColor)); box-shadow: none"
         >
-          <div v-for="(mistake, i) in exercise.mistakes" :key="i" class="d-flex align-center ga-3">
+          <div v-for="(mistake, i) in resolvedMistakes" :key="i" class="d-flex align-center ga-3">
             <v-icon color="error" size="20">mdi-close</v-icon>
             <p class="text-body-2 text-textSecondary">{{ mistake }}</p>
           </div>
@@ -173,6 +201,14 @@
   <v-dialog v-model="isEditOpen" fullscreen>
     <EditExercise :exercise="exercise" @close="onEditClose" @saved="onEditClose" />
   </v-dialog>
+
+  <!-- Personalize (duplicate) Dialog -->
+  <DuplicateExerciseDialog
+    v-model="isDuplicateDialogOpen"
+    :exercise-id="exercise.id"
+    :exercise-name="exerciseName"
+    @duplicated="emit('close')"
+  />
 
   <!-- Delete Confirmation Dialog -->
   <v-dialog v-model="isDeleteDialogOpen" max-width="360">
@@ -194,11 +230,14 @@
 
 <script setup lang="ts">
 import BackHeader from '@/components/BackHeader.vue'
+import DuplicateExerciseDialog from '@/components/Exercise/DuplicateExerciseDialog.vue'
 import type { Exercise } from '@/interfaces/Exercise.interface'
 import { useExerciseStore } from '@/stores/exercise.store'
 import { deleteExercise } from '@/services/exercise.service'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { displayExerciseName, resolveI18n, resolveI18nArray } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{
   selectedExercise: Exercise | null
@@ -212,9 +251,11 @@ const emit = defineEmits<{
 
 const exerciseStore = useExerciseStore()
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const isEditOpen = ref(false)
 const isDeleteDialogOpen = ref(false)
+const isDuplicateDialogOpen = ref(false)
 const isDeleting = ref(false)
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8393/v1'
@@ -230,6 +271,27 @@ const exercise = computed(() => {
   const fromStore = exerciseStore.exercises.find(ex => ex.id === props.selectedExercise?.id)
   return fromStore || props.selectedExercise!
 })
+
+const exerciseName = computed(() => displayExerciseName(exercise.value, lang.value))
+const exerciseDescription = computed(() => resolveI18n(exercise.value?.description, lang.value))
+const resolvedInstructions = computed(() => resolveI18nArray(exercise.value?.instructions, lang.value))
+const resolvedProTips = computed(() => resolveI18nArray(exercise.value?.proTips, lang.value))
+const resolvedMistakes = computed(() => resolveI18nArray(exercise.value?.mistakes, lang.value))
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+const showPersonalizedBanner = computed(() => {
+  const ex = exercise.value
+  if (!ex?.personalizedFromGlobalId || !ex?.personalizedAt) return false
+  const dismissed = localStorage.getItem(`personalized_dismissed_${ex.id}`)
+  if (dismissed) return false
+  return Date.now() - new Date(ex.personalizedAt).getTime() < SEVEN_DAYS_MS
+})
+
+const dismissPersonalizedBanner = () => {
+  if (exercise.value?.id) {
+    localStorage.setItem(`personalized_dismissed_${exercise.value.id}`, '1')
+  }
+}
 
 const primaryMuscleName = computed(() => {
   if (exercise.value?.primaryMuscleGroups?.length)

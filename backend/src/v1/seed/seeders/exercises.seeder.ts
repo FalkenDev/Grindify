@@ -33,15 +33,13 @@ export async function seedUserExercises(
       : undefined;
 
     const exercise = exerciseRepo.create({
-      name: ex.defaultName,
-      i18nKey: ex.i18nKey,
-      isNameCustom: false,
-      description: ex.defaultDescription ?? '',
+      title: { default: ex.defaultName },
+      descriptionI18n: { default: ex.defaultDescription ?? '' },
       exerciseType: ex.exerciseType,
-      equipment: ex.equipment,
-      instructions: ex.instructions,
-      proTips: ex.proTips,
-      mistakes: ex.mistakes,
+      equipmentI18n: ex.equipment ? { default: ex.equipment } : undefined,
+      instructionsI18n: ex.instructions ? { default: ex.instructions } : undefined,
+      proTipsI18n: ex.proTips ? { default: ex.proTips } : undefined,
+      mistakesI18n: ex.mistakes ? { default: ex.mistakes } : undefined,
       createdBy: user,
       primaryMuscleGroups: [primaryMuscleGroup].filter(
         (mg): mg is MuscleGroup => !!mg,

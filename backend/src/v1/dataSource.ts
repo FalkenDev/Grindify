@@ -20,6 +20,7 @@ import * as dotenv from 'dotenv';
 import { User } from './user/user.entity';
 import { Exercise } from './exercise/exercise.entity';
 import { ExerciseMedia } from './exercise/exerciseMedia.entity';
+import { ExerciseImage } from './exercise/exerciseImage.entity';
 import { Workout } from './workout/workout.entity';
 import { WorkoutExercise } from './workout/workoutExercise.entity';
 import { WorkoutSession } from './workoutSession/workoutSession.entity';
@@ -27,6 +28,11 @@ import { MuscleGroup } from './muscleGroup/muscleGroup.entity';
 import { WorkoutSessionExercise } from './workoutSession/workoutSessionExercise.entity';
 import { WorkoutSessionSet } from './workoutSession/workoutSessionSet.entity';
 import { ScheduledSession } from './scheduledSession/scheduledSession.entity';
+import { Activity } from './activity/activity.entity';
+import { ActivityLog } from './activityLog/activityLog.entity';
+import { ExerciseRecord } from './statistics/exerciseRecord.entity';
+import { WeightLog } from './weightLog/weightLog.entity';
+import { ProgressPhoto } from './progressPhoto/progressPhoto.entity';
 
 dotenv.config();
 
@@ -37,18 +43,25 @@ export const AppDataSource = new DataSource({
   username: process.env.DATABASE_USER || 'user',
   password: process.env.DATABASE_PASSWORD || 'password',
   database: process.env.DATABASE_NAME || 'grindifydb',
-  synchronize: true,
+  synchronize: false,
   logging: ['error', 'warn'],
   entities: [
     User,
     MuscleGroup,
     Exercise,
     ExerciseMedia,
+    ExerciseImage,
     Workout,
     WorkoutExercise,
     WorkoutSession,
     WorkoutSessionExercise,
     WorkoutSessionSet,
     ScheduledSession,
+    Activity,
+    ActivityLog,
+    ExerciseRecord,
+    WeightLog,
+    ProgressPhoto,
   ],
+  migrations: [__dirname + '/migrations/*.{ts,js}'],
 });

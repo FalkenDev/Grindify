@@ -18,13 +18,27 @@ import type { Activity, CreateActivityDto } from '@/interfaces/Activity.interfac
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8393/v1';
 
-export const fetchAllActivities = async () => {
+export const fetchAllActivities = async (filter: 'all' | 'global' | 'mine' = 'all') => {
   try {
-    const data = await fetchWrapper<Activity[]>(`${apiUrl}/activity`);
+    const data = await fetchWrapper<Activity[]>(`${apiUrl}/activity?filter=${filter}`);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Error fetching activities:', error);
     throw new Error('Failed to fetch activities');
+  }
+};
+
+export const duplicateActivity = async (activityId: number, transferStats: boolean = false) => {
+  try {
+    const data = await fetchWrapper<Activity>(`${apiUrl}/activity/${activityId}/duplicate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transferStats }),
+    });
+    return data;
+  } catch (error) {
+    console.error('Error duplicating activity:', error);
+    throw new Error('Failed to duplicate activity');
   }
 };
 

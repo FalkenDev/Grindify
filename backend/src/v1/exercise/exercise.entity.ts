@@ -27,6 +27,7 @@ import {
 import { User } from '../user/user.entity';
 import { MuscleGroup } from '../muscleGroup/muscleGroup.entity';
 import { ExerciseMedia } from './exerciseMedia.entity';
+import { I18nString, I18nStringArray } from '../common/types/i18n.types';
 
 export enum ExerciseType {
   COMPOUND = 'compound',
@@ -39,45 +40,41 @@ export class Exercise {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @Column({ type: 'jsonb' })
+  title: I18nString;
 
-  /**
-   * Optional i18n key (copied from the global exercise when imported).
-   * Frontend can use this to translate the display name in the future.
-   */
-  @Column({ nullable: true })
-  i18nKey?: string;
+  @Column({ name: 'descriptionI18n', type: 'jsonb', nullable: true })
+  descriptionI18n?: I18nString;
 
-  /**
-   * If true, user has edited the name and we should use `name` instead of the i18n translation.
-   */
   @Column({ default: false })
-  isNameCustom: boolean;
+  isGlobal: boolean;
 
   @Column({ nullable: true })
-  description: string;
+  personalizedFromGlobalId?: number;
 
-  @Column({ nullable: true })
-  image: string;
+  @Column({ type: 'timestamptz', nullable: true })
+  personalizedAt?: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  image: string | null;
 
   @Column({ type: 'enum', enum: ExerciseType, nullable: true })
   exerciseType?: ExerciseType;
 
-  @Column({ type: 'jsonb', nullable: true })
-  equipment?: string[];
+  @Column({ name: 'equipment_i18n', type: 'jsonb', nullable: true })
+  equipmentI18n?: I18nStringArray;
 
-  @Column({ type: 'jsonb', nullable: true })
-  instructions?: string[];
+  @Column({ name: 'instructionsI18n', type: 'jsonb', nullable: true })
+  instructionsI18n?: I18nStringArray;
 
-  @Column({ type: 'jsonb', nullable: true })
-  proTips?: string[];
+  @Column({ name: 'proTipsI18n', type: 'jsonb', nullable: true })
+  proTipsI18n?: I18nStringArray;
 
-  @Column({ type: 'jsonb', nullable: true })
-  mistakes?: string[];
+  @Column({ name: 'mistakesI18n', type: 'jsonb', nullable: true })
+  mistakesI18n?: I18nStringArray;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  createdBy: User;
+  @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
+  createdBy: User | null;
 
   @ManyToMany(() => MuscleGroup)
   @JoinTable()

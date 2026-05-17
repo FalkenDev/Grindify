@@ -129,7 +129,7 @@
     <AcceptDialog
       v-model="isDeleteDialogOpen"
       :title="$t('activity.deleteActivity')"
-      :description="`${$t('activity.deleteActivity')} &quot;${activity.name}&quot;?`"
+      :description="`${$t('activity.deleteActivity')} &quot;${resolveI18n(activity.title, lang)}&quot;?`"
       @accept="deleteActivity"
       @cancel="isDeleteDialogOpen = false"
     />
@@ -148,10 +148,13 @@ import type { Activity } from '@/interfaces/Activity.interface'
 import AcceptDialog from '@/components/basicUI/AcceptDialog.vue'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{ activity: Activity }>()
 const emit = defineEmits<{ close: []; deleted: [] }>()
 const { t } = useI18n()
+const { lang } = useUserLanguage()
 const activityStore = useActivityStore()
 const formRef = ref()
 const isSaving = ref(false)
@@ -184,8 +187,8 @@ const iconOptions = computed(() => [
 
 
 const form = ref({
-  name: props.activity.name,
-  description: props.activity.description ?? '',
+  name: resolveI18n(props.activity.title, lang.value),
+  description: resolveI18n(props.activity.description, lang.value),
   icon: props.activity.icon,
   equipment: props.activity.equipment ? [...props.activity.equipment] : ([] as string[]),
   trackDistance: props.activity.trackDistance,

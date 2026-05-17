@@ -156,9 +156,11 @@ import type { Workout } from '@/interfaces/Workout.interface'
 import { useWorkoutStore } from '@/stores/workout.store'
 import { useI18n } from 'vue-i18n'
 import WorkoutDetails from '@/pages/WorkoutDetails.vue'
-// import { displayExerciseName, displayExerciseDescription } from '@/utils/exerciseDisplay'
+import { resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const emit = defineEmits<{ (e: 'close'): void }>()
 const workoutStore = useWorkoutStore()
@@ -221,7 +223,7 @@ const filteredWorkouts = computed<Workout[]>(() => {
     list = list.filter(w => {
       const inTitle =
         w.title.toLowerCase().includes(q) || (w.description || '').toLowerCase().includes(q)
-      const inExercises = w.exercises.some(it => it.exercise.name.toLowerCase().includes(q))
+      const inExercises = w.exercises.some(it => resolveI18n(it.exercise.title, lang.value).toLowerCase().includes(q))
       return inTitle || inExercises
     })
   }

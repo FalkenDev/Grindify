@@ -78,6 +78,8 @@ import type { PerformedSet, WorkoutSession } from '@/interfaces/workoutSession.i
 import { parseDecimalInput, parseIntInput, normalizeDecimalStr } from '@/utils/decimalInput'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{
   sessionId: number
@@ -86,6 +88,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
+const { lang } = useUserLanguage()
 
 const editableSets = ref<PerformedSet[]>(
   [...(props.exercise.sets || [])].sort((a, b) => a.setNumber - b.setNumber).map(s => ({ ...s }))
@@ -102,7 +105,7 @@ const repsStrings = ref<string[]>(
 )
 
 const exerciseName = computed(
-  () => props.exercise.exercise?.name || t('sessionList.exerciseFallback')
+  () => props.exercise.exercise ? displayExerciseName(props.exercise.exercise, lang.value) : t('sessionList.exerciseFallback')
 )
 
 function renumberSets() {

@@ -205,6 +205,8 @@ import type { ScheduledSessionType } from '@/interfaces/ScheduledSession.interfa
 import type { Workout } from '@/interfaces/Workout.interface'
 import type { Activity } from '@/interfaces/Activity.interface'
 import { useI18n } from 'vue-i18n'
+import { displayActivityName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{
   modelValue: boolean
@@ -225,6 +227,7 @@ const workoutStore = useWorkoutStore()
 const activityStore = useActivityStore()
 const scheduledSessionStore = useScheduledSessionStore()
 const { tm } = useI18n()
+const { lang } = useUserLanguage()
 
 const sessionType = ref<ScheduledSessionType>('workout')
 const selectedItemId = ref<number | null>(null)
@@ -252,7 +255,7 @@ const itemList = computed<ListItem[]>(() => {
   } else {
     return ((activityStore.activities || []) as Activity[]).map(a => ({
       id: a.id,
-      name: a.name,
+      name: displayActivityName(a, lang.value),
       icon: a.icon,
     }))
   }

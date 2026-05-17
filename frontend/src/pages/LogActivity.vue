@@ -44,12 +44,12 @@
           <v-avatar size="48" color="avatarBg" class="rounded-lg mb-2">
             <v-icon color="primary" size="28">mdi-{{ activity.icon }}</v-icon>
           </v-avatar>
-          <span class="text-body-2 font-weight-medium text-center">{{ activity.name }}</span>
+          <span class="text-body-2 font-weight-medium text-center">{{ displayActivityName(activity, lang) }}</span>
           <span
-            v-if="activity.description"
+            v-if="resolveI18n(activity.description, lang)"
             class="text-caption text-textSecondary text-center mt-1 activity-desc"
           >
-            {{ activity.description }}
+            {{ resolveI18n(activity.description, lang) }}
           </span>
         </v-card>
       </div>
@@ -75,7 +75,7 @@
           <v-btn icon density="compact" variant="flat" color="transparent" @click="closeLogDialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
-          <h2 class="text-h6">{{ selectedActivity?.name }}</h2>
+          <h2 class="text-h6">{{ selectedActivity ? displayActivityName(selectedActivity, lang) : '' }}</h2>
           <div style="width: 40px" />
         </div>
 
@@ -204,12 +204,15 @@ import type { Activity, CreateActivityLogDto } from '@/interfaces/Activity.inter
 import CreateActivity from '@/components/Activity/CreateActivity.vue'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { displayActivityName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import { parseDecimalInput, normalizeDecimalStr } from '@/utils/decimalInput'
 
 const router = useRouter()
 const route = useRoute()
 const activityStore = useActivityStore()
 const { t } = useI18n()
+const { lang } = useUserLanguage()
 const formRef = ref()
 
 const isLogDialogOpen = ref(false)
@@ -242,16 +245,6 @@ const caloriesStr = ref('')
 const rules = {
   required: (v: string | number | null) => !!v || t('common.fieldRequired'),
   positive: (v: number) => v > 0 || t('common.mustBePositive'),
-}
-
-// Get tracked metric labels for an activity
-function getMetrics(activity: Activity): string[] {
-  const metrics: string[] = []
-  if (activity.trackDistance) metrics.push(t('activity.trackDistance'))
-  if (activity.trackPace) metrics.push(t('activity.trackPace'))
-  if (activity.trackElevation) metrics.push(t('activity.trackElevation'))
-  if (activity.trackCalories) metrics.push(t('activity.trackCalories'))
-  return metrics
 }
 
 

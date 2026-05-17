@@ -19,7 +19,7 @@
       <div class="pa-5 d-flex flex-column ga-4">
         <!-- Header -->
         <BackHeader
-          :title="exercise?.name ?? ''"
+          :title="exercise ? displayExerciseName(exercise, lang) : ''"
           :subtitle="
             exercise
               ? `${exercise.muscleGroups?.map(mg => $t(`muscleGroups.${mg.name}`)).join(', ')}`
@@ -222,11 +222,14 @@ import { Line } from 'vue-chartjs'
 import { useStatisticsStore } from '@/stores/statistics.store'
 import type { Exercise } from '@/interfaces/Exercise.interface'
 import type { ProgressMetric, ProgressPeriod } from '@/interfaces/Statistics.interface'
+import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
 
 const { t } = useI18n()
 const statisticsStore = useStatisticsStore()
+const { lang } = useUserLanguage()
 
 const props = defineProps<{
   exercise: Exercise | null

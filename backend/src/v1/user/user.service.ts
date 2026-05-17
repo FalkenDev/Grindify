@@ -623,6 +623,7 @@ export class UserService {
     if (dto.weightGoalType !== undefined)
       user.weightGoalType = dto.weightGoalType;
     if (dto.startWeight !== undefined) user.startWeight = dto.startWeight;
+    if (dto.language !== undefined) user.language = dto.language;
 
     const updated = await this.userRepo.save(user);
     return new UserWithoutPasswordDto(updated);

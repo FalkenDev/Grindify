@@ -103,7 +103,7 @@
                 {{ $t('sessionSummary.newRecord') }}
               </p>
               <p class="text-body-2 text-textPrimary">
-                {{ record.exercise?.name ?? $t('statistics.exercise') }}
+                {{ record.exercise ? displayExerciseName(record.exercise, lang) : $t('statistics.exercise') }}
                 —
                 <span class="font-weight-bold">
                   {{ record.value }}
@@ -173,8 +173,11 @@ import { useI18n } from 'vue-i18n'
 import { toast } from 'vuetify-sonner'
 import { mapSessionToWorkoutInitialData } from '@/utils/sessionToWorkout'
 import CreateWorkout from '@/components/Workout/CreateWorkout.vue'
+import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 const workoutSessionStore = useWorkoutSessionStore()
 
 const summary = workoutSessionStore.lastCompletedSummary

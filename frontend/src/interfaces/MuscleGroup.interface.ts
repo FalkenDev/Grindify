@@ -13,9 +13,13 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import type { I18nString } from './i18n.types'
+
 export interface MuscleGroup {
-  id: number;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
+  id: number
+  name: string
+  nameI18n?: I18nString
+  descriptionI18n?: I18nString
+  createdAt: string
+  updatedAt: string
 }

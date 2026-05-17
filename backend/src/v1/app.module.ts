@@ -31,6 +31,7 @@ import { ScheduledSessionModule } from './scheduledSession/scheduledSession.modu
 import { StatisticsModule } from './statistics/statistics.module';
 import { ProgressPhotoModule } from './progressPhoto/progressPhoto.module';
 import { ReleasesModule } from './releases/releases.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -47,7 +48,9 @@ import { ReleasesModule } from './releases/releases.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false,
+        migrations: [__dirname + '/migrations/*.{ts,js}'],
+        migrationsRun: true,
         logging: ['error', 'warn', 'query'],
       }),
       inject: [ConfigService],
@@ -65,6 +68,7 @@ import { ReleasesModule } from './releases/releases.module';
     StatisticsModule,
     ProgressPhotoModule,
     ReleasesModule,
+    AdminModule,
   ],
   providers: [AppService, JwtStrategy],
 })

@@ -21,12 +21,13 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   Req,
   UseGuards,
   UnauthorizedException,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ActivityService } from './activity.service';
+import { ActivityService, ActivityFilter } from './activity.service';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import {
@@ -48,15 +49,16 @@ export class ActivityController {
   constructor(private readonly activityService: ActivityService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all activities for the logged-in user' })
+  @ApiOperation({ summary: 'Get activities (filter: all | global | mine)' })
   @ApiOkResponse({ type: [ActivityResponseDto] })
   getAllActivities(
     @Req() req: RequestWithUser,
+    @Query('filter') filter?: ActivityFilter,
   ): Promise<ActivityResponseDto[]> {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.activityService.findAll(+req.user.id);
+    return this.activityService.findAll(+req.user.id, filter ?? 'all');
   }
 
   @Get(':id')
@@ -110,5 +112,19 @@ export class ActivityController {
       throw new UnauthorizedException('User not authenticated');
     }
     return this.activityService.delete(id, +req.user.id);
+  }
+
+  @Post(':id/duplicate')
+  @ApiOperation({ summary: 'Duplicate a global activity for personal use' })
+  @ApiCreatedResponse({ type: ActivityResponseDto })
+  duplicateActivity(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { transferStats?: boolean },
+    @Req() req: RequestWithUser,
+  ): Promise<ActivityResponseDto> {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    return this.activityService.duplicateGlobalActivity(id, +req.user.id, body.transferStats ?? false);
   }
 }

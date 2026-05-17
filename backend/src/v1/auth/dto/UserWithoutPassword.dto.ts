@@ -74,6 +74,9 @@ export class UserWithoutPasswordDto {
   @ApiProperty({ default: false })
   emailVerified: boolean;
 
+  @ApiProperty({ default: 'user' })
+  role: 'user' | 'superadmin';
+
   @ApiProperty({ default: false })
   showWeightTracking: boolean;
 
@@ -82,6 +85,9 @@ export class UserWithoutPasswordDto {
 
   @ApiProperty({ required: false })
   startWeight?: number;
+
+  @ApiProperty({ default: 'default' })
+  language: 'default' | 'eng' | 'swe';
 
   constructor(user: User) {
     this.id = user.id;
@@ -106,5 +112,7 @@ export class UserWithoutPasswordDto {
     this.showWeightTracking = user.showWeightTracking ?? false;
     this.weightGoalType = user.weightGoalType ?? undefined;
     this.startWeight = user.startWeight;
+    this.role = user.role ?? 'user';
+    this.language = user.language ?? 'default';
   }
 }

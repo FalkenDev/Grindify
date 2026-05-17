@@ -176,13 +176,13 @@
                 </v-avatar>
                 <div class="flex-grow-1" style="min-width: 0">
                   <p class="text-body-2 font-weight-bold text-textPrimary text-truncate">
-                    {{ ex.exercise?.name || $t('sessionList.exerciseFallback') }}
+                    {{ ex.exercise ? displayExerciseName(ex.exercise, lang) : $t('sessionList.exerciseFallback') }}
                   </p>
                   <p
-                    v-if="ex.exercise?.description"
+                    v-if="ex.exercise && resolveI18n(ex.exercise.description, lang)"
                     class="text-caption text-textSecondary text-truncate"
                   >
-                    {{ ex.exercise.description }}
+                    {{ resolveI18n(ex.exercise.description, lang) }}
                   </p>
                 </div>
                 <div class="d-flex align-center ga-1 flex-shrink-0">
@@ -414,11 +414,14 @@ import { mapSessionToWorkoutInitialData } from '@/utils/sessionToWorkout'
 import CreateWorkout from '@/components/Workout/CreateWorkout.vue'
 import EditWorkoutSessionDialog from '@/components/Session/EditWorkoutSessionDialog.vue'
 import EditSessionExerciseSetsDialog from '@/components/Session/EditSessionExerciseSetsDialog.vue'
+import { displayExerciseName, displayActivityName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const props = defineProps<{ sessionType?: 'workout' | 'activity'; sessionId?: number }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 const route = useRoute()
 const router = useRouter()
 
@@ -510,7 +513,9 @@ const sessionTitle = computed(() => {
       workoutSession.value?.workout?.title ?? t('sessionDetail.sessionFallback', { id: id.value })
     )
   }
-  return activityLog.value?.activity?.name ?? t('sessionDetail.activityFallback', { id: id.value })
+  return activityLog.value?.activity
+    ? displayActivityName(activityLog.value.activity, lang.value)
+    : t('sessionDetail.activityFallback', { id: id.value })
 })
 
 const sessionSubtitle = computed(() => {

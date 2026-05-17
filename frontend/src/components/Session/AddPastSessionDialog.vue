@@ -128,7 +128,7 @@
               class="bg-cardBg rounded-lg pa-4 mb-3"
               style="border: 1px solid rgb(var(--v-theme-borderColor)); overflow: visible"
             >
-              <p class="text-body-1 font-weight-bold mb-3">{{ ex.exercise?.name }}</p>
+              <p class="text-body-1 font-weight-bold mb-3">{{ ex.exercise ? displayExerciseName(ex.exercise, lang) : '' }}</p>
 
               <!-- Set header row -->
               <div class="d-flex align-center ga-2 mb-1 text-caption text-textSecondary">
@@ -378,6 +378,8 @@ import { createActivityLog } from '@/services/activityLog.service'
 import type { Activity } from '@/interfaces/Activity.interface'
 import type { Workout } from '@/interfaces/Workout.interface'
 import { parseDecimalInput, parseIntInput, normalizeDecimalStr } from '@/utils/decimalInput'
+import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 
 interface InlineSet {
   set: number
@@ -406,6 +408,7 @@ const dialogOpen = computed({
 })
 
 const { locale } = useI18n()
+const { lang } = useUserLanguage()
 
 const workoutStore = useWorkoutStore()
 const activityStore = useActivityStore()
