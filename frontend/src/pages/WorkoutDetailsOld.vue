@@ -258,10 +258,12 @@ import { toast } from 'vuetify-sonner'
 import EditWorkoutExercise from '@/components/Workout/EditWorkoutExercise.vue'
 import { useI18n } from 'vue-i18n'
 import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { useUserLanguage } from '@/composables/useUserLanguage'
 import { useStatisticsStore } from '@/stores/statistics.store'
 import type { WorkoutQuickStats } from '@/interfaces/Statistics.interface'
 
 const { t } = useI18n({ useScope: 'global' })
+const { lang } = useUserLanguage()
 
 const isAddExerciseOpen = ref<boolean>(false)
 const isEditExerciseOpen = ref<boolean>(false)
@@ -288,7 +290,7 @@ const sortedExercises = computed(() => {
 })
 
 const displayName = (exercise: NonNullable<Exercise['exercise']>) =>
-  displayExerciseName({ t }, exercise)
+  displayExerciseName(exercise, lang.value)
 
 type GroupStat = { name: string; count: number }
 
