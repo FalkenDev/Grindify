@@ -95,7 +95,10 @@ export class AuthService {
 
     // Send verification email only when feature is enabled
     if (requireVerification && verificationCode) {
-      await this.emailService.sendVerificationEmail(savedUser.email, verificationCode);
+      await this.emailService.sendVerificationEmail(
+        savedUser.email,
+        verificationCode,
+      );
     }
 
     return new UserWithoutPasswordDto(savedUser);
@@ -110,9 +113,26 @@ export class AuthService {
         'firstName',
         'lastName',
         'password',
+        'avatar',
         'showRpe',
+        'weeklyWorkoutGoal',
+        'currentStreak',
+        'currentWeekWorkouts',
+        'unitScale',
+        'weight',
+        'height',
+        'dateOfBirth',
+        'gender',
+        'primaryGoal',
+        'targetWeight',
+        'goalTimeframe',
         'onboardingCompleted',
         'emailVerified',
+        'showWeightTracking',
+        'weightGoalType',
+        'startWeight',
+        'role',
+        'language',
       ],
     });
 
@@ -130,7 +150,10 @@ export class AuthService {
     return { token, user: userDto };
   }
 
-  async verifyEmail(email: string, code: string): Promise<{ token: string; user: UserWithoutPasswordDto }> {
+  async verifyEmail(
+    email: string,
+    code: string,
+  ): Promise<{ token: string; user: UserWithoutPasswordDto }> {
     const user = await this.userRepo.findOne({
       where: { email },
       select: [
@@ -147,7 +170,8 @@ export class AuthService {
     });
 
     if (!user) throw new NotFoundException('User not found');
-    if (user.emailVerified) throw new BadRequestException('Email already verified');
+    if (user.emailVerified)
+      throw new BadRequestException('Email already verified');
 
     const inputHash = crypto.createHash('sha256').update(code).digest('hex');
 
@@ -174,22 +198,23 @@ export class AuthService {
   async resendVerification(email: string): Promise<void> {
     const user = await this.userRepo.findOne({
       where: { email },
-      select: [
-        'id',
-        'email',
-        'emailVerified',
-        'emailVerificationExpires',
-      ],
+      select: ['id', 'email', 'emailVerified', 'emailVerificationExpires'],
     });
 
     // Return silently to avoid user enumeration
     if (!user) return;
-    if (user.emailVerified) throw new BadRequestException('Email already verified');
+    if (user.emailVerified)
+      throw new BadRequestException('Email already verified');
 
     // Rate-limit: block resend if a code was sent less than 1 minute ago
     const oneMinuteFromNow = new Date(Date.now() + 14 * 60 * 1000);
-    if (user.emailVerificationExpires && user.emailVerificationExpires > oneMinuteFromNow) {
-      throw new BadRequestException('Please wait before requesting another code');
+    if (
+      user.emailVerificationExpires &&
+      user.emailVerificationExpires > oneMinuteFromNow
+    ) {
+      throw new BadRequestException(
+        'Please wait before requesting another code',
+      );
     }
 
     const { code, hash, expires } = this.generateCode();
@@ -227,7 +252,9 @@ export class AuthService {
     avatar?: string;
   }): Promise<{ token: string; user: UserWithoutPasswordDto; isNew: boolean }> {
     // 1. Try to find by githubId
-    let user = await this.userRepo.findOne({ where: { githubId: profile.githubId } });
+    let user = await this.userRepo.findOne({
+      where: { githubId: profile.githubId },
+    });
 
     if (!user && profile.email) {
       // 2. Try to find by email — link GitHub to existing account
@@ -241,11 +268,14 @@ export class AuthService {
     let isNew = false;
     if (!user) {
       // 3. Create new user
-      const defaultShowRpeRaw = this.configService.get<string>('DEFAULT_SHOW_RPE');
+      const defaultShowRpeRaw =
+        this.configService.get<string>('DEFAULT_SHOW_RPE');
       const defaultShowRpe =
         defaultShowRpeRaw == null
           ? true
-          : ['1', 'true', 'yes', 'on'].includes(defaultShowRpeRaw.toLowerCase());
+          : ['1', 'true', 'yes', 'on'].includes(
+              defaultShowRpeRaw.toLowerCase(),
+            );
 
       user = this.userRepo.create({
         githubId: profile.githubId,
@@ -281,7 +311,9 @@ export class AuthService {
     avatar?: string;
   }): Promise<{ token: string; user: UserWithoutPasswordDto; isNew: boolean }> {
     // 1. Try to find by googleId
-    let user = await this.userRepo.findOne({ where: { googleId: profile.googleId } });
+    let user = await this.userRepo.findOne({
+      where: { googleId: profile.googleId },
+    });
 
     if (!user && profile.email) {
       // 2. Try to find by email — link Google to existing account
@@ -295,11 +327,14 @@ export class AuthService {
     let isNew = false;
     if (!user) {
       // 3. Create new user
-      const defaultShowRpeRaw = this.configService.get<string>('DEFAULT_SHOW_RPE');
+      const defaultShowRpeRaw =
+        this.configService.get<string>('DEFAULT_SHOW_RPE');
       const defaultShowRpe =
         defaultShowRpeRaw == null
           ? true
-          : ['1', 'true', 'yes', 'on'].includes(defaultShowRpeRaw.toLowerCase());
+          : ['1', 'true', 'yes', 'on'].includes(
+              defaultShowRpeRaw.toLowerCase(),
+            );
 
       user = this.userRepo.create({
         googleId: profile.googleId,
@@ -327,15 +362,14 @@ export class AuthService {
     return { token, user: new UserWithoutPasswordDto(user), isNew };
   }
 
-  async resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userRepo.findOne({
       where: { email },
-      select: [
-        'id',
-        'email',
-        'passwordResetToken',
-        'passwordResetExpires',
-      ],
+      select: ['id', 'email', 'passwordResetToken', 'passwordResetExpires'],
     });
 
     if (!user) throw new BadRequestException('Invalid or expired reset code');
