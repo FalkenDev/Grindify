@@ -1098,6 +1098,8 @@ export default {
     traps: 'Traps',
     lowerBack: 'Lower Back',
     upperChest: 'Upper Chest',
+    adductors: 'Adductors',
+    abductors: 'Abductors',
     hipFlexors: 'Hip Flexors',
   },
   pwa: {

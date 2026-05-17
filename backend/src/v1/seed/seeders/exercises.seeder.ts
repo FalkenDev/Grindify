@@ -27,6 +27,11 @@ export async function seedUserExercises(
   const exerciseRepo = dataSource.getRepository(Exercise);
 
   for (const ex of exercisesToSeed) {
+    const primaryMuscleGroupName = ex.primaryMuscleGroup ?? ex.muscleGroups[0];
+    const primaryMuscleGroup = primaryMuscleGroupName
+      ? mgMap.get(primaryMuscleGroupName)
+      : undefined;
+
     const exercise = exerciseRepo.create({
       title: { default: ex.defaultName },
       descriptionI18n: { default: ex.defaultDescription ?? '' },
@@ -36,6 +41,9 @@ export async function seedUserExercises(
       proTipsI18n: ex.proTips ? { default: ex.proTips } : undefined,
       mistakesI18n: ex.mistakes ? { default: ex.mistakes } : undefined,
       createdBy: user,
+      primaryMuscleGroups: [primaryMuscleGroup].filter(
+        (mg): mg is MuscleGroup => !!mg,
+      ),
       muscleGroups: ex.muscleGroups
         .map((name) => mgMap.get(name))
         .filter((mg): mg is MuscleGroup => !!mg),

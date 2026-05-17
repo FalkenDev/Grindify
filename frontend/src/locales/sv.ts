@@ -1090,6 +1090,8 @@ export default {
     traps: 'Trapezius',
     lowerBack: 'Ländrygg',
     upperChest: 'Övre bröst',
+    adductors: 'Adduktorer',
+    abductors: 'Abduktorer',
     hipFlexors: 'Höftböjare',
   },
   pwa: {
