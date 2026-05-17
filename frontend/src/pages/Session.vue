@@ -443,10 +443,11 @@ watchEffect(async () => {
       pauseSeconds,
       exercise: {
         id: d.id,
-        name: d.name,
+        title: d.title,
         description: d.description,
         img: d.image ?? '',
         muscleGroups: d.muscleGroups ?? [],
+        isGlobal: d.isGlobal ?? false,
         createdBy: d.createdBy ?? '',
         createdAt: d.createdAt ?? '',
         updatedAt: d.updatedAt ?? '',
