@@ -192,7 +192,6 @@ const allMuscleGroups = computed<MuscleGroup[]>(() => {
         map.set(mg.id, {
           id: mg.id,
           name: mg.name,
-          description: mg.description ?? '',
           createdAt: mg.createdAt ?? '',
           updatedAt: mg.updatedAt ?? '',
         })

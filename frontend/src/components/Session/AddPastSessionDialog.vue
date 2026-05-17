@@ -225,7 +225,7 @@
                     >mdi-run</v-icon
                   >
                 </template>
-                <v-list-item-title class="font-weight-bold">{{ a.name }}</v-list-item-title>
+                <v-list-item-title class="font-weight-bold">{{ displayActivityName(a, lang) }}</v-list-item-title>
                 <template #append>
                   <v-icon v-if="selectedActivityId === a.id" color="primary">mdi-check</v-icon>
                 </template>
@@ -378,7 +378,7 @@ import { createActivityLog } from '@/services/activityLog.service'
 import type { Activity } from '@/interfaces/Activity.interface'
 import type { Workout } from '@/interfaces/Workout.interface'
 import { parseDecimalInput, parseIntInput, normalizeDecimalStr } from '@/utils/decimalInput'
-import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { displayExerciseName, displayActivityName } from '@/utils/exerciseDisplay'
 import { useUserLanguage } from '@/composables/useUserLanguage'
 
 interface InlineSet {
