@@ -55,6 +55,7 @@ export default {
     perWeek: 'per week',
     fieldRequired: 'This field is required',
     mustBePositive: 'Must be greater than 0',
+    goal: 'Goal',
   },
   units: {
     kg: 'kg',
@@ -84,6 +85,10 @@ export default {
     emptyWorkoutDescription: 'Start fresh and add exercises',
     logActivityTitle: 'Log Activity',
     logActivityDescription: 'Running, sports & more',
+    toNextMilestone: 'to next milestone',
+    freezeUsed: 'Streak freeze this week',
+    wks: 'wks',
+    toWeeklyGoal: 'to weekly goal',
   },
   greetings: {
     morning: [
@@ -501,7 +506,8 @@ export default {
     personalized: 'Personalized',
     personalize: 'Personalize',
     personalizeTitle: 'Personalize {name}?',
-    personalizeBody: 'Create your own copy of this activity. You can transfer your existing history to the new copy, or start fresh.',
+    personalizeBody:
+      'Create your own copy of this activity. You can transfer your existing history to the new copy, or start fresh.',
     transferHistory: 'Transfer history',
     startFresh: 'Start fresh',
     personalizeFailed: 'Failed to personalize activity',
@@ -544,7 +550,8 @@ export default {
     personalize: 'Personalize',
     personalizedBanner: 'This exercise has been personalized from the global library for you.',
     personalizeTitle: 'Personalize {name}?',
-    personalizeBody: 'Create your own copy of this exercise. You can transfer your existing history to the new copy, or start fresh.',
+    personalizeBody:
+      'Create your own copy of this exercise. You can transfer your existing history to the new copy, or start fresh.',
     transferHistory: 'Transfer history',
     startFresh: 'Start fresh',
     personalizeFailed: 'Failed to personalize exercise',
