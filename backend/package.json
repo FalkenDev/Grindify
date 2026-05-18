@@ -44,7 +44,6 @@
     "install": "^0.13.0",
     "jszip": "^3.10.1",
     "multer": "^2.1.1",
-    "npm": "^11.14.1",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
@@ -59,14 +58,14 @@
     "typeorm": "^0.3.25"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.21",
+    "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.21",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
-    "@types/node": "^20.3.1",
+    "@types/node": "^22.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@types/supertest": "^6.0.0",
@@ -103,7 +102,6 @@
     "testEnvironment": "node"
   },
   "overrides": {
-    "@nestjs/mapped-types": "2.0.6",
     "fast-uri": "^3.1.2",
     "path-to-regexp": "^8.4.0",
     "picomatch": "^4.0.4",
