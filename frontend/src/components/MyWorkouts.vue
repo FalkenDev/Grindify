@@ -16,10 +16,17 @@
 <template>
   <div class="pa-0">
     <div class="d-flex align-center justify-space-between mb-3">
-      <div>
-        <h1 class="text-h6 font-weight-bold text-textPrimary mb-0">
+      <div class="d-flex justify-space-between align-center w-100">
+        <h1 class="text-caption text-uppercase font-weight-bold text-textSecondary">
           {{ $t('myWorkouts.title') }}
         </h1>
+        <span
+          v-if="workouts.length"
+          class="text-capitalize text-primary text-caption font-weight-bold cursor-pointer"
+          @click="isWorkoutListOpen = true"
+        >
+          {{ $t('common.viewAll') }}
+        </span>
       </div>
     </div>
 
@@ -35,30 +42,31 @@
 
     <div v-else-if="workouts.length" class="d-flex flex-column ga-3">
       <v-card
-        v-for="workout in workouts.slice(0, 3)"
+        v-for="workout in workouts?.slice(0, 6) ?? []"
         :key="workout.id"
-        class="bg-cardBg pa-4 rounded-lg d-flex justify-space-between align-center"
+        class="bg-cardBg px-4 rounded-lg d-flex justify-space-between align-center"
         :style="{ border: '1px solid rgb(var(--v-theme-borderColor))', boxShadow: 'none' }"
         @click="routeTo(workout.id)"
       >
-        <div>
-          <h1 class="text-caption text-primary">{{ $t('myWorkouts.workoutType.strength') }}</h1>
-          <h1 class="text-h6 font-weight-bold text-textPrimary">
-            {{ workout.title }}
-          </h1>
+        <div class="d-flex align-center ga-4">
+          <v-avatar size="40" tile color="avatarBg" class="mb-3 mt-4 rounded-lg">
+            <v-icon color="primary" size="25">mdi-dumbbell</v-icon>
+          </v-avatar>
+          <div>
+            <h1 class="font-weight-bold text-textPrimary" style="font-size: 16px">
+              {{ workout.title }}
+            </h1>
 
-          <div class="d-flex align-center ga-3">
             <span class="text-caption text-textSecondary align-center d-flex ga-1">
-              <v-icon size="16" color="grey">mdi-timer-outline</v-icon>
-              {{ workout.time }} {{ $t('units.minShort') }}
-            </span>
-            <span class="text-caption text-textSecondary align-center d-flex ga-1">
-              <v-icon size="16" color="grey">mdi-dumbbell</v-icon>
-              {{ workout.exercises.length }} {{ $t('myWorkouts.exercisesUnit') }}
+              {{ workout.exercises.length }}
+              {{ $t('myWorkouts.exercisesUnit') }}
+              •
+              {{ workout.time }}
+              {{ $t('units.minShort') }}
             </span>
           </div>
         </div>
-        <v-icon color="primary" size="30">mdi-chevron-right</v-icon>
+        <v-icon size="30">mdi-chevron-right</v-icon>
       </v-card>
     </div>
 
@@ -88,7 +96,7 @@
           box-shadow: none;
           border-style: dashed;
         "
-        class="text-primary rounded-lg"
+        class="text-primary rounded-lg mb-6"
         height="50"
         @click="isCreateWorkoutOpen = true"
       >
