@@ -14,17 +14,38 @@
   -->
 
 <template>
-  <v-card
-    class="px-5 py-4 bg-cardBg d-flex ga-2 flex-column rounded-lg"
-    :style="{ border: '1px solid rgb(var(--v-theme-borderColor))', boxShadow: 'none' }"
-  >
+  <v-card class="bg-background d-flex ga-2 flex-column rounded-lg" style="box-shadow: none">
     <div class="d-flex justify-space-between align-center">
-      <h1 class="text-h6">{{ $t('progress.week') }} {{ currentWeek }}</h1>
+      <h1 class="text-caption text-uppercase font-weight-bold text-textSecondary">
+        {{ $t('progress.week') }} {{ currentWeek }}
+      </h1>
+      <span
+        class="text-caption font-weight-bold text-textSecondary"
+        :class="streakInfo?.freezeUsedThisWeek ? 'text-blue-lighten-2' : 'text-textPrimary'"
+      >
+        {{
+          streakInfo?.freezeUsedThisWeek
+            ? '✓'
+            : `${streakInfo?.currentWeekWorkouts || 0} / ${streakInfo?.weeklyWorkoutGoal || 3}`
+        }}
+        {{ $t('home.weeklyGoal') }}
+      </span>
     </div>
-    <div class="d-flex justify-space-between align-center">
-      <div v-for="(day, index) in weekdays" :key="day">
-        <v-avatar :color="getDayColor(index)" size="40" :style="getScheduledStyle(index)">
-          <span class="text-body-2">{{ day }}</span>
+    <div class="d-flex justify-space-between align-center ga-1">
+      <div
+        v-for="(day, index) in weekdays"
+        :key="day"
+        class="d-flex flex-column align-center ga-1 pa-1 rounded-lg py-2"
+        style="flex: 1 1 0; min-width: 0"
+        :style="getDayCardStyle(index)"
+        :class="{
+          'bg-cardBg': completedDaysThisWeek.has(index),
+          'bg-background': !completedDaysThisWeek.has(index),
+        }"
+      >
+        <span class="text-caption font-weight-bold">{{ day }}</span>
+        <v-avatar :color="getDayAvatarColor(index)" size="24" :style="getDayAvatarStyle(index)">
+          <v-icon v-if="completedDaysThisWeek.has(index)" size="16" color="white">mdi-check</v-icon>
         </v-avatar>
       </div>
     </div>
@@ -36,6 +57,14 @@ import { useWorkoutSessionStore } from '@/stores/workoutSession.store'
 import { useActivityStore } from '@/stores/activity.store'
 import { useScheduledSessionStore } from '@/stores/scheduledSession.store'
 import type { WorkoutSession } from '@/interfaces/workoutSession.interface'
+
+defineProps<{
+  streakInfo: {
+    currentWeekWorkouts: number
+    weeklyWorkoutGoal: number
+    freezeUsedThisWeek: boolean
+  } | null
+}>()
 
 const { tm } = useI18n({ useScope: 'global' })
 const workoutSessionStore = useWorkoutSessionStore()
@@ -105,14 +134,24 @@ const todayIndex = computed(() => {
   return dayOfWeek === 0 ? 6 : dayOfWeek - 1
 })
 
-function getDayColor(dayIndex: number): string {
-  if (completedDaysThisWeek.value.has(dayIndex)) {
-    return 'success'
-  }
-  if (dayIndex === todayIndex.value) {
-    return 'primary'
-  }
+function getDayAvatarColor(dayIndex: number): string | undefined {
+  if (completedDaysThisWeek.value.has(dayIndex)) return 'success'
+  if (scheduledDaysThisWeek.value.has(dayIndex)) return undefined
+  if (dayIndex === todayIndex.value) return 'primary'
   return 'grey-darken-3'
+}
+
+function getDayAvatarStyle(dayIndex: number): Record<string, string> {
+  if (scheduledDaysThisWeek.value.has(dayIndex) && !completedDaysThisWeek.value.has(dayIndex))
+    return { background: 'transparent', border: '2px dashed rgba(var(--v-theme-info), 0.7)' }
+  return {}
+}
+
+function getDayCardStyle(dayIndex: number): Record<string, string> {
+  if (completedDaysThisWeek.value.has(dayIndex))
+    return { border: '1px solid rgb(var(--v-theme-success))' }
+  if (dayIndex === todayIndex.value) return { border: '1px solid rgb(var(--v-theme-primary))' }
+  return { border: '1px solid transparent' }
 }
 
 // Scheduled days this week (days that have a scheduled session but no completed session)
@@ -136,13 +175,6 @@ const scheduledDaysThisWeek = computed(() => {
 
   return scheduled
 })
-
-function getScheduledStyle(dayIndex: number): Record<string, string> {
-  if (scheduledDaysThisWeek.value.has(dayIndex) && !completedDaysThisWeek.value.has(dayIndex)) {
-    return { border: '2px solid #2196F3' }
-  }
-  return {}
-}
 
 // Fetch scheduled sessions for the current week on mount
 onMounted(async () => {
