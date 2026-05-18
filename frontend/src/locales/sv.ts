@@ -55,6 +55,7 @@ export default {
     perWeek: 'per vecka',
     fieldRequired: 'Detta fält är obligatoriskt',
     mustBePositive: 'Måste vara större än 0',
+    goal: 'Mål',
   },
   units: {
     kg: 'kg',
@@ -84,6 +85,10 @@ export default {
     emptyWorkoutDescription: 'Börja från noll och lägg till övningar',
     logActivityTitle: 'Logga aktivitet',
     logActivityDescription: 'Löpning, sport & mer',
+    toNextMilestone: 'till nästa milstolpe',
+    freezeUsed: 'Streak fryst denna vecka',
+    wks: 'pass',
+    toWeeklyGoal: 'till veckomålet',
   },
   greetings: {
     morning: [
@@ -497,7 +502,8 @@ export default {
     personalized: 'Personaliserad',
     personalize: 'Personalisera',
     personalizeTitle: 'Personalisera {name}?',
-    personalizeBody: 'Skapa din egen kopia av den här aktiviteten. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
+    personalizeBody:
+      'Skapa din egen kopia av den här aktiviteten. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
     transferHistory: 'Överför historik',
     startFresh: 'Börja om',
     personalizeFailed: 'Kunde inte personalisera aktiviteten',
@@ -529,7 +535,8 @@ export default {
     personalize: 'Personalisera',
     personalizedBanner: 'Den här övningen har personaliserats från det globala biblioteket åt dig.',
     personalizeTitle: 'Personalisera {name}?',
-    personalizeBody: 'Skapa din egen kopia av den här övningen. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
+    personalizeBody:
+      'Skapa din egen kopia av den här övningen. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
     transferHistory: 'Överför historik',
     startFresh: 'Börja om',
     personalizeFailed: 'Kunde inte personalisera övningen',
