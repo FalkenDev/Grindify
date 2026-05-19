@@ -56,6 +56,7 @@ export default {
     fieldRequired: 'This field is required',
     mustBePositive: 'Must be greater than 0',
     goal: 'Goal',
+    min: 'min',
   },
   units: {
     kg: 'kg',
@@ -89,6 +90,8 @@ export default {
     freezeUsed: 'Streak freeze this week',
     wks: 'wks',
     toWeeklyGoal: 'to weekly goal',
+    thisWeek: 'This week',
+    trainingTime: 'Training time',
   },
   greetings: {
     morning: [

@@ -56,6 +56,7 @@ export default {
     fieldRequired: 'Detta fält är obligatoriskt',
     mustBePositive: 'Måste vara större än 0',
     goal: 'Mål',
+    min: 'min',
   },
   units: {
     kg: 'kg',
@@ -89,6 +90,8 @@ export default {
     freezeUsed: 'Streak fryst denna vecka',
     wks: 'pass',
     toWeeklyGoal: 'till veckomålet',
+    thisWeek: 'Denna vecka',
+    trainingTime: 'Träningstid',
   },
   greetings: {
     morning: [

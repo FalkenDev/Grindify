@@ -115,8 +115,12 @@
           flex: '1',
         }"
       >
-        <p class="text-caption text-textSecondary text-uppercase">{{ $t('home.minutes') }}</p>
-        <h2 class="text-h4 text-primary mt-1">{{ totalMinutesThisWeek }}</h2>
+        <p class="text-caption text-textSecondary text-uppercase">{{ $t('home.trainingTime') }}</p>
+        <div class="d-flex ga-2 align-end">
+          <h2 class="text-h4 text-primary mt-1">{{ totalMinutesThisWeek }}</h2>
+          <p class="text-label text-textSecondary">{{ $t('common.min') }}</p>
+        </div>
+        <p class="text-caption text-textSecondary mt-1">{{ $t('home.thisWeek') }}</p>
       </v-card>
     </div>
     <MyWorkouts />
