@@ -1033,6 +1033,7 @@ export default {
     heroEmpty: 'Complete your first workout to unlock your stats!',
     startWorkout: 'Start Workout',
     exercisesCount: 'exercises',
+    yourTraining: 'Your Training.',
     records: {
       maxWeight: 'Max Weight',
       estimated1RM: 'Est. 1RM',
