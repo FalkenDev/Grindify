@@ -285,6 +285,49 @@
         </v-card>
       </template>
 
+      <!-- Empty State -->
+      <v-card
+        v-if="completedForSelectedDate.length === 0 && scheduledForSelectedDate.length === 0"
+        class="bg-cardBg rounded-lg pa-8 d-flex flex-column align-center ga-3"
+        :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
+      >
+        <v-icon size="48" class="text-textSecondary">mdi-calendar-blank</v-icon>
+        <p class="text-body-1 font-weight-bold text-textSecondary">
+          {{
+            isSelectedDateFutureOrToday
+              ? $t('calendar.noWorkoutScheduled')
+              : $t('calendar.noWorkoutDone')
+          }}
+        </p>
+        <v-btn
+          v-if="isSelectedDateToday"
+          color="primary"
+          variant="flat"
+          prepend-icon="mdi-plus"
+          @click="$router.push('/workout')"
+        >
+          {{ $t('calendar.startWorkout') }}
+        </v-btn>
+        <v-btn
+          v-else-if="isSelectedDateFuture"
+          color="primary"
+          variant="tonal"
+          prepend-icon="mdi-plus"
+          @click="openScheduleDialog"
+        >
+          {{ $t('calendar.scheduleSession') }}
+        </v-btn>
+        <v-btn
+          v-else
+          color="primary"
+          variant="tonal"
+          prepend-icon="mdi-plus"
+          @click="openAddPastDialog"
+        >
+          {{ $t('calendar.addPastSession') }}
+        </v-btn>
+      </v-card>
+
       <!-- Freeze Week Card (current week only) -->
       <div
         v-if="isSelectedDateInCurrentWeek"
