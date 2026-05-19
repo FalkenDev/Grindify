@@ -1025,6 +1025,7 @@ export default {
     heroEmpty: 'Slutför ditt första pass för att låsa upp din statistik!',
     startWorkout: 'Starta träning',
     exercisesCount: 'övningar',
+    yourTraining: 'Din träning.',
     records: {
       maxWeight: 'Max vikt',
       estimated1RM: 'Ber. 1RM',
