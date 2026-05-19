@@ -831,6 +831,8 @@ export default {
     freezeDialogTitle: 'Use Streak Freeze?',
     freezeDialogBody:
       'This will protect your streak for the current week even if you miss your weekly goal. You can still log workouts and they will count normally.',
+    protectsStreak: 'Protects streak',
+    useFreeze: 'Use freeze',
   },
   schedule: {
     registerWorkout: 'Register Workout',
