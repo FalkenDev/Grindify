@@ -285,6 +285,51 @@
         </v-card>
       </template>
 
+      <!-- Freeze Week Card (current week only) -->
+      <div
+        v-if="isSelectedDateInCurrentWeek"
+        class="bg-background rounded-lg px-4 py-3"
+        :style="{
+          border: '2px solid rgb(var(--v-theme-borderColor)) !important',
+          borderStyle: 'dashed',
+        }"
+      >
+        <div class="d-flex align-center justify-space-between">
+          <div>
+            <p class="text-body-2 font-weight-bold">
+              {{
+                streakInfo?.freezeUsedThisWeek
+                  ? $t('calendar.freezeActive')
+                  : $t('calendar.freezeWeek')
+              }}
+            </p>
+            <p class="text-caption text-textSecondary">
+              {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 1 }) }} •
+              {{ $t('calendar.protectsStreak') }}
+            </p>
+          </div>
+          <v-btn
+            v-if="!streakInfo?.freezeUsedThisWeek"
+            size="small"
+            color="blue-lighten-2"
+            variant="tonal"
+            :disabled="!streakInfo || (streakInfo.streakFreezes ?? 1) <= 0"
+            @click="isFreezeDialogOpen = true"
+          >
+            {{ $t('calendar.useFreeze') }}
+          </v-btn>
+          <v-chip
+            v-else
+            size="small"
+            color="blue-lighten-2"
+            variant="tonal"
+            prepend-icon="mdi-check"
+          >
+            {{ $t('calendar.active') }}
+          </v-chip>
+        </div>
+      </div>
+
       <!-- Empty State -->
       <v-card
         v-if="completedForSelectedDate.length === 0 && scheduledForSelectedDate.length === 0"
