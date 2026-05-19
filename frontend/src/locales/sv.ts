@@ -824,6 +824,8 @@ export default {
     freezeDialogTitle: 'Använd streak-frys?',
     freezeDialogBody:
       'Detta skyddar din streak för nuvarande vecka även om du missar ditt veckliga mål. Du kan fortfarande logga träning och det räknas som vanligt.',
+    protectsStreak: 'Skyddar streak',
+    useFreeze: 'Använd frys',
   },
   schedule: {
     registerWorkout: 'Registrera träning',
