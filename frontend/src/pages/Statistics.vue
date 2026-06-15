@@ -16,11 +16,17 @@
 <template>
   <div class="pa-5 d-flex flex-column ga-4 statistics-page">
     <div>
-      <h1>{{ $t('statistics.title') }}</h1>
-      <p class="text-textSecondary">{{ $t('statistics.description') }}</p>
+      <p class="text-textSecondary text-uppercase text-caption">{{ $t('statistics.title') }}</p>
+      <h1>{{ $t('statistics.yourTraining') }}</h1>
     </div>
 
-    <v-tabs v-model="activeTab" color="primary" density="compact" grow class="stats-tabs">
+    <v-tabs
+      v-model="activeTab"
+      color="primary"
+      density="compact"
+      grow
+      class="stats-tabs border-b-sm"
+    >
       <v-tab value="overview">{{ $t('statistics.overview') }}</v-tab>
       <v-tab value="exercises">{{ $t('statistics.exercises') }}</v-tab>
       <v-tab value="workouts">{{ $t('statistics.workouts') }}</v-tab>

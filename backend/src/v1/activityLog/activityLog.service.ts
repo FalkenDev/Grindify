@@ -175,6 +175,7 @@ export class ActivityLogService {
     }
 
     await this.activityLogRepo.remove(log);
+    await this.userService.decrementStreakOnDeletion(userId);
   }
 
   async update(

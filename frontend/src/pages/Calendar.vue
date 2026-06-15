@@ -29,34 +29,37 @@
       <div class="d-flex justify-space-between">
         <!-- Workouts this month -->
         <div class="d-flex flex-column align-center" style="flex: 1 1 0">
-          <v-icon size="18" color="green">mdi-dumbbell</v-icon>
-          <span class="text-subtitle-2 font-weight-bold mt-1">{{ workoutSessionsThisMonth }}</span>
-          <span class="text-caption text-textSecondary text-center" style="font-size: 10px">{{
-            $t('calendar.workout')
-          }}</span>
+          <span
+            class="text-caption text-textSecondary text-center text-uppercase"
+            style="font-size: 10px"
+            >{{ $t('calendar.workout') }}</span
+          >
+          <span class="text-subtitle-1 font-weight-bold mt-1">{{ workoutSessionsThisMonth }}</span>
         </div>
 
         <v-divider vertical class="mx-1" />
 
         <!-- Activities this month -->
         <div class="d-flex flex-column align-center" style="flex: 1 1 0">
-          <v-icon size="18" color="amber">mdi-run</v-icon>
-          <span class="text-subtitle-2 font-weight-bold mt-1">{{ activitiesThisMonth }}</span>
-          <span class="text-caption text-textSecondary text-center" style="font-size: 10px">{{
-            $t('calendar.activity')
-          }}</span>
+          <span
+            class="text-caption text-textSecondary text-center text-uppercase"
+            style="font-size: 10px"
+            >{{ $t('calendar.activity') }}</span
+          >
+          <span class="text-subtitle-1 font-weight-bold mt-1">{{ activitiesThisMonth }}</span>
         </div>
 
         <v-divider vertical class="mx-1" />
 
         <!-- Streak freezes -->
         <div class="d-flex flex-column align-center" style="flex: 1 1 0">
-          <v-icon size="18" color="blue-lighten-2">mdi-snowflake</v-icon>
-          <span class="text-subtitle-2 font-weight-bold text-blue-lighten-2 mt-1">{{
+          <span
+            class="text-caption text-textSecondary text-center text-uppercase"
+            style="font-size: 10px"
+            >{{ $t('calendar.freezes') }}</span
+          >
+          <span class="text-subtitle-1 font-weight-bold text-blue-lighten-2 mt-1">{{
             streakInfo?.streakFreezes ?? 1
-          }}</span>
-          <span class="text-caption text-textSecondary text-center" style="font-size: 10px">{{
-            $t('calendar.freezes')
           }}</span>
         </div>
       </div>
@@ -150,52 +153,6 @@
 
     <!-- Day Detail View -->
     <div class="d-flex flex-column ga-3 pb-16">
-      <!-- Freeze Week Card (current week only) -->
-      <v-card
-        v-if="isSelectedDateInCurrentWeek"
-        class="bg-cardBg rounded-lg pa-4"
-        :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
-      >
-        <div class="d-flex align-center justify-space-between">
-          <div class="d-flex align-center ga-3">
-            <v-avatar color="blue-darken-4" size="40">
-              <v-icon size="20" color="blue-lighten-2">mdi-snowflake</v-icon>
-            </v-avatar>
-            <div>
-              <p class="text-body-2 font-weight-bold">
-                {{
-                  streakInfo?.freezeUsedThisWeek
-                    ? $t('calendar.freezeActive')
-                    : $t('calendar.freezeWeek')
-                }}
-              </p>
-              <p class="text-caption text-textSecondary">
-                {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 1 }) }}
-              </p>
-            </div>
-          </div>
-          <v-btn
-            v-if="!streakInfo?.freezeUsedThisWeek"
-            size="small"
-            color="blue-lighten-2"
-            variant="tonal"
-            :disabled="!streakInfo || (streakInfo.streakFreezes ?? 1) <= 0"
-            @click="isFreezeDialogOpen = true"
-          >
-            {{ $t('calendar.freeze') }}
-          </v-btn>
-          <v-chip
-            v-else
-            size="small"
-            color="blue-lighten-2"
-            variant="tonal"
-            prepend-icon="mdi-check"
-          >
-            {{ $t('calendar.active') }}
-          </v-chip>
-        </div>
-      </v-card>
-
       <!-- Date Header -->
       <div class="d-flex align-center justify-space-between">
         <h3 class="text-h6 font-weight-bold">{{ selectedDateLabel }}</h3>
@@ -204,37 +161,48 @@
           variant="text"
           size="small"
           color="primary"
+          class="pa-0"
           @click="openScheduleDialog"
         >
           {{ $t('calendar.scheduleSession') }}
         </v-btn>
-        <v-btn v-else variant="text" size="small" color="primary" @click="openAddPastDialog">
+        <v-btn
+          v-else
+          variant="text"
+          size="small"
+          color="primary"
+          class="pa-0"
+          @click="openAddPastDialog"
+        >
           {{ $t('calendar.addPastSession') }}
         </v-btn>
       </div>
 
       <!-- Scheduled Sessions (not completed) -->
       <template v-if="scheduledForSelectedDate.length > 0">
-        <p class="text-caption text-uppercase font-weight-bold text-textSecondary">
-          {{ $t('calendar.scheduledSessions') }}
-        </p>
         <v-card
           v-for="session in scheduledForSelectedDate"
           :key="'sched-' + session.id + session.resolvedDate"
-          class="bg-cardBg rounded-lg pa-4"
+          class="bg-cardBg rounded-lg px-4 py-3"
           :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
           @click="openBottomSheet(session)"
         >
           <div class="d-flex align-center justify-space-between">
             <div class="d-flex align-center ga-3">
-              <v-avatar color="blue-darken-4" size="40">
+              <v-avatar color="blue-darken-4" size="40" tile class="rounded-lg">
                 <v-icon size="20" color="blue-lighten-1">
                   {{ session.type === 'workout' ? 'mdi-dumbbell' : 'mdi-run' }}
                 </v-icon>
               </v-avatar>
               <div>
                 <p class="text-body-1 font-weight-bold">
-                  {{ session.type === 'workout' ? session.workout?.title : (session.activity ? displayActivityName(session.activity, lang) : '') }}
+                  {{
+                    session.type === 'workout'
+                      ? session.workout?.title
+                      : session.activity
+                        ? displayActivityName(session.activity, lang)
+                        : ''
+                  }}
                 </p>
                 <div class="d-flex align-center ga-2">
                   <v-chip size="x-small" color="blue" variant="flat">
@@ -268,7 +236,7 @@
         <v-card
           v-for="event in completedForSelectedDate"
           :key="event.id"
-          class="bg-cardBg rounded-lg pa-4 cursor-pointer"
+          class="bg-cardBg rounded-lg px-4 py-3 cursor-pointer"
           :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
           @click="openCompletedSession(event)"
         >
@@ -276,6 +244,8 @@
             <v-avatar
               :color="event.type === 'workout' ? 'green-darken-4' : 'amber-darken-4'"
               size="40"
+              tile
+              class="rounded-lg"
             >
               <v-icon
                 size="20"
@@ -357,6 +327,94 @@
           {{ $t('calendar.addPastSession') }}
         </v-btn>
       </v-card>
+
+      <!-- Empty State -->
+      <v-card
+        v-if="completedForSelectedDate.length === 0 && scheduledForSelectedDate.length === 0"
+        class="bg-cardBg rounded-lg pa-8 d-flex flex-column align-center ga-3"
+        :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
+      >
+        <v-icon size="48" class="text-textSecondary">mdi-calendar-blank</v-icon>
+        <p class="text-body-1 font-weight-bold text-textSecondary">
+          {{
+            isSelectedDateFutureOrToday
+              ? $t('calendar.noWorkoutScheduled')
+              : $t('calendar.noWorkoutDone')
+          }}
+        </p>
+        <v-btn
+          v-if="isSelectedDateToday"
+          color="primary"
+          variant="flat"
+          prepend-icon="mdi-plus"
+          @click="$router.push('/workout')"
+        >
+          {{ $t('calendar.startWorkout') }}
+        </v-btn>
+        <v-btn
+          v-else-if="isSelectedDateFuture"
+          color="primary"
+          variant="tonal"
+          prepend-icon="mdi-plus"
+          @click="openScheduleDialog"
+        >
+          {{ $t('calendar.scheduleSession') }}
+        </v-btn>
+        <v-btn
+          v-else
+          color="primary"
+          variant="tonal"
+          prepend-icon="mdi-plus"
+          @click="openAddPastDialog"
+        >
+          {{ $t('calendar.addPastSession') }}
+        </v-btn>
+      </v-card>
+
+      <!-- Freeze Week Card (current week only) -->
+      <div
+        v-if="isSelectedDateInCurrentWeek"
+        class="bg-background rounded-lg px-4 py-3"
+        :style="{
+          border: '2px solid rgb(var(--v-theme-borderColor)) !important',
+          borderStyle: 'dashed',
+        }"
+      >
+        <div class="d-flex align-center justify-space-between">
+          <div>
+            <p class="text-body-2 font-weight-bold">
+              {{
+                streakInfo?.freezeUsedThisWeek
+                  ? $t('calendar.freezeActive')
+                  : $t('calendar.freezeWeek')
+              }}
+            </p>
+            <p class="text-caption text-textSecondary">
+              {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 0 }) }} •
+              {{ $t('calendar.protectsStreak') }}
+            </p>
+          </div>
+          <v-btn
+            v-if="!streakInfo?.freezeUsedThisWeek"
+            size="small"
+            color="blue-lighten-2"
+            variant="tonal"
+            :disabled="!streakInfo || streakInfo.streakFreezes <= 0"
+            @click="isFreezeDialogOpen = true"
+          >
+            {{ $t('calendar.useFreeze') }}
+          </v-btn>
+          <v-chip
+            v-else
+            size="small"
+            color="blue-lighten-2"
+            variant="tonal"
+            prepend-icon="mdi-check"
+          >
+            {{ $t('calendar.active') }}
+          </v-chip>
+        </div>
+      </div>
     </div>
 
     <!-- Dialogs -->
@@ -679,7 +737,12 @@ const scheduledEvents = computed<CalendarEvent[]>(() => {
     .map(s => ({
       id: `scheduled-${s.id}-${s.resolvedDate}`,
       sessionId: s.id,
-      name: s.type === 'workout' ? s.workout?.title || 'Workout' : (s.activity ? displayActivityName(s.activity, lang.value) : 'Activity'),
+      name:
+        s.type === 'workout'
+          ? s.workout?.title || 'Workout'
+          : s.activity
+            ? displayActivityName(s.activity, lang.value)
+            : 'Activity',
       date: new Date(s.resolvedDate + 'T12:00:00'),
       type: 'scheduled' as const,
       rawData: s,

@@ -18,7 +18,7 @@
     <v-card class="bg-background">
       <div class="pa-5 d-flex flex-column ga-4">
         <!-- Header -->
-        <BackHeader :title="workout?.title ?? ''" @back="dialogModel = false" />
+        <BackHeader :title="workout?.title ?? ''" @close="dialogModel = false" />
 
         <div class="mt-4">
           <p class="text-caption text-textSecondary">

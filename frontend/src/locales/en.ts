@@ -55,6 +55,8 @@ export default {
     perWeek: 'per week',
     fieldRequired: 'This field is required',
     mustBePositive: 'Must be greater than 0',
+    goal: 'Goal',
+    min: 'min',
   },
   units: {
     kg: 'kg',
@@ -84,6 +86,12 @@ export default {
     emptyWorkoutDescription: 'Start fresh and add exercises',
     logActivityTitle: 'Log Activity',
     logActivityDescription: 'Running, sports & more',
+    toNextMilestone: 'to next milestone',
+    freezeUsed: 'Streak freeze this week',
+    wks: 'wks',
+    toWeeklyGoal: 'to weekly goal',
+    thisWeek: 'This week',
+    trainingTime: 'Training time',
   },
   greetings: {
     morning: [
@@ -95,7 +103,7 @@ export default {
     afternoon: [
       'Afternoon power hour 💥',
       'Keep the momentum going',
-      'Halfway through the day — stay strong',
+      'Halfway through the day, stay strong',
       'No better time than now',
     ],
     evening: [
@@ -109,10 +117,10 @@ export default {
       'Late night, big results',
       'Night owl mode activated 🦉',
     ],
-    monday: ['New week, new gains! 💪', "Monday motivation — let's go!", 'Fresh week, fresh goals'],
+    monday: ['New week, new gains! 💪', "Monday motivation: let's go!", 'Fresh week, fresh goals'],
     friday: [
       'Finish the week strong! 🏁',
-      'Friday grind — earn your weekend',
+      'Friday grind: earn your weekend',
       'Last push of the week 💪',
     ],
     weekend: ['No days off 🔥', 'Weekend warrior mode', 'Rest day? Never heard of it'],
@@ -501,7 +509,8 @@ export default {
     personalized: 'Personalized',
     personalize: 'Personalize',
     personalizeTitle: 'Personalize {name}?',
-    personalizeBody: 'Create your own copy of this activity. You can transfer your existing history to the new copy, or start fresh.',
+    personalizeBody:
+      'Create your own copy of this activity. You can transfer your existing history to the new copy, or start fresh.',
     transferHistory: 'Transfer history',
     startFresh: 'Start fresh',
     personalizeFailed: 'Failed to personalize activity',
@@ -544,7 +553,8 @@ export default {
     personalize: 'Personalize',
     personalizedBanner: 'This exercise has been personalized from the global library for you.',
     personalizeTitle: 'Personalize {name}?',
-    personalizeBody: 'Create your own copy of this exercise. You can transfer your existing history to the new copy, or start fresh.',
+    personalizeBody:
+      'Create your own copy of this exercise. You can transfer your existing history to the new copy, or start fresh.',
     transferHistory: 'Transfer history',
     startFresh: 'Start fresh',
     personalizeFailed: 'Failed to personalize exercise',
@@ -821,6 +831,8 @@ export default {
     freezeDialogTitle: 'Use Streak Freeze?',
     freezeDialogBody:
       'This will protect your streak for the current week even if you miss your weekly goal. You can still log workouts and they will count normally.',
+    protectsStreak: 'Protects streak',
+    useFreeze: 'Use freeze',
   },
   schedule: {
     registerWorkout: 'Register Workout',
@@ -1021,6 +1033,7 @@ export default {
     heroEmpty: 'Complete your first workout to unlock your stats!',
     startWorkout: 'Start Workout',
     exercisesCount: 'exercises',
+    yourTraining: 'Your Training.',
     records: {
       maxWeight: 'Max Weight',
       estimated1RM: 'Est. 1RM',
@@ -1098,6 +1111,8 @@ export default {
     traps: 'Traps',
     lowerBack: 'Lower Back',
     upperChest: 'Upper Chest',
+    adductors: 'Adductors',
+    abductors: 'Abductors',
     hipFlexors: 'Hip Flexors',
   },
   pwa: {

@@ -506,10 +506,21 @@ export class WorkoutSessionService {
         await manager.remove(WorkoutSessionSet, setsToRemove);
       }
 
+      // Remove exercises that have no sets (user didn't complete them)
+      const exercisesToRemove: WorkoutSessionExercise[] = [];
       for (const ex of session.exercises ?? []) {
-        if (ex.sets?.length) {
+        if (!ex.sets?.length) {
+          exercisesToRemove.push(ex);
+        } else {
           for (const s of ex.sets) s.sessionExercise = ex;
         }
+      }
+
+      if (exercisesToRemove.length) {
+        await manager.remove(WorkoutSessionExercise, exercisesToRemove);
+        session.exercises = (session.exercises ?? []).filter(
+          (ex) => !exercisesToRemove.find((r) => r.id === ex.id),
+        );
       }
 
       if (setsToSave.length) {
@@ -667,7 +678,11 @@ export class WorkoutSessionService {
 
     if (!session) throw new NotFoundException('Session not found');
 
+    const wasFinished = session.status === 'finished';
     await this.sessionRepo.remove(session);
+    if (wasFinished) {
+      await this.userService.decrementStreakOnDeletion(userId);
+    }
     return { message: 'Workout session deleted' };
   }
 

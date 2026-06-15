@@ -55,6 +55,8 @@ export default {
     perWeek: 'per vecka',
     fieldRequired: 'Detta fält är obligatoriskt',
     mustBePositive: 'Måste vara större än 0',
+    goal: 'Mål',
+    min: 'min',
   },
   units: {
     kg: 'kg',
@@ -84,6 +86,12 @@ export default {
     emptyWorkoutDescription: 'Börja från noll och lägg till övningar',
     logActivityTitle: 'Logga aktivitet',
     logActivityDescription: 'Löpning, sport & mer',
+    toNextMilestone: 'till nästa milstolpe',
+    freezeUsed: 'Streak fryst denna vecka',
+    wks: 'pass',
+    toWeeklyGoal: 'till veckomålet',
+    thisWeek: 'Denna vecka',
+    trainingTime: 'Träningstid',
   },
   greetings: {
     morning: [
@@ -95,7 +103,7 @@ export default {
     afternoon: [
       'Eftermiddagens styrkepass 💥',
       'Håll farten uppe',
-      'Halvvägs genom dagen — ge inte upp',
+      'Halvvägs genom dagen, ge inte upp',
       'Ingen bättre tid än nu',
     ],
     evening: [
@@ -105,16 +113,16 @@ export default {
       'Gör klart det du påbörjade',
     ],
     night: ['Nattens krigare 🔥', 'Sent ute, stora resultat', 'Nattugglan har vaknat 🦉'],
-    monday: ['Ny vecka, nya gains! 💪', 'Måndagsmotivation — kör!', 'Ny vecka, nya mål'],
+    monday: ['Ny vecka, nya gains! 💪', 'Måndagsmotivation: kör!', 'Ny vecka, nya mål'],
     friday: [
       'Avsluta veckan starkt! 🏁',
-      'Fredagskörning — förtjäna helgen',
+      'Fredagskörning: förtjäna helgen',
       'Sista pushen för veckan 💪',
     ],
-    weekend: ['Inga vilodagar 🔥', 'Helgkrigare-läge', 'Vilodag? Aldrig hört talas om'],
+    weekend: ['Inga vilodagar 🔥', 'Helgkrigareläge', 'Vilodag? Aldrig hört talas om'],
     streak7: '🔥 En vecka stark! {streak} dagar och räknar',
     streak14: '🔥 Två veckor ostoppbar! {streak} dagars streak',
-    streak30: '🔥 En hel månad! {streak} dagars streak — legendariskt',
+    streak30: '🔥 En hel månad! {streak} dagars streak, legendariskt',
     streak100: '🔥 {streak} dagar?! Du är en maskin!',
     goalHit: 'Veckomålet krossat! 🎯',
     goalClose: 'Ett pass kvar till ditt mål!',
@@ -497,7 +505,8 @@ export default {
     personalized: 'Personaliserad',
     personalize: 'Personalisera',
     personalizeTitle: 'Personalisera {name}?',
-    personalizeBody: 'Skapa din egen kopia av den här aktiviteten. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
+    personalizeBody:
+      'Skapa din egen kopia av den här aktiviteten. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
     transferHistory: 'Överför historik',
     startFresh: 'Börja om',
     personalizeFailed: 'Kunde inte personalisera aktiviteten',
@@ -529,7 +538,8 @@ export default {
     personalize: 'Personalisera',
     personalizedBanner: 'Den här övningen har personaliserats från det globala biblioteket åt dig.',
     personalizeTitle: 'Personalisera {name}?',
-    personalizeBody: 'Skapa din egen kopia av den här övningen. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
+    personalizeBody:
+      'Skapa din egen kopia av den här övningen. Du kan överföra din befintliga historik till kopian, eller börja om från noll.',
     transferHistory: 'Överför historik',
     startFresh: 'Börja om',
     personalizeFailed: 'Kunde inte personalisera övningen',
@@ -814,6 +824,8 @@ export default {
     freezeDialogTitle: 'Använd streak-frys?',
     freezeDialogBody:
       'Detta skyddar din streak för nuvarande vecka även om du missar ditt veckliga mål. Du kan fortfarande logga träning och det räknas som vanligt.',
+    protectsStreak: 'Skyddar streak',
+    useFreeze: 'Använd frys',
   },
   schedule: {
     registerWorkout: 'Registrera träning',
@@ -1013,6 +1025,7 @@ export default {
     heroEmpty: 'Slutför ditt första pass för att låsa upp din statistik!',
     startWorkout: 'Starta träning',
     exercisesCount: 'övningar',
+    yourTraining: 'Din träning.',
     records: {
       maxWeight: 'Max vikt',
       estimated1RM: 'Ber. 1RM',
@@ -1090,6 +1103,8 @@ export default {
     traps: 'Trapezius',
     lowerBack: 'Ländrygg',
     upperChest: 'Övre bröst',
+    adductors: 'Adduktorer',
+    abductors: 'Abduktorer',
     hipFlexors: 'Höftböjare',
   },
   pwa: {
