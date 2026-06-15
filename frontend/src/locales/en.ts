@@ -103,7 +103,7 @@ export default {
     afternoon: [
       'Afternoon power hour 💥',
       'Keep the momentum going',
-      'Halfway through the day — stay strong',
+      'Halfway through the day, stay strong',
       'No better time than now',
     ],
     evening: [
@@ -117,10 +117,10 @@ export default {
       'Late night, big results',
       'Night owl mode activated 🦉',
     ],
-    monday: ['New week, new gains! 💪', "Monday motivation — let's go!", 'Fresh week, fresh goals'],
+    monday: ['New week, new gains! 💪', "Monday motivation: let's go!", 'Fresh week, fresh goals'],
     friday: [
       'Finish the week strong! 🏁',
-      'Friday grind — earn your weekend',
+      'Friday grind: earn your weekend',
       'Last push of the week 💪',
     ],
     weekend: ['No days off 🔥', 'Weekend warrior mode', 'Rest day? Never heard of it'],
