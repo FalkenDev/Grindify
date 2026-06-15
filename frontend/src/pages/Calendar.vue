@@ -347,7 +347,7 @@
               }}
             </p>
             <p class="text-caption text-textSecondary">
-              {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 1 }) }} •
+              {{ $t('calendar.freezesRemaining', { count: streakInfo?.streakFreezes ?? 0 }) }} •
               {{ $t('calendar.protectsStreak') }}
             </p>
           </div>
@@ -356,7 +356,7 @@
             size="small"
             color="blue-lighten-2"
             variant="tonal"
-            :disabled="!streakInfo || (streakInfo.streakFreezes ?? 1) <= 0"
+            :disabled="!streakInfo || streakInfo.streakFreezes <= 0"
             @click="isFreezeDialogOpen = true"
           >
             {{ $t('calendar.useFreeze') }}
