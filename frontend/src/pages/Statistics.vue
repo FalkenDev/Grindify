@@ -20,7 +20,13 @@
       <h1>{{ $t('statistics.yourTraining') }}</h1>
     </div>
 
-    <v-tabs v-model="activeTab" color="primary" density="compact" grow class="stats-tabs">
+    <v-tabs
+      v-model="activeTab"
+      color="primary"
+      density="compact"
+      grow
+      class="stats-tabs border-b-sm"
+    >
       <v-tab value="overview">{{ $t('statistics.overview') }}</v-tab>
       <v-tab value="exercises">{{ $t('statistics.exercises') }}</v-tab>
       <v-tab value="workouts">{{ $t('statistics.workouts') }}</v-tab>
