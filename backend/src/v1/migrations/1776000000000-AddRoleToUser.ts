@@ -17,15 +17,18 @@ import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddRoleToUser1776000000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.addColumn(
-      'user',
-      new TableColumn({
-        name: 'role',
-        type: 'varchar',
-        length: '20',
-        default: "'user'",
-      }),
-    );
+    const table = await queryRunner.getTable('user');
+    if (!table?.findColumnByName('role')) {
+      await queryRunner.addColumn(
+        'user',
+        new TableColumn({
+          name: 'role',
+          type: 'varchar',
+          length: '20',
+          default: "'user'",
+        }),
+      );
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
