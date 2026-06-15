@@ -678,7 +678,11 @@ export class WorkoutSessionService {
 
     if (!session) throw new NotFoundException('Session not found');
 
+    const wasFinished = session.status === 'finished';
     await this.sessionRepo.remove(session);
+    if (wasFinished) {
+      await this.userService.decrementStreakOnDeletion(userId);
+    }
     return { message: 'Workout session deleted' };
   }
 

@@ -327,6 +327,7 @@ export class UserService {
     const sessions = await this.sessionRepo.find({
       where: {
         user: { id: userId },
+        status: 'finished',
       },
       select: ['startedAt'],
     });
@@ -356,6 +357,18 @@ export class UserService {
     });
 
     return count;
+  }
+
+  /**
+   * Decrement streak when a finished session or activity log is deleted
+   */
+  async decrementStreakOnDeletion(userId: number): Promise<void> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) return;
+    if (user.currentStreak > 0) {
+      user.currentStreak -= 1;
+    }
+    await this.userRepo.save(user);
   }
 
   /**
