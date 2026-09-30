@@ -18,6 +18,8 @@
 
 Grindify is a full-stack workout application designed for users who want full ownership of their data without subscription fees or connectivity requirements. It offers a complete suite of tools to plan routines, log sessions in real-time, and visualize progress over time. The platform is designed to be mobile-first for gym usage while providing a robust desktop interface for planning and analysis.
 
+**Try it:** [app.grindify.io](https://app.grindify.io) · **Website:** [grindify.io](https://grindify.io) · **Status:** active
+
 ## Features
 
 - **Workout Management**: Create and organize custom workout routines with specific exercises, sets, and targets.
@@ -148,6 +150,20 @@ docker compose -f docker-compose.yml up
 - Backend changes will trigger a transparent restart.
 - Frontend changes will be reflected instantly via Vite HMR.
 
+## Environment Variables
+
+All configuration is done through environment variables. [`.env.example`](.env.example) lists every
+variable with a short comment — copy it to `.env` and fill in your own values. Never commit `.env`.
+
+| Group | Variables |
+| --- | --- |
+| Database | `POSTGRES_*`, `DATABASE_*` |
+| Auth | `JWT_SECRET`, `AUTH_COOKIE_*`, `ALLOWED_ORIGINS`, `BACKEND_URL`, `FRONTEND_URL` |
+| OAuth (optional) | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| Email (optional) | `REQUIRE_EMAIL_VERIFICATION`, `RESEND_API_KEY`, `EMAIL_FROM` |
+| Frontend build | `VITE_API_URL`, `VITE_CONTACT_EMAIL`, `VITE_OPERATOR_*`, `VITE_ALLOWED_HOSTS` |
+| Releases proxy | `GITHUB_RELEASES_OWNER`, `GITHUB_RELEASES_REPO`, `GITHUB_RELEASES_TOKEN` |
+
 ## GitHub OAuth
 
 Grindify supports optional GitHub sign-in. Leave `GITHUB_CLIENT_ID` blank to disable it entirely — the app works fine without it.
@@ -258,11 +274,30 @@ Use `GITHUB_RELEASES_TOKEN` if you want higher GitHub API limits for self-hosted
 
 The tag/release/deploy workflow is maintainer-specific and is documented alongside the Grindify stack in the Homelab repository. Contributors and normal self-hosted users do not need to create GitHub Releases to run Grindify locally.
 
+## Deployment
+
+GitHub Actions (`.github/workflows/build.yml`) builds multi-arch images on every push to `main`
+and on tags, and pushes them to GHCR:
+
+- `ghcr.io/falkendev/grindify-api`
+- `ghcr.io/falkendev/grindify-frontend`
+- `ghcr.io/falkendev/grindify-adminpanel`
+
+To self-host, either run these images or build the same Dockerfiles with
+[`docker-compose.prod.yml`](docker-compose.prod.yml) (`docker compose -f docker-compose.prod.yml up -d --build`).
+
+The official instance ([app.grindify.io](https://app.grindify.io), admin at `admin.grindify.io`) runs these
+images on the maintainer's homelab. Health check: `GET /api/v1/auth/health`; deployed version: `/version.json`.
+
 ## Contributing
 
 Contributions are welcome. Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a Pull Request.
 
 By contributing to Grindify, you agree to our [Contributor License Agreement (CLA)](CLA.md).
+
+## Security
+
+Please report vulnerabilities privately — see [SECURITY.md](SECURITY.md).
 
 ## License
 
