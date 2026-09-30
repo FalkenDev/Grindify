@@ -35,7 +35,7 @@
     "vue-sonner": "^2.0.0",
     "vuedraggable": "^4.1.0",
     "vuetify": "^3.11.6",
-    "vuetify-sonner": "^0.3.21"
+    "vuetify-sonner": "^0.4.2"
   },
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "^2.1.5",
