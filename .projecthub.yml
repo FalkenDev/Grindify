@@ -21,7 +21,7 @@ services:
   - resend: { purpose: Verification and password reset email, env: [RESEND_API_KEY, EMAIL_FROM] }
   - github-oauth: { purpose: Sign in with GitHub, env: [GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET] }
   - google-oauth: { purpose: Sign in with Google, env: [GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET] }
-  - cloudflare: { purpose: DNS, Tunnel and Access in front of admin.grindify.io }
+  - cloudflare: { purpose: "DNS, Tunnel and Access in front of admin.grindify.io" }
   - ghcr: { purpose: Container images }
 docs:
   contributing: CONTRIBUTING.md
