@@ -30,6 +30,8 @@ export const useWorkoutStore = defineStore(
     const cacheDuration = 10 * 1000
 
     const setWorkouts = async (reload = false) => {
+      // Never fetch user data without a session (e.g. during/after logout).
+      if (!authStore.isAuthenticated) return
       const now = Date.now()
       if (
         workouts.value &&

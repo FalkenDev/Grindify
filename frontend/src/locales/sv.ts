@@ -13,6 +13,8 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import legal from './legal.sv'
+
 export default {
   common: {
     cancel: 'Avbryt',
@@ -263,6 +265,27 @@ export default {
     noReleaseHistory: 'Ingen versionshistorik är tillgänglig ännu.',
     noReleaseNotes: 'Inga release notes angavs för den här releasen.',
     viewReleaseOnGitHub: 'Visa på GitHub',
+    // Samtycke till hälsouppgifter
+    withdrawHealthConsent: 'Återkalla samtycke till hälsouppgifter',
+    withdrawHealthConsentDescription: 'Raderar viktloggar, progressbilder och kroppsmått',
+    healthConsentNotGiven: 'Frivilligt – aktiverar viktloggning, kroppsmått och progressbilder',
+    giveHealthConsent: 'Ge samtycke till hälsouppgifter',
+    withdrawHealthConsentTitle: 'Återkalla samtycke till hälsouppgifter?',
+    withdrawHealthConsentText: 'Om du återkallar ditt samtycke raderas följande permanent:',
+    withdrawDeletesWeightLogs: 'Alla viktloggar',
+    withdrawDeletesProgressPhotos: 'Alla progressbilder',
+    withdrawDeletesBodyMeasurements: 'Kroppsmått: vikt, längd, målvikt, kön och födelsedatum',
+    withdrawHealthConsentIrreversible: 'Detta går inte att ångra. Exportera din data först om du vill spara en kopia.',
+    withdrawHealthConsentAfter: 'Viktloggning, kroppsmått och progressbilder blir otillgängliga tills du samtycker igen. Resten av ditt konto och din träningsdata påverkas inte.',
+    withdrawHealthConsentConfirm: 'Återkalla och radera',
+    healthConsentWithdrawn: 'Samtycket är återkallat och hälsouppgifterna raderade',
+    withdrawHealthConsentFailed: 'Kunde inte återkalla samtycket. Försök igen.',
+    exportDataPreparing: 'Förbereder export…',
+    contactNotConfigured: 'Ingen kontaktadress har konfigurerats för tjänsten.',
+    emailChangePasswordHint: 'Krävs för att byta e-post om ditt konto har ett lösenord',
+    emailChangePasswordError: 'Ange ditt korrekta nuvarande lösenord för att byta e-post.',
+    emailAlreadyInUse: 'E-postadressen används redan.',
+    emailChangeVerificationSent: 'Vi har skickat en verifieringskod till din nya e-postadress.',
   },
   auth: {
     loginFailed: 'Inloggningen misslyckades. Kontrollera dina uppgifter.',
@@ -346,6 +369,9 @@ export default {
     passwordResetFailed: 'Det gick inte att återställa lösenordet. Försök igen.',
 
     oauthFailed: 'Inloggningen misslyckades. Försök igen.',
+    oauthEmailUnverified: 'E-postadressen hos leverantören är inte verifierad. Verifiera den där och försök igen.',
+    oauthAccountExists: 'Det finns redan ett konto med den här e-postadressen. Logga in med lösenord.',
+    tooManyAttempts: 'För många försök. Vänta några minuter och försök igen.',
   },
   onboarding: {
     welcome: 'Välkommen',
@@ -564,6 +590,7 @@ export default {
     howToPerform: 'Utförande',
     proTips: 'Proffstips',
     mistakes: 'Undvik dessa misstag',
+    mediaAlt: 'Bild av {name}',
   },
   exerciseForm: {
     createTitle: 'Skapa övning',
@@ -978,6 +1005,8 @@ export default {
     compareSelected: '{count} valda',
     viewPhoto: 'Visa foto',
     tapToSelectPhoto: 'Tryck för att välja ett foto',
+    photoAlt: 'Progressbild {date}',
+    previewAlt: 'Förhandsvisning av vald bild',
   },
   statistics: {
     title: 'Statistik',
@@ -1112,5 +1141,69 @@ export default {
     update: 'Uppdatera',
     dismiss: 'Avvisa',
     offlineReady: 'Appen är redo för offlineanvändning',
+  },
+  consent: {
+    title: 'Ditt samtycke',
+    subtitle: 'Innan du börjar behöver du läsa och godkänna våra villkor och vår integritetspolicy.',
+    updatedSubtitle: 'Vi har uppdaterat våra villkor och vår integritetspolicy (version {version}). Läs och godkänn dem för att fortsätta.',
+    healthLabel: 'Frivilligt: Jag samtycker uttryckligen till att Grindify behandlar mina hälsouppgifter (kroppsvikt, kroppsmått och progressbilder).',
+    healthHint: 'Behövs bara för viktloggning, kroppsmått och progressbilder – allt annat fungerar utan. Du kan när som helst ge eller återkalla samtycket under Inställningar; vid återkallelse raderas de uppgifterna. Läs mer i',
+    continue: 'Godkänn och fortsätt',
+    declineHint: 'Vill du inte godkänna? Du kan logga ut eller radera ditt konto.',
+    failed: 'Kunde inte spara ditt samtycke. Försök igen.',
+  },
+  legal: legal,
+  pageTitles: {
+    home: 'Hem',
+    login: 'Logga in',
+    register: 'Skapa konto',
+    verifyEmail: 'Verifiera e-post',
+    forgotPassword: 'Glömt lösenord',
+    resetPassword: 'Återställ lösenord',
+    signingIn: 'Loggar in',
+    onboarding: 'Kom igång',
+    statistics: 'Statistik',
+    addWorkout: 'Träningspass',
+    logActivity: 'Logga aktivitet',
+    workout: 'Träningspass',
+    session: 'Träningspass pågår',
+    sessionSummary: 'Sammanfattning',
+    sessionHistory: 'Passhistorik',
+    calendar: 'Kalender',
+    settings: 'Inställningar',
+    privacy: 'Integritetspolicy',
+    terms: 'Användarvillkor',
+    imprint: 'Juridisk information',
+    consent: 'Samtycke',
+    notFound: 'Sidan hittades inte',
+  },
+  notFound: {
+    title: 'Sidan hittades inte',
+    text: 'Sidan du letar efter finns inte eller har flyttats.',
+    goHome: 'Till startsidan',
+  },
+  a11y: {
+    mainNavigation: 'Huvudnavigering',
+    userAvatar: 'Profilbild',
+    nav: {
+      home: 'Hem',
+      calendar: 'Kalender',
+      addWorkout: 'Lägg till träningspass',
+      statistics: 'Statistik',
+      settings: 'Inställningar',
+    },
+  },
+  healthConsent: {
+    promptTitle: 'Samtycke krävs för den här funktionen',
+    promptText: 'Den här funktionen använder hälsouppgifter. Ge ditt samtycke till att Grindify behandlar dem för att använda funktionen.',
+    promptVoluntary: 'Samtycket är frivilligt och kan när som helst återkallas under Inställningar. Läs mer i',
+    promptButton: 'Ge samtycke',
+    given: 'Tack! Funktionerna för hälsodata är nu aktiverade.',
+    failed: 'Kunde inte spara ditt samtycke. Försök igen.',
+    requiredToast: 'Den här funktionen kräver samtycke till behandling av hälsouppgifter.',
+    weightDescription: 'Viktloggar, viktmål och progressbilder är hälsouppgifter. Ge ditt samtycke till att Grindify behandlar dem för att använda viktloggningen.',
+    measurementsDescription: 'Vikt, längd och födelsedatum är hälsouppgifter och kan bara sparas med ditt samtycke.',
+    onboardingDescription: 'Vikt, längd, födelsedatum och kön är hälsouppgifter. Ge ditt samtycke om du vill fylla i dem – eller hoppa över.',
+    onboardingSkipHint: 'Du kan fortsätta utan samtycke och lägga till kroppsmått senare.',
   },
 } as const

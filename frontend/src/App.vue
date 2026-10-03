@@ -17,7 +17,7 @@
   <v-app>
     <VSonner position="top-center" />
     <PWAUpdatePrompt />
-    <v-main :style="{ '--extra-pb': showResumeBar ? '45px' : '0px' }">
+    <v-main class="app-main" :style="{ '--extra-pb': showResumeBar ? '45px' : '0px' }">
       <router-view :key="$route.name" />
     </v-main>
     <v-card
@@ -52,6 +52,8 @@ import router from './router'
 import { useRoute } from 'vue-router'
 import { useAppStore } from './stores/app'
 import { useTheme } from 'vuetify'
+import { useI18n } from 'vue-i18n'
+import { updateDocumentTitle } from './utils/documentTitle'
 
 const workoutSessionStore = useWorkoutSessionStore()
 const authStore = useAuthStore()
@@ -61,6 +63,25 @@ const route = useRoute()
 
 // Initialize theme from persisted preference
 theme.global.name.value = appStore.darkMode ? 'dark' : 'light'
+
+// Keep the document title in sync when the language changes.
+const { locale } = useI18n({ useScope: 'global' })
+watch(locale, () => updateDocumentTitle(route))
+
+// Refresh the persisted user on start so consent/terms-version changes are picked up
+// (the router guard sends the user to /consent when consentRequired is true).
+onMounted(async () => {
+  if (!authStore.isAuthenticated) return
+  try {
+    const user = await authStore.refreshUser()
+    const current = router.currentRoute.value
+    if (user?.consentRequired && current.meta.requiresAuth && current.path !== '/consent') {
+      router.replace({ path: '/consent', query: { redirect: current.fullPath } })
+    }
+  } catch {
+    // Offline or session expired – fetchWrapper handles 401 by logging out.
+  }
+})
 
 const isActiveSession = computed(() => {
   const session = workoutSessionStore.selectedWorkoutSession as { status?: string } | null
@@ -90,6 +111,8 @@ const routeToSelectedWorkoutSession = () => {
   position: fixed;
   left: 0;
   right: 0;
+  margin-inline: auto;
+  max-width: var(--app-max-width);
   bottom: calc(56px + env(safe-area-inset-bottom, 0px));
   z-index: 1100;
   width: 100%;
@@ -115,5 +138,38 @@ const routeToSelectedWorkoutSession = () => {
 
 :deep(.v-field__outline__end) {
   border-radius: 0 6px 6px 0 !important;
+}
+</style>
+
+<style>
+/*
+ * Desktop: keep the mobile layout in a centered column instead of stretching it.
+ * Fixed/overlay elements (bottom navigation, fullscreen dialogs, bottom sheets)
+ * are constrained to the same column.
+ */
+:root {
+  --app-max-width: 600px;
+}
+
+.app-main {
+  width: 100%;
+  max-width: var(--app-max-width);
+  margin-inline: auto;
+}
+
+.v-bottom-navigation.app-bottom-nav {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: var(--app-max-width);
+  margin-inline: auto;
+}
+
+.v-dialog.v-dialog--fullscreen > .v-overlay__content,
+.v-bottom-sheet > .v-bottom-sheet__content.v-overlay__content {
+  left: 0;
+  right: 0;
+  max-width: var(--app-max-width) !important;
+  margin-inline: auto !important;
 }
 </style>

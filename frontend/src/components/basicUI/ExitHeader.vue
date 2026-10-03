@@ -26,6 +26,7 @@
       size="40"
       variant="flat"
       :loading="isLoading"
+      :disabled="isLoading"
       @click.stop="emit('close')"
     >
       <template v-if="!isLoading">

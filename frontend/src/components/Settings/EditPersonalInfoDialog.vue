@@ -44,38 +44,67 @@
           :rules="emailRules"
         />
 
-        <v-text-field
-          v-model="dateOfBirth"
-          :label="$t('settings.dateOfBirth')"
-          prepend-inner-icon="mdi-calendar"
-          variant="outlined"
-          type="date"
-          class="mb-4"
-        />
+        <v-expand-transition>
+          <div v-if="emailChanged && requiresPassword">
+            <v-text-field
+              v-model="currentPassword"
+              :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              autocomplete="current-password"
+              class="mb-4"
+              :hint="$t('settings.emailChangePasswordHint')"
+              :label="$t('settings.currentPassword')"
+              persistent-hint
+              hide-details="auto"
+              :rules="currentPasswordRules"
+              prepend-inner-icon="mdi-lock-outline"
+              :type="showCurrentPassword ? 'text' : 'password'"
+              variant="outlined"
+              @click:append-inner="showCurrentPassword = !showCurrentPassword"
+            />
+          </div>
+        </v-expand-transition>
 
-        <v-text-field
-          :model-value="weightStr"
-          :label="$t('settings.weight')"
-          prepend-inner-icon="mdi-scale-bathroom"
-          :suffix="weightUnit"
-          variant="outlined"
-          type="text"
-          inputmode="decimal"
+        <!-- Body measurements are health data and require (optional) health data consent -->
+        <HealthConsentPrompt
+          v-if="!authStore.hasHealthConsent"
           class="mb-4"
-          @update:model-value="weightStr = normalizeDecimalStr($event)"
+          compact
+          :description="$t('healthConsent.measurementsDescription')"
         />
+        <template v-else>
+          <v-text-field
+            v-model="dateOfBirth"
+            :label="$t('settings.dateOfBirth')"
+            prepend-inner-icon="mdi-calendar"
+            variant="outlined"
+            type="date"
+            class="mb-4"
+          />
 
-        <v-text-field
-          :model-value="heightStr"
-          :label="$t('settings.height')"
-          prepend-inner-icon="mdi-human-male-height"
-          :suffix="heightUnit"
-          variant="outlined"
-          type="text"
-          inputmode="decimal"
-          class="mb-4"
-          @update:model-value="heightStr = normalizeDecimalStr($event)"
-        />
+          <v-text-field
+            :model-value="weightStr"
+            :label="$t('settings.weight')"
+            prepend-inner-icon="mdi-scale-bathroom"
+            :suffix="weightUnit"
+            variant="outlined"
+            type="text"
+            inputmode="decimal"
+            class="mb-4"
+            @update:model-value="weightStr = normalizeDecimalStr($event)"
+          />
+
+          <v-text-field
+            :model-value="heightStr"
+            :label="$t('settings.height')"
+            prepend-inner-icon="mdi-human-male-height"
+            :suffix="heightUnit"
+            variant="outlined"
+            type="text"
+            inputmode="decimal"
+            class="mb-4"
+            @update:model-value="heightStr = normalizeDecimalStr($event)"
+          />
+        </template>
       </v-form>
     </v-card-text>
   </v-card>
@@ -89,6 +118,9 @@ import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
 import type { VForm } from 'vuetify/components'
 import { parseDecimalInput, normalizeDecimalStr, formatDecimalDisplay } from '@/utils/decimalInput'
+import { HttpError } from '@/utils/fetchWrapper'
+import HealthConsentPrompt from '@/components/legal/HealthConsentPrompt.vue'
+import { splitFullName } from '@/stores/auth.store'
 
 const props = defineProps<{
   user: User
@@ -126,6 +158,19 @@ const email = ref('')
 const dateOfBirth = ref('')
 const weightStr = ref('')
 const heightStr = ref('')
+const currentPassword = ref('')
+const showCurrentPassword = ref(false)
+
+// OAuth-only accounts have no password; the backend then doesn't require one.
+const requiresPassword = computed(() => props.user.hasPassword !== false)
+const currentPasswordRules = computed(() => [
+  (v: string) =>
+    !emailChanged.value || !requiresPassword.value || !!v || t('settings.currentPasswordRequired'),
+])
+
+const emailChanged = computed(
+  () => email.value.trim().toLowerCase() !== (props.user.email || '').trim().toLowerCase(),
+)
 
 const emailRules = [
   (v: string) => !!v || t('auth.emailRequired'),
@@ -141,6 +186,7 @@ const initForm = () => {
   dateOfBirth.value = u.dateOfBirth ? u.dateOfBirth.substring(0, 10) : ''
   weightStr.value = formatDecimalDisplay(fromKg(u.weight))
   heightStr.value = formatDecimalDisplay(fromCm(u.height))
+  currentPassword.value = ''
 }
 
 watch(() => props.user, initForm, { immediate: true })
@@ -154,36 +200,52 @@ const save = async () => {
 
   isSaving.value = true
   try {
-    const parts = fullName.value.trim().split(/\s+/).filter(Boolean)
-    const fName = parts.shift() || ''
-    const lName = parts.join(' ')
+    const { firstName: fName, lastName: lName } = splitFullName(fullName.value)
 
     const payload: Record<string, unknown> = {
       firstName: fName,
       lastName: lName,
-      email: email.value.trim(),
+    }
+    // Changing email requires the current password (for accounts that have one).
+    if (emailChanged.value) {
+      payload.email = email.value.trim()
+      if (requiresPassword.value && currentPassword.value) {
+        payload.currentPassword = currentPassword.value
+      }
     }
 
-    if (dateOfBirth.value) {
-      payload.dateOfBirth = dateOfBirth.value
-    }
-    const parsedWeight = parseDecimalInput(weightStr.value)
-    if (parsedWeight > 0) {
-      payload.weight = Number(toKg(parsedWeight).toFixed(2))
-    }
-    const parsedHeight = parseDecimalInput(heightStr.value)
-    if (parsedHeight > 0) {
-      payload.height = Number(toCm(parsedHeight).toFixed(2))
+    // Body measurements are only sent with health data consent.
+    if (authStore.hasHealthConsent) {
+      if (dateOfBirth.value) {
+        payload.dateOfBirth = dateOfBirth.value
+      }
+      const parsedWeight = parseDecimalInput(weightStr.value)
+      if (parsedWeight > 0) {
+        payload.weight = Number(toKg(parsedWeight).toFixed(2))
+      }
+      const parsedHeight = parseDecimalInput(heightStr.value)
+      if (parsedHeight > 0) {
+        payload.height = Number(toCm(parsedHeight).toFixed(2))
+      }
     }
 
     const updated = (await updateUser(payload as Partial<User>)) as User
     await authStore.refreshUser()
     emit('updated', updated)
     toast.success(t('settings.accountUpdated'), { progressBar: true, duration: 1000 })
+    if (emailChanged.value && updated.emailVerified === false) {
+      toast.info(t('settings.emailChangeVerificationSent'), { progressBar: true, duration: 6000 })
+    }
     emit('close')
   } catch (error) {
     console.error('Error saving personal info:', error)
-    toast.error(t('settings.failedToUpdateAccount'), { progressBar: true, duration: 1000 })
+    let messageKey = 'settings.failedToUpdateAccount'
+    if (emailChanged.value && error instanceof HttpError && error.status === 400) {
+      messageKey = /already in use/i.test(error.body)
+        ? 'settings.emailAlreadyInUse'
+        : 'settings.emailChangePasswordError'
+    }
+    toast.error(t(messageKey), { progressBar: true, duration: 5000 })
   } finally {
     isSaving.value = false
   }

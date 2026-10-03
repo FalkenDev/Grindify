@@ -18,8 +18,15 @@
     <v-card class="d-flex flex-column bg-background" style="height: 100dvh; overflow: hidden">
       <BackHeader :title="$t('weightLog.title')" @close="close" />
 
+      <!-- Health data consent missing: weight logs and progress photos are unavailable -->
+      <template v-if="!authStore.hasHealthConsent">
+        <v-card-text class="pa-5 flex-grow-1">
+          <HealthConsentPrompt :description="$t('healthConsent.weightDescription')" />
+        </v-card-text>
+      </template>
+
       <!-- First-time setup: no startWeight set yet -->
-      <template v-if="showFirstTimeSetup">
+      <template v-else-if="showFirstTimeSetup">
         <v-card-text class="pa-5 flex-grow-1 d-flex flex-column ga-4">
           <div class="text-center mb-2">
             <v-icon size="64" color="primary" class="mb-3">mdi-scale-bathroom</v-icon>
@@ -94,7 +101,7 @@
             size="large"
             block
             :loading="isSavingSetup"
-            :disabled="parseDecimalInput(setupWeightStr) <= 0"
+            :disabled="(parseDecimalInput(setupWeightStr) <= 0) || isSavingSetup"
             @click="saveFirstTimeSetup"
           >
             {{ $t('weightLog.startTracking') }}
@@ -406,7 +413,7 @@
         <v-btn
           color="primary"
           :loading="isSavingEntry"
-          :disabled="parseDecimalInput(entryWeightStr) <= 0"
+          :disabled="(parseDecimalInput(entryWeightStr) <= 0) || isSavingEntry"
           @click="saveEntry"
         >
           {{ $t('common.save') }}
@@ -425,7 +432,7 @@
       <v-card-actions class="pa-4">
         <v-btn variant="text" @click="deleteDialogOpen = false">{{ $t('common.cancel') }}</v-btn>
         <v-spacer />
-        <v-btn color="error" :loading="isDeleting" @click="doDelete">{{
+        <v-btn color="error" :loading="isDeleting" :disabled="isDeleting" @click="doDelete">{{
           $t('common.delete')
         }}</v-btn>
       </v-card-actions>
@@ -458,6 +465,7 @@ import type { WeightLog } from '@/interfaces/WeightLog.interface'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
 import ProgressPhotosPanel from '@/components/ProgressPhotosPanel.vue'
+import HealthConsentPrompt from '@/components/legal/HealthConsentPrompt.vue'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
 
@@ -784,6 +792,7 @@ const openEditDialog = (entry: WeightLog) => {
 }
 
 const saveEntry = async () => {
+  if (isSavingEntry.value) return
   const parsedWeight = parseDecimalInput(entryWeightStr.value)
   if (parsedWeight <= 0) return
   entryForm.value.weight = parsedWeight
@@ -813,7 +822,7 @@ const saveEntry = async () => {
     entryDialogOpen.value = false
   } catch (error) {
     console.error('Failed to save weight log:', error)
-    toast.error(t('weightLog.failedToSave'), { progressBar: true, duration: 1000 })
+    toast.error(t('weightLog.failedToSave'), { progressBar: true, duration: 5000 })
   } finally {
     isSavingEntry.value = false
   }
@@ -842,7 +851,7 @@ const doDelete = async () => {
     deleteDialogOpen.value = false
   } catch (error) {
     console.error('Failed to delete weight log:', error)
-    toast.error(t('weightLog.failedToDelete'), { progressBar: true, duration: 1000 })
+    toast.error(t('weightLog.failedToDelete'), { progressBar: true, duration: 5000 })
   } finally {
     isDeleting.value = false
   }
@@ -850,6 +859,7 @@ const doDelete = async () => {
 
 // First-time setup save
 const saveFirstTimeSetup = async () => {
+  if (isSavingSetup.value) return
   setupWeight.value = parseDecimalInput(setupWeightStr.value) || null
   setupTargetWeight.value = parseDecimalInput(setupTargetWeightStr.value) || null
   if (!setupWeight.value || setupWeight.value <= 0) return
@@ -888,7 +898,7 @@ const saveFirstTimeSetup = async () => {
     toast.success(t('weightLog.trackingStarted'), { progressBar: true, duration: 1000 })
   } catch (error) {
     console.error('Failed to save first-time setup:', error)
-    toast.error(t('weightLog.failedToSave'), { progressBar: true, duration: 1000 })
+    toast.error(t('weightLog.failedToSave'), { progressBar: true, duration: 5000 })
   } finally {
     isSavingSetup.value = false
   }

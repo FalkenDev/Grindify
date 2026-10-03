@@ -71,6 +71,9 @@ export interface WorkoutSession {
   scheduledSessionId?: number
   caloriesBurned?: number | null
   newRecords?: {
+    exerciseId?: number
+    /** Title of the exercise the record belongs to (i18n object or plain string). */
+    exerciseTitle?: I18nString | string | null
     exercise?: { title: I18nString }
     value: number
     recordType: string

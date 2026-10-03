@@ -77,6 +77,8 @@ export const useWorkoutSessionStore = defineStore(
     const lastCompletedSummary = ref<CompletedSessionSummary | null>(null)
 
     async function setWorkoutSessions(reload = false) {
+      // Never fetch user data without a session (e.g. during/after logout).
+      if (!authStore.isAuthenticated) return
       const now = Date.now()
       if (
         workoutSessions.value &&

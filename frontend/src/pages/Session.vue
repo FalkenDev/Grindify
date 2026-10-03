@@ -29,7 +29,7 @@
       <p class="text-h6">
         {{ clock }}
       </p>
-      <v-btn color="primary" :loading="isLoading" @click="finnishSession">
+      <v-btn color="primary" :loading="isLoading" :disabled="isLoading" @click="finnishSession">
         {{ $t('session.finish') }}
       </v-btn>
     </div>
@@ -59,7 +59,7 @@
       <v-btn color="secondary" @click="isAddExerciseOpen = true">
         {{ $t('session.addExercise') }}
       </v-btn>
-      <v-btn color="primary" :loading="isLoading" @click="finnishSession">
+      <v-btn color="primary" :loading="isLoading" :disabled="isLoading" @click="finnishSession">
         {{ $t('session.finishSession') }}
       </v-btn>
     </div>
@@ -309,7 +309,7 @@ const onCloseExerciseDetails = () => {
 const finnishSession = async () => {
   if (isLoading.value) return
   if (!workoutSession.value?.id) {
-    toast.error(t('session.activeNotFound'), { progressBar: true, duration: 1000 })
+    toast.error(t('session.activeNotFound'), { progressBar: true, duration: 5000 })
     return
   }
 
@@ -363,7 +363,7 @@ const finnishSession = async () => {
       router.push('/session-summary')
     }
   } catch {
-    toast.error(t('session.finishError'), { progressBar: true, duration: 1000 })
+    toast.error(t('session.finishError'), { progressBar: true, duration: 5000 })
   } finally {
     isLoading.value = false
   }

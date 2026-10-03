@@ -119,6 +119,7 @@
         variant="tonal"
         class="w-100 mt-4"
         :loading="isDeleting"
+        :disabled="isDeleting"
         @click="isDeleteDialogOpen = true"
       >
         {{ $t('activity.deleteActivityLog') }}
@@ -200,7 +201,7 @@ async function saveLog() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('activity.failedToUpdateLog'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   } finally {
     isSaving.value = false
@@ -218,7 +219,7 @@ async function deleteLog() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('activity.failedToDeleteLog'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   } finally {
     isDeleting.value = false

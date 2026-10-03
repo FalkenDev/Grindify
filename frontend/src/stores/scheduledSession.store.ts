@@ -36,6 +36,8 @@ export const useScheduledSessionStore = defineStore('scheduledSessionStore', () 
   const cacheDuration = 10 * 1000
 
   const fetchAll = async (reload = false) => {
+    // Never fetch user data without a session (e.g. during/after logout).
+    if (!authStore.isAuthenticated) return
     const now = Date.now()
     if (
       scheduledSessions.value.length > 0 &&
@@ -58,6 +60,7 @@ export const useScheduledSessionStore = defineStore('scheduledSessionStore', () 
   }
 
   const fetchForDate = async (date: string) => {
+    if (!authStore.isAuthenticated) return
     try {
       isLoading.value = true
       selectedDateSessions.value = await scheduledService.fetchScheduledSessionsForDate(date)
@@ -69,6 +72,7 @@ export const useScheduledSessionStore = defineStore('scheduledSessionStore', () 
   }
 
   const fetchForRange = async (start: string, end: string) => {
+    if (!authStore.isAuthenticated) return
     try {
       isLoading.value = true
       rangeCache.value = await scheduledService.fetchScheduledSessionsForRange(start, end)

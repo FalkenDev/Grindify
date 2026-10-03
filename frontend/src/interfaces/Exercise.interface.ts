@@ -49,7 +49,6 @@ export interface Exercise {
 export interface CreateExercise {
   name: string
   description?: string
-  image?: string | null
   exerciseType?: ExerciseType | null
   muscleGroupIds: number[]
   primaryMuscleGroupIds?: number[]
@@ -63,7 +62,6 @@ export interface UpdateExercise {
   id: number
   name: string
   description?: string
-  image?: string | null
   exerciseType?: ExerciseType | null
   muscleGroupIds: number[]
   primaryMuscleGroupIds?: number[]

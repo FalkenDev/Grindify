@@ -145,7 +145,7 @@
               :src="getMediaUrl(m.url)"
               class="w-100 h-100"
               style="object-fit: cover"
-              alt=""
+              :alt="$t('exerciseDetails.mediaAlt', { name: exerciseName })"
             />
             <div v-else class="w-100 h-100 d-flex align-center justify-center bg-cardBg">
               <v-icon size="32" color="primary">mdi-play-circle-outline</v-icon>
@@ -220,7 +220,7 @@
       <v-card-actions class="px-5 pb-5">
         <v-spacer />
         <v-btn variant="text" @click="isDeleteDialogOpen = false">{{ $t('common.cancel') }}</v-btn>
-        <v-btn color="error" variant="flat" :loading="isDeleting" @click="confirmDelete">
+        <v-btn color="error" variant="flat" :loading="isDeleting" :disabled="isDeleting" @click="confirmDelete">
           {{ $t('common.delete') }}
         </v-btn>
       </v-card-actions>
@@ -321,7 +321,7 @@ const confirmDelete = async () => {
       emit('close')
     }
   } catch {
-    toast.error(t('exercise.failedToDelete'), { progressBar: true, duration: 1000 })
+    toast.error(t('exercise.failedToDelete'), { progressBar: true, duration: 5000 })
   } finally {
     isDeleting.value = false
   }

@@ -24,25 +24,22 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
+import { safeRedirectPath } from '@/utils/safeRedirect'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n({ useScope: 'global' })
 
-onMounted(() => {
+onMounted(async () => {
   try {
-    const userParam = route.query.user as string
-    const redirect = (route.query.redirect as string) || '/'
-
-    if (!userParam) throw new Error('Missing user data')
-
-    const user = JSON.parse(atob(userParam.replace(/-/g, '+').replace(/_/g, '/')))
-
+    // The backend has set the httpOnly auth cookie before redirecting here;
+    // fetch the user with it instead of trusting data in the URL.
+    const user = await authStore.refreshUser()
     authStore.setUserFromOAuth(user)
-    router.replace(redirect)
+    router.replace(safeRedirectPath(route.query.redirect))
   } catch {
-    toast.error(t('auth.oauthFailed'))
+    toast.error(t('auth.oauthFailed'), { progressBar: true, duration: 5000 })
     router.replace('/login')
   }
 })

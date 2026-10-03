@@ -98,7 +98,7 @@ const savePreferences = async () => {
     toast.success(t('settings.preferencesSaved'), { progressBar: true, duration: 1000 })
   } catch (error) {
     console.error('Failed saving preferences:', error)
-    toast.error(t('settings.failedToSavePreferences'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.failedToSavePreferences'), { progressBar: true, duration: 5000 })
     // rollback UI to last known good value
     useRpe.value = props.user?.showRpe ?? true
     weightTrackingEnabled.value = props.user?.showWeightTracking ?? false

@@ -32,128 +32,150 @@ import AddWorkout from '@/pages/AddWorkout.vue'
 import LogActivity from '@/pages/LogActivity.vue'
 import Statistics from '@/pages/Statistics.vue'
 import SessionDetail from '@/pages/SessionDetail.vue'
-import PrivacyPage from '@/pages/PrivacyPage.vue'
-import TermsPage from '@/pages/TermsPage.vue'
-import LegalNoticePage from '@/pages/LegalNoticePage.vue'
+import LegalPage from '@/pages/LegalPage.vue'
+import Consent from '@/pages/Consent.vue'
+import NotFound from '@/pages/NotFound.vue'
+import { updateDocumentTitle } from '@/utils/documentTitle'
+import { safeRedirectPath } from '@/utils/safeRedirect'
+
+// Routes that stay reachable while consent is pending (legal texts must be readable).
+const CONSENT_EXEMPT_PATHS = ['/consent', '/privacy', '/terms', '/legal', '/oauth-callback']
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.home', requiresAuth: true },
   },
   {
     path: '/login',
     name: 'Login',
     component: Login,
+    meta: { title: 'pageTitles.login' },
   },
   {
     path: '/register',
     name: 'Register',
     component: Register,
+    meta: { title: 'pageTitles.register' },
   },
   {
     path: '/verify-email',
     name: 'VerifyEmail',
     component: VerifyEmail,
+    meta: { title: 'pageTitles.verifyEmail' },
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
     component: ForgotPassword,
+    meta: { title: 'pageTitles.forgotPassword' },
   },
   {
     path: '/reset-password',
     name: 'ResetPassword',
     component: ResetPassword,
+    meta: { title: 'pageTitles.resetPassword' },
   },
   {
     path: '/oauth-callback',
     name: 'OAuthCallback',
     component: OAuthCallback,
+    meta: { title: 'pageTitles.signingIn' },
   },
   {
     path: '/onboarding',
     name: 'Onboarding',
     component: Onboarding,
-    meta: { requiresAuth: true, hideBottomNav: true },
+    meta: { title: 'pageTitles.onboarding', requiresAuth: true, hideBottomNav: true },
   },
   {
     path: '/statistics',
     name: 'Statistics',
     component: Statistics,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.statistics', requiresAuth: true },
   },
   {
     path: '/workout',
     name: 'Workout',
     component: AddWorkout,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.addWorkout', requiresAuth: true },
   },
   {
     path: '/log-activity',
     name: 'LogActivity',
     component: LogActivity,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.logActivity', requiresAuth: true },
   },
   {
     path: '/workout/:workoutId',
     name: 'WorkoutDetails',
     component: WorkoutDetails,
-    meta: { requiresAuth: true, hideBottomNav: true },
+    meta: { title: 'pageTitles.workout', requiresAuth: true, hideBottomNav: true },
   },
   {
     path: '/session/:sessionId',
     name: 'SessionDetails',
     component: Session,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.session', requiresAuth: true },
   },
   {
     path: '/session-summary',
     name: 'SessionSummary',
     component: SessionSummary,
-    meta: { requiresAuth: true, hideBottomNav: true },
+    meta: { title: 'pageTitles.sessionSummary', requiresAuth: true, hideBottomNav: true },
   },
   {
     path: '/session-history/:type/:id',
     name: 'SessionDetail',
     component: SessionDetail,
-    meta: { requiresAuth: true, hideBottomNav: true },
+    meta: { title: 'pageTitles.sessionHistory', requiresAuth: true, hideBottomNav: true },
   },
   {
     path: '/calendar',
     name: 'Calendar',
     component: Calendar,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.calendar', requiresAuth: true },
   },
   {
     path: '/settings',
     name: 'Settings',
     component: Settings,
-    meta: { requiresAuth: true },
+    meta: { title: 'pageTitles.settings', requiresAuth: true },
   },
   {
     path: '/privacy',
     name: 'Privacy',
-    component: PrivacyPage,
-    meta: { hideBottomNav: true },
+    component: LegalPage,
+    props: { doc: 'privacy' },
+    meta: { title: 'pageTitles.privacy', hideBottomNav: true },
   },
   {
     path: '/terms',
     name: 'Terms',
-    component: TermsPage,
-    meta: { hideBottomNav: true },
+    component: LegalPage,
+    props: { doc: 'terms' },
+    meta: { title: 'pageTitles.terms', hideBottomNav: true },
   },
   {
     path: '/legal',
     name: 'LegalNotice',
-    component: LegalNoticePage,
-    meta: { hideBottomNav: true },
+    component: LegalPage,
+    props: { doc: 'imprint' },
+    meta: { title: 'pageTitles.imprint', hideBottomNav: true },
   },
   {
-    path: '/:pathMatch(.*)*', // 404
-    redirect: () => '/',
+    path: '/consent',
+    name: 'Consent',
+    component: Consent,
+    meta: { title: 'pageTitles.consent', requiresAuth: true, hideBottomNav: true },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
+    meta: { title: 'pageTitles.notFound', hideBottomNav: true },
   },
 ]
 
@@ -175,8 +197,17 @@ router.beforeEach(async (to, from, next) => {
       query: { redirect: to.fullPath },
     })
   } else if (requiresGuest && isAuthenticated) {
-    next('/dashboard')
+    next('/')
   } else if (
+    isAuthenticated &&
+    authStore.user?.consentRequired === true &&
+    !CONSENT_EXEMPT_PATHS.includes(to.path)
+  ) {
+    // New OAuth users and users who accepted an older terms version must consent first.
+    next({ path: '/consent', query: { redirect: safeRedirectPath(to.fullPath) } })
+  } else if (
+    !CONSENT_EXEMPT_PATHS.includes(to.path) &&
+    String(to.name) !== 'NotFound' &&
     isAuthenticated &&
     to.path !== '/onboarding' &&
     authStore.user &&
@@ -188,6 +219,11 @@ router.beforeEach(async (to, from, next) => {
     next()
   }
 })
+
+router.afterEach(to => {
+  updateDocumentTitle(to)
+})
+
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {
   if (err?.message?.includes?.('Failed to fetch dynamically imported module')) {

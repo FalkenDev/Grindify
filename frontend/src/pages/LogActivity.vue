@@ -180,7 +180,14 @@
             />
 
             <!-- Submit Button -->
-            <v-btn :loading="isSubmitting" type="submit" size="large" color="primary" block>
+            <v-btn
+              :loading="isSubmitting"
+              :disabled="isSubmitting"
+              type="submit"
+              size="large"
+              color="primary"
+              block
+            >
               {{ $t('activity.save') }}
             </v-btn>
           </v-form>
@@ -288,6 +295,7 @@ const calculatedPace = computed(() => {
 })
 
 async function handleSubmit() {
+  if (isSubmitting.value) return
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
@@ -308,7 +316,7 @@ async function handleSubmit() {
     router.push(returnTo)
   } catch (error) {
     console.error('Error creating activity log:', error)
-    toast.error(t('activity.failedToCreateLog'), { progressBar: true, duration: 1000 })
+    toast.error(t('activity.failedToCreateLog'), { progressBar: true, duration: 5000 })
   } finally {
     isSubmitting.value = false
   }

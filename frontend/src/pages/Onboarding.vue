@@ -41,48 +41,57 @@
           </v-btn-toggle>
         </div>
 
-        <v-text-field
-          :model-value="weightStr"
-          class="mb-4"
-          :label="`${$t('onboarding.weight')} (${$t('common.optional')})`"
-          :suffix="formData.unitScale === 'metric' ? 'kg' : 'lbs'"
-          type="text"
-          inputmode="decimal"
-          variant="outlined"
-          hide-details
-          @update:model-value="weightStr = normalizeDecimalStr($event)"
-        />
+        <!-- Body measurements are health data: optional, only with health data consent -->
+        <template v-if="authStore.hasHealthConsent">
+          <v-text-field
+            :model-value="weightStr"
+            class="mb-4"
+            :label="`${$t('onboarding.weight')} (${$t('common.optional')})`"
+            :suffix="formData.unitScale === 'metric' ? 'kg' : 'lbs'"
+            type="text"
+            inputmode="decimal"
+            variant="outlined"
+            hide-details
+            @update:model-value="weightStr = normalizeDecimalStr($event)"
+          />
 
-        <v-text-field
-          :model-value="heightStr"
-          class="mb-4"
-          :label="`${$t('onboarding.height')} (${$t('common.optional')})`"
-          :suffix="formData.unitScale === 'metric' ? 'cm' : 'in'"
-          type="text"
-          inputmode="decimal"
-          variant="outlined"
-          hide-details
-          @update:model-value="heightStr = normalizeDecimalStr($event)"
-        />
+          <v-text-field
+            :model-value="heightStr"
+            class="mb-4"
+            :label="`${$t('onboarding.height')} (${$t('common.optional')})`"
+            :suffix="formData.unitScale === 'metric' ? 'cm' : 'in'"
+            type="text"
+            inputmode="decimal"
+            variant="outlined"
+            hide-details
+            @update:model-value="heightStr = normalizeDecimalStr($event)"
+          />
 
-        <v-text-field
-          v-model="formData.dateOfBirth"
-          class="mb-4"
-          :label="$t('onboarding.dateOfBirth')"
-          :rules="dobRules"
-          :max="sixteenYearsAgo"
-          type="date"
-          variant="outlined"
-        />
+          <v-text-field
+            v-model="formData.dateOfBirth"
+            class="mb-4"
+            :label="`${$t('onboarding.dateOfBirth')} (${$t('common.optional')})`"
+            :rules="dobRules"
+            :max="sixteenYearsAgo"
+            type="date"
+            variant="outlined"
+          />
 
-        <v-select
-          v-model="formData.gender"
-          class="mb-6"
-          :items="genderOptions"
-          :label="$t('onboarding.gender')"
-          :rules="[v => !!v || t('onboarding.genderRequired')]"
-          variant="outlined"
-        />
+          <v-select
+            v-model="formData.gender"
+            class="mb-6"
+            :items="genderOptions"
+            :label="`${$t('onboarding.gender')} (${$t('common.optional')})`"
+            clearable
+            variant="outlined"
+          />
+        </template>
+        <div v-else class="mb-6">
+          <HealthConsentPrompt compact :description="$t('healthConsent.onboardingDescription')" />
+          <p class="text-caption text-textSecondary text-center mt-2">
+            {{ $t('healthConsent.onboardingSkipHint') }}
+          </p>
+        </div>
 
         <v-btn block class="text-white" color="primary" rounded="lg" size="large" type="submit">
           {{ $t('common.next') }}
@@ -133,6 +142,7 @@
         </div>
 
         <v-text-field
+          v-if="authStore.hasHealthConsent"
           :model-value="targetWeightStr"
           class="mb-4"
           :label="`${$t('onboarding.targetWeight')} (${$t('common.optional')})`"
@@ -220,6 +230,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
 import { updateUserPreferences } from '@/services/user.service'
 import { createWeightLog } from '@/services/weightLog.service'
+import HealthConsentPrompt from '@/components/legal/HealthConsentPrompt.vue'
 import { toast } from 'vuetify-sonner'
 import type { VForm } from 'vuetify/components'
 import { parseDecimalInput, normalizeDecimalStr } from '@/utils/decimalInput'
@@ -267,10 +278,8 @@ const maxDate = new Date()
 maxDate.setFullYear(maxDate.getFullYear() - 16)
 const sixteenYearsAgo = maxDate.toISOString().split('T')[0]
 
-const dobRules = [
-  (v: string) => !!v || t('onboarding.dateOfBirthRequired'),
-  (v: string) => v <= sixteenYearsAgo || t('onboarding.mustBeAtLeast16'),
-]
+// All health fields are optional; a date of birth, when given, must be at least 16 years ago.
+const dobRules = [(v: string | null | undefined) => !v || v <= sixteenYearsAgo || t('onboarding.mustBeAtLeast16')]
 
 // String refs for decimal fields — allow both "." and "," as decimal separator
 const weightStr = ref('')
@@ -327,8 +336,20 @@ const completeOnboarding = async () => {
       onboardingCompleted: true,
     }
 
+    // Without health data consent, body measurements are neither collected nor sent.
+    const hasHealthConsent = authStore.hasHealthConsent
+    if (!hasHealthConsent) {
+      for (const key of ['weight', 'height', 'dateOfBirth', 'gender', 'targetWeight']) {
+        delete preferences[key]
+      }
+    }
+    // Optional fields left empty (or cleared) are not sent at all.
+    for (const key of ['dateOfBirth', 'gender']) {
+      if (!preferences[key]) delete preferences[key]
+    }
+
     // Auto-enable weight tracking if the user provided their weight
-    if (formData.value.weight && formData.value.weight > 0) {
+    if (hasHealthConsent && formData.value.weight && formData.value.weight > 0) {
       preferences.showWeightTracking = true
     }
 
@@ -348,7 +369,7 @@ const completeOnboarding = async () => {
     }
 
     // Create the initial weight log entry so the first-time setup dialog is skipped
-    if (formData.value.weight && formData.value.weight > 0) {
+    if (hasHealthConsent && formData.value.weight && formData.value.weight > 0) {
       const weightInKg =
         formData.value.unitScale === 'imperial'
           ? formData.value.weight / 2.20462
@@ -363,7 +384,7 @@ const completeOnboarding = async () => {
     router.push('/')
   } catch (error) {
     console.error('Error completing onboarding:', error)
-    toast.error(t('onboarding.errorSaving'))
+    toast.error(t('onboarding.errorSaving'), { progressBar: true, duration: 5000 })
   } finally {
     loading.value = false
   }

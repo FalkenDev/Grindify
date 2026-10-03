@@ -54,7 +54,7 @@
         </p>
       </div>
 
-      <v-btn color="primary" block :loading="isSavingGoal" @click="saveWeeklyGoal">
+      <v-btn color="primary" block :loading="isSavingGoal" :disabled="isSavingGoal" @click="saveWeeklyGoal">
         {{ $t('common.saveChanges') }}
       </v-btn>
 
@@ -92,7 +92,12 @@
         {{ $t('settings.goalReachedThisWeek') }}
       </v-alert>
 
-      <template v-if="weightTrackingEnabled">
+      <template v-if="weightTrackingEnabled && !authStore.hasHealthConsent">
+        <v-divider class="my-6" />
+        <HealthConsentPrompt compact :description="$t('healthConsent.weightDescription')" />
+      </template>
+
+      <template v-else-if="weightTrackingEnabled">
         <v-divider class="my-6" />
 
         <h2 class="text-h6 mb-2">{{ $t('weightLog.goalType') }}</h2>
@@ -152,7 +157,7 @@
           </div>
         </div>
 
-        <v-btn color="primary" block :loading="isSavingWeightGoals" @click="saveWeightGoals">
+        <v-btn color="primary" block :loading="isSavingWeightGoals" :disabled="isSavingWeightGoals" @click="saveWeightGoals">
           {{ $t('common.saveChanges') }}
         </v-btn>
       </template>
@@ -170,6 +175,7 @@ import type { User, StreakInfo } from '@/interfaces/User.interface'
 import { toast } from 'vuetify-sonner'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth.store'
+import HealthConsentPrompt from '@/components/legal/HealthConsentPrompt.vue'
 import { parseDecimalInput, normalizeDecimalStr, formatDecimalDisplay } from '@/utils/decimalInput'
 
 const props = defineProps<{
@@ -255,7 +261,7 @@ watch(
 const saveWeeklyGoal = async () => {
   if (isSavingGoal.value) return
   if (weeklyGoal.value < 1 || weeklyGoal.value > 7) {
-    toast.error(t('settings.invalidGoalValue'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.invalidGoalValue'), { progressBar: true, duration: 5000 })
     return
   }
 
@@ -270,7 +276,7 @@ const saveWeeklyGoal = async () => {
     toast.success(t('settings.goalUpdated'), { progressBar: true, duration: 1000 })
   } catch (error) {
     console.error('Failed saving weekly goal:', error)
-    toast.error(t('settings.failedToUpdateGoal'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.failedToUpdateGoal'), { progressBar: true, duration: 5000 })
     weeklyGoal.value = props.user?.weeklyWorkoutGoal ?? 3
   } finally {
     isSavingGoal.value = false
@@ -302,7 +308,7 @@ const saveWeightGoals = async () => {
     toast.success(t('settings.goalUpdated'), { progressBar: true, duration: 1000 })
   } catch (error) {
     console.error('Failed saving weight goals:', error)
-    toast.error(t('settings.failedToUpdateGoal'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.failedToUpdateGoal'), { progressBar: true, duration: 5000 })
   } finally {
     isSavingWeightGoals.value = false
   }

@@ -28,6 +28,8 @@ export const useProgressPhotoStore = defineStore('progressPhotoStore', () => {
   const cacheDuration = 30 * 1000 // 30 seconds
 
   const fetchPhotos = async (reload = false) => {
+    // Progress photos are health data – only available with health data consent.
+    if (!authStore.isAuthenticated || !authStore.hasHealthConsent) return
     const now = Date.now()
     if (
       photos.value.length > 0 &&
@@ -60,9 +62,9 @@ export const useProgressPhotoStore = defineStore('progressPhotoStore', () => {
   }
 
   watch(
-    () => authStore.isAuthenticated,
-    authed => {
-      if (authed) void fetchPhotos(true)
+    () => authStore.isAuthenticated && authStore.hasHealthConsent,
+    enabled => {
+      if (enabled) void fetchPhotos(true)
     },
     { immediate: true }
   )

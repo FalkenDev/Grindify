@@ -119,6 +119,7 @@
         class="w-100 mt-8"
         size="large"
         :loading="isSaving"
+        :disabled="isSaving"
         @click="saveActivity"
       >
         {{ $t('activity.createActivity') }}
@@ -199,7 +200,7 @@ async function saveActivity() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('activity.failedToCreate'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   } finally {
     isSaving.value = false

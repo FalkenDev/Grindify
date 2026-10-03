@@ -34,7 +34,7 @@
         :rules="emailRules"
         type="email"
         variant="outlined"
-        hide-details
+        hide-details="auto"
       />
 
       <v-text-field
@@ -48,7 +48,7 @@
         :rules="passwordRules"
         :type="showPassword ? 'text' : 'password'"
         variant="outlined"
-        hide-details
+        hide-details="auto"
         @click:append-inner="showPassword = !showPassword"
       />
 
@@ -66,7 +66,7 @@
 
       <v-btn
         block
-        class="mb-6 mt-2 text-white"
+        class="mt-2 text-white"
         color="primary"
         :disabled="authStore.loading"
         :loading="authStore.loading"
@@ -77,59 +77,64 @@
         {{ $t('auth.login') }}
       </v-btn>
 
-      <v-divider>
-        <span class="text-textSecondary text-body-2r">{{ $t('auth.orContinueWith') }}</span>
-      </v-divider>
+      <v-btn
+        block
+        class="mt-3 mb-6"
+        color="primary"
+        rounded="lg"
+        size="large"
+        variant="outlined"
+        @click="navigateToCreateAccount"
+      >
+        {{ $t('auth.createAccount') }}
+      </v-btn>
 
-      <div class="d-flex flex-row ga-5 w-100 justify-center mt-4">
-        <v-btn type="button" color="cardBg" class="border-sm flex-grow-1" variant="flat" @click="loginWithGoogle">
-          <v-icon size="24" class="me-2">mdi-google</v-icon>
-          <span>Google</span>
-        </v-btn>
-
-        <v-btn type="button" color="cardBg" class="border-sm flex-grow-1" variant="flat" @click="loginWithGithub">
-          <v-icon size="24" class="me-2">mdi-github</v-icon>
-          <span>GitHub</span>
-        </v-btn>
-      </div>
+      <OAuthButtons />
     </v-form>
 
     <div class="footer text-center mt-auto mb-4">
-      <span class="text-grey-darken-1">{{ $t('auth.dontHaveAccount') }}</span>
-      <v-btn
-        class="pl-1 text-capitalize"
-        color="primary"
-        size="small"
-        variant="text"
-        @click="navigateToCreateAccount"
-      >
-        {{ $t('auth.signUp') }}
-      </v-btn>
-      <div class="d-flex justify-center align-center flex-wrap ga-1 mt-2">
-        <v-btn size="x-small" variant="text" color="textSecondary" class="text-caption" @click="router.push('/privacy')">
+      <div class="d-flex justify-center align-center flex-wrap ga-1 mt-4">
+        <v-btn
+          variant="text"
+          color="textSecondary"
+          class="text-caption legal-link"
+          to="/privacy"
+        >
           {{ $t('settings.privacyPolicy') }}
         </v-btn>
-        <span class="text-textSecondary text-caption">·</span>
-        <v-btn size="x-small" variant="text" color="textSecondary" class="text-caption" @click="router.push('/terms')">
+        <span class="text-textSecondary text-caption" aria-hidden="true">·</span>
+        <v-btn
+          variant="text"
+          color="textSecondary"
+          class="text-caption legal-link"
+          to="/terms"
+        >
           {{ $t('settings.termsAndConditions') }}
         </v-btn>
-        <span class="text-textSecondary text-caption">·</span>
-        <v-btn size="x-small" variant="text" color="textSecondary" class="text-caption" @click="router.push('/legal')">
+        <span class="text-textSecondary text-caption" aria-hidden="true">·</span>
+        <v-btn
+          variant="text"
+          color="textSecondary"
+          class="text-caption legal-link"
+          to="/legal"
+        >
           {{ $t('settings.imprint') }}
         </v-btn>
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { toast } from 'vuetify-sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import type { VForm } from 'vuetify/components'
 import { useI18n } from 'vue-i18n'
+import OAuthButtons from '@/components/OAuthButtons.vue'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { t } = useI18n({ useScope: 'global' })
 
@@ -145,33 +150,47 @@ const emailRules = [
 const passwordRules = [(v: string) => !!v || t('auth.passwordRequired')]
 
 const handleLogin = async () => {
-  if (!form.value) return
+  if (!form.value || authStore.loading) return
   const { valid } = await form.value.validate()
+  if (!valid) return
 
-  if (valid) {
-    const success = await authStore.login(email.value, password.value)
-    if (success) {
-      router.push('/dashboard')
-    }
+  try {
+    // The store navigates on success and shows a toast on failure
+    // (including 429 "too many attempts").
+    await authStore.login(email.value, password.value)
+  } catch {
+    // Already handled in the store; keep the user on the login page.
   }
 }
+
+// OAuth failures redirect back here with ?error=<code>
+const oauthErrorKeys: Record<string, string> = {
+  oauth_failed: 'auth.oauthFailed',
+  oauth_email_unverified: 'auth.oauthEmailUnverified',
+  oauth_account_exists: 'auth.oauthAccountExists',
+}
+
+onMounted(() => {
+  const error = route.query.error
+  if (typeof error !== 'string') return
+  toast.error(t(oauthErrorKeys[error] ?? 'auth.oauthFailed'), { duration: 5000 })
+  router.replace({ query: {} })
+})
 
 const navigateToCreateAccount = () => {
   router.push('/register')
 }
-
-const loginWithGithub = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:1337/v1'
-  window.location.href = `${apiUrl}/auth/github`
-}
-
-const loginWithGoogle = () => {
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:1337/v1'
-  window.location.href = `${apiUrl}/auth/google`
-}
 </script>
 
 <style scoped>
+/* WCAG 2.5.5: at least 44x44px touch target for the legal links */
+.legal-link {
+  min-height: 44px;
+  min-width: 44px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 :deep(.v-field) {
   background-color: rgb(var(--v-theme-cardBg)) !important;
   border-radius: 12px !important;

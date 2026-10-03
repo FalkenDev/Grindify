@@ -377,7 +377,7 @@ async function deleteThisActivity() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('activity.failedToDelete'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   }
 }

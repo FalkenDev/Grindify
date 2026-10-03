@@ -28,23 +28,6 @@ export const fetchAllMuscleGroups = async () => {
   }
 };
 
-export const createMuscleGroup = async (muscleGroup: {
-  name: string;
-  description?: string;
-}) => {
-  try {
-    const data = await fetchWrapper<MuscleGroup>(`${apiUrl}/muscleGroups`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(muscleGroup),
-    });
-    return data;
-  } catch (error) {
-    console.error('Error creating muscle group:', error);
-    throw new Error('Failed to create muscle group');
-  }
-};
-
 export const getMuscleGroupById = async (id: number) => {
   try {
     const data = await fetchWrapper<MuscleGroup>(`${apiUrl}/muscleGroups/${id}`);
@@ -55,31 +38,5 @@ export const getMuscleGroupById = async (id: number) => {
   }
 };
 
-export const updateMuscleGroup = async (
-  id: number,
-  muscleGroup: { name: string; description?: string },
-) => {
-  try {
-    const data = await fetchWrapper<MuscleGroup>(`${apiUrl}/muscleGroups/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(muscleGroup),
-    });
-    return data;
-  } catch (error) {
-    console.error('Error updating muscle group:', error);
-    throw new Error('Failed to update muscle group');
-  }
-};
-
-export const deleteMuscleGroup = async (id: number) => {
-  try {
-    await fetchWrapper<void>(`${apiUrl}/muscleGroups/${id}`, {
-      method: 'DELETE',
-    });
-    return true; // success
-  } catch (error) {
-    console.error('Error deleting muscle group:', error);
-    throw new Error('Failed to delete muscle group');
-  }
-};
+// Muscle groups are read-only for the app; create/update/delete is superadmin-only
+// and handled in the admin panel.

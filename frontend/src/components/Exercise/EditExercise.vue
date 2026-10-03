@@ -171,7 +171,7 @@
           <v-btn variant="text" @click="isDeleteDialogOpen = false">{{
             $t('common.cancel')
           }}</v-btn>
-          <v-btn color="error" variant="flat" :loading="isDeleting" @click="confirmDelete">
+          <v-btn color="error" variant="flat" :loading="isDeleting" :disabled="isDeleting" @click="confirmDelete">
             {{ $t('common.delete') }}
           </v-btn>
         </v-card-actions>
@@ -265,13 +265,13 @@ const removeExistingMedia = async (mediaId: number) => {
     await exerciseStore.setExercises(true)
     toast.success(t('exerciseForm.mediaRemoved'), { progressBar: true, duration: 1000 })
   } catch {
-    toast.error(t('exerciseForm.mediaRemoveError'), { progressBar: true, duration: 1000 })
+    toast.error(t('exerciseForm.mediaRemoveError'), { progressBar: true, duration: 5000 })
   }
 }
 
 const saveExercise = async () => {
   if (!form.value.name.trim()) {
-    toast.error(t('exerciseForm.nameRequired'), { progressBar: true, duration: 1000 })
+    toast.error(t('exerciseForm.nameRequired'), { progressBar: true, duration: 5000 })
     return
   }
 
@@ -321,10 +321,10 @@ const saveExercise = async () => {
       emit('saved')
       emit('close')
     } else {
-      toast.error(t('exercise.failedToUpdate'), { progressBar: true, duration: 1000 })
+      toast.error(t('exercise.failedToUpdate'), { progressBar: true, duration: 5000 })
     }
   } catch {
-    toast.error(t('exercise.updateError'), { progressBar: true, duration: 1000 })
+    toast.error(t('exercise.updateError'), { progressBar: true, duration: 5000 })
   } finally {
     isSaving.value = false
   }
@@ -341,7 +341,7 @@ const confirmDelete = async () => {
       emit('close')
     }
   } catch {
-    toast.error(t('exercise.failedToDelete'), { progressBar: true, duration: 1000 })
+    toast.error(t('exercise.failedToDelete'), { progressBar: true, duration: 5000 })
   } finally {
     isDeleting.value = false
   }

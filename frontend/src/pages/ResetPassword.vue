@@ -51,7 +51,7 @@
         :rules="passwordRules"
         :type="showPassword ? 'text' : 'password'"
         variant="outlined"
-        hide-details
+        hide-details="auto"
         @click:append-inner="showPassword = !showPassword"
       />
 
@@ -66,7 +66,7 @@
         :rules="confirmRules"
         :type="showConfirm ? 'text' : 'password'"
         variant="outlined"
-        hide-details
+        hide-details="auto"
         @click:append-inner="showConfirm = !showConfirm"
       />
 
@@ -136,9 +136,9 @@ const handleSubmit = async () => {
   } catch (error) {
     const msg = error instanceof Error ? error.message : ''
     if (msg.includes('Invalid or expired')) {
-      toast.error(t('auth.invalidResetCode'))
+      toast.error(t('auth.invalidResetCode'), { progressBar: true, duration: 5000 })
     } else {
-      toast.error(t('auth.passwordResetFailed'))
+      toast.error(t('auth.passwordResetFailed'), { progressBar: true, duration: 5000 })
     }
     code.value = ''
   } finally {

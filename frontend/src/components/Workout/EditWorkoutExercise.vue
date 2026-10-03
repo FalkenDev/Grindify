@@ -115,7 +115,7 @@
           </v-list>
         </div>
         <div v-else>
-          <v-btn class="w-100 my-4" color="primary" :loading="isLoading" @click="updateExercise">
+          <v-btn class="w-100 my-4" color="primary" :loading="isLoading" :disabled="isLoading" @click="updateExercise">
             {{ $t('common.saveChanges') }}
           </v-btn>
           <v-form v-if="editExercise" class="pt-2 d-flex ga-5 flex-column">
@@ -295,7 +295,7 @@ const removeExercise = async () => {
       console.error('Failed to remove exercise.')
     }
   } catch (error) {
-    toast.error(t('exercise.removeError'), { progressBar: true, duration: 1000 })
+    toast.error(t('exercise.removeError'), { progressBar: true, duration: 5000 })
     console.error('Error in removeExerciseFromWorkout:', error)
   }
 }
@@ -340,11 +340,11 @@ const updateExercise = async () => {
   try {
     isLoading.value = true
     if (!editExercise.value) {
-      toast.error(t('exercise.updateNoData'), { progressBar: true, duration: 1000 })
+      toast.error(t('exercise.updateNoData'), { progressBar: true, duration: 5000 })
       return
     }
     if (!props.workoutId) {
-      toast.error(t('exercise.updateNoWorkoutId'), { progressBar: true, duration: 1000 })
+      toast.error(t('exercise.updateNoWorkoutId'), { progressBar: true, duration: 5000 })
       return
     }
 
@@ -353,7 +353,7 @@ const updateExercise = async () => {
     )
 
     if (!workoutExercise) {
-      toast.error(t('exercise.updateNotFoundInWorkout'), { progressBar: true, duration: 1000 })
+      toast.error(t('exercise.updateNotFoundInWorkout'), { progressBar: true, duration: 5000 })
       return
     }
 
@@ -367,10 +367,10 @@ const updateExercise = async () => {
       await workoutStore.setWorkouts(true)
       emit('close')
     } else {
-      toast.error(t('exercise.failedToUpdate'), { progressBar: true, duration: 1000 })
+      toast.error(t('exercise.failedToUpdate'), { progressBar: true, duration: 5000 })
     }
   } catch (error) {
-    toast.error(t('exercise.updateError'), { progressBar: true, duration: 1000 })
+    toast.error(t('exercise.updateError'), { progressBar: true, duration: 5000 })
     console.error('Error in updateExercise:', error)
   } finally {
     isLoading.value = false

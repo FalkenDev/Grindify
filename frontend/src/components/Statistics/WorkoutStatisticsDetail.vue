@@ -118,6 +118,7 @@
               block
               size="small"
               :loading="statisticsStore.isLoadingWorkout"
+              :disabled="statisticsStore.isLoadingWorkout"
               @click="loadMore"
             >
               {{ $t('statistics.loadMore') }}

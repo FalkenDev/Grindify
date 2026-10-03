@@ -65,6 +65,7 @@
                   block
                   size="large"
                   :loading="isCheckingForUpdates || isRefreshing"
+                  :disabled="isCheckingForUpdates || isRefreshing"
                   @click="handleCheckForUpdates"
                 >
                   {{ $t('settings.checkForUpdates') }}
@@ -77,6 +78,7 @@
                   block
                   size="large"
                   :loading="isRefreshing"
+                  :disabled="isRefreshing"
                   @click="refreshData"
                 >
                   {{ $t('settings.refreshVersionStatus') }}

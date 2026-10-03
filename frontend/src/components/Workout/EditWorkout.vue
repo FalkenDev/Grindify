@@ -593,7 +593,7 @@ const saveWorkout = async () => {
     emit('close')
   } catch (error) {
     console.error('Error saving workout:', error)
-    toast.error(t('workout.failedToUpdate'), { progressBar: true, duration: 1000 })
+    toast.error(t('workout.failedToUpdate'), { progressBar: true, duration: 5000 })
   } finally {
     isSaving.value = false
   }
@@ -614,7 +614,7 @@ const confirmDelete = async () => {
     }
   } catch (error) {
     console.error('Error deleting workout:', error)
-    toast.error(t('workout.failedToDelete'), { progressBar: true, duration: 1000 })
+    toast.error(t('workout.failedToDelete'), { progressBar: true, duration: 5000 })
     isDeleteDialogOpen.value = false
   }
 }

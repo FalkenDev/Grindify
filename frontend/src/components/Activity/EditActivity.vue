@@ -219,7 +219,7 @@ async function saveActivity() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('activity.failedToUpdate'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   } finally {
     isSaving.value = false
@@ -237,7 +237,7 @@ async function deleteActivity() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('activity.failedToDelete'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   } finally {
     isDeleting.value = false

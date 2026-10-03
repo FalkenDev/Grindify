@@ -29,6 +29,8 @@ export const useMuscleGroupStore = defineStore(
     const cacheDuration = 10 * 1000
 
     const setMuscleGroups = async (reload = false) => {
+      // Never fetch user data without a session (e.g. during/after logout).
+      if (!authStore.isAuthenticated) return
       const now = Date.now()
       if (
         muscleGroups.value &&

@@ -16,6 +16,7 @@
 export interface User {
   id: number
   email: string
+  emailVerified?: boolean
   firstName: string
   lastName: string
   avatar?: string
@@ -36,6 +37,15 @@ export interface User {
   showWeightTracking?: boolean
   weightGoalType?: string
   startWeight?: number
+  termsAcceptedAt?: string | null
+  termsVersion?: string | null
+  healthDataConsentAt?: string | null
+  /** True when the user has consented to processing of health data (optional, GDPR Art. 9(2)(a)). */
+  healthDataConsent?: boolean
+  /** False for OAuth-only accounts without a password. */
+  hasPassword?: boolean
+  /** True when the user must (re-)accept the current terms/privacy policy version. */
+  consentRequired?: boolean
   createdAt: string
   updatedAt: string
 }

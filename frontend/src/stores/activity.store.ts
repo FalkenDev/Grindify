@@ -33,6 +33,8 @@ export const useActivityStore = defineStore(
     const cacheDuration = 10 * 1000;
 
     const fetchActivities = async (reload = false) => {
+      // Never fetch user data without a session (e.g. during/after logout).
+      if (!authStore.isAuthenticated) return;
       const now = Date.now();
       if (
         activities.value &&
@@ -55,6 +57,7 @@ export const useActivityStore = defineStore(
     };
 
     const fetchActivityLogs = async (reload = false) => {
+      if (!authStore.isAuthenticated) return;
       const now = Date.now();
       if (
         activityLogs.value &&

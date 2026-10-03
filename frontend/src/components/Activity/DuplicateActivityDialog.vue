@@ -28,6 +28,7 @@
           variant="flat"
           block
           :loading="duplicating"
+          :disabled="duplicating"
           @click="duplicate(true)"
         >
           {{ $t('activity.transferHistory') }}
@@ -36,6 +37,7 @@
           variant="outlined"
           block
           :loading="duplicating"
+          :disabled="duplicating"
           @click="duplicate(false)"
         >
           {{ $t('activity.startFresh') }}
@@ -78,7 +80,7 @@ const duplicate = async (transferStats: boolean) => {
     emit('update:modelValue', false)
     emit('duplicated')
   } catch {
-    toast.error(t('activity.personalizeFailed'), { progressBar: true, duration: 1500 })
+    toast.error(t('activity.personalizeFailed'), { progressBar: true, duration: 5000 })
   } finally {
     duplicating.value = false
   }

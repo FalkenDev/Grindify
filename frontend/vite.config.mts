@@ -34,10 +34,39 @@ const versionManifestPlugin: Plugin = {
   },
 }
 
+/**
+ * Inject absolute og:image / og:url when VITE_PUBLIC_URL is set (e.g. https://grindify.example.com).
+ * Social crawlers require absolute URLs, so the tags are omitted when it is not configured.
+ */
+const socialMetaPlugin = (): Plugin => {
+  let publicUrl = ''
+  return {
+    name: 'social-meta',
+    configResolved(config) {
+      publicUrl = String(config.env.VITE_PUBLIC_URL || process.env.VITE_PUBLIC_URL || '')
+        .trim()
+        .replace(/\/+$/, '')
+    },
+    transformIndexHtml() {
+      if (!/^https?:\/\//.test(publicUrl)) return []
+      const meta = (attrs: Record<string, string>) => ({ tag: 'meta', attrs, injectTo: 'head' as const })
+      return [
+        meta({ property: 'og:url', content: `${publicUrl}/` }),
+        meta({ property: 'og:image', content: `${publicUrl}/og-image.png` }),
+        meta({ property: 'og:image:width', content: '1200' }),
+        meta({ property: 'og:image:height', content: '630' }),
+        meta({ property: 'og:image:alt', content: 'Grindify logo' }),
+        meta({ name: 'twitter:image', content: `${publicUrl}/og-image.png` }),
+      ]
+    },
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     versionManifestPlugin,
+    socialMetaPlugin(),
     VueRouter({
       dts: 'src/typed-router.d.ts',
     }),

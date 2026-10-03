@@ -463,6 +463,7 @@
             color="blue-lighten-2"
             variant="flat"
             :loading="isFreezeLoading"
+            :disabled="isFreezeLoading"
             @click="freezeWeek"
           >
             {{ $t('calendar.freeze') }}

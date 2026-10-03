@@ -103,7 +103,7 @@
                 {{ $t('sessionSummary.newRecord') }}
               </p>
               <p class="text-body-2 text-textPrimary">
-                {{ record.exercise ? displayExerciseName(record.exercise, lang) : $t('statistics.exercise') }}
+                {{ recordExerciseName(record) }}
                 —
                 <span class="font-weight-bold">
                   {{ record.value }}
@@ -136,7 +136,7 @@
       </div>
 
       <!-- Done button -->
-      <v-btn color="primary" size="large" block :loading="isSaving" class="mt-2" @click="done">
+      <v-btn color="primary" size="large" block :loading="isSaving" :disabled="isSaving" class="mt-2" @click="done">
         {{ $t('sessionSummary.done') }}
       </v-btn>
 
@@ -173,7 +173,9 @@ import { useI18n } from 'vue-i18n'
 import { toast } from 'vuetify-sonner'
 import { mapSessionToWorkoutInitialData } from '@/utils/sessionToWorkout'
 import CreateWorkout from '@/components/Workout/CreateWorkout.vue'
-import { displayExerciseName } from '@/utils/exerciseDisplay'
+import { displayExerciseName, resolveI18n } from '@/utils/exerciseDisplay'
+import { useExerciseStore } from '@/stores/exercise.store'
+import type { WorkoutSession } from '@/interfaces/workoutSession.interface'
 import { useUserLanguage } from '@/composables/useUserLanguage'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -222,6 +224,40 @@ const totalSets = computed(
 
 const newRecords = computed(() => session?.newRecords ?? [])
 
+type NewRecord = NonNullable<WorkoutSession['newRecords']>[number]
+
+const exerciseStore = useExerciseStore()
+
+/**
+ * Name of the exercise a record belongs to, in the user's language. Uses the title
+ * sent with the record when present, otherwise looks the exercise up by id in the
+ * finished session (or the user's exercise list).
+ */
+function recordExerciseName(record: NewRecord): string {
+  const title = record.exerciseTitle
+  const fromTitle = typeof title === 'string' ? title : resolveI18n(title, lang.value)
+  if (fromTitle) return fromTitle
+
+  if (record.exercise?.title) {
+    const name = displayExerciseName(record.exercise, lang.value)
+    if (name) return name
+  }
+
+  if (record.exerciseId != null) {
+    const exercise =
+      session?.exercises?.find(
+        ex => ex.exercise?.id === record.exerciseId || ex.exerciseId === record.exerciseId
+      )?.exercise ??
+      exerciseStore.exercises.find(ex => ex.id === record.exerciseId)
+    if (exercise?.title) {
+      const name = displayExerciseName(exercise, lang.value)
+      if (name) return name
+    }
+  }
+
+  return t('statistics.exercise')
+}
+
 async function done() {
   if (!session?.id) {
     router.replace('/')
@@ -233,7 +269,7 @@ async function done() {
     try {
       await updateWorkoutSession(session.id, { caloriesBurned: caloriesInput.value })
     } catch {
-      toast.error(t('common.error'), { progressBar: true, duration: 2000 })
+      toast.error(t('common.error'), { progressBar: true, duration: 5000 })
     } finally {
       isSaving.value = false
     }

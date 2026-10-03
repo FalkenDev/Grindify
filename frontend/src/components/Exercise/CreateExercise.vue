@@ -129,6 +129,7 @@
         class="w-100 mt-8"
         size="large"
         :loading="isCreating"
+        :disabled="isCreating"
         @click="createNewExercise"
       >
         {{ $t('exerciseForm.createButton') }}
@@ -216,7 +217,7 @@ const resetForm = () => {
 
 const createNewExercise = async () => {
   if (!form.value.name.trim()) {
-    toast.error(t('exerciseForm.nameRequired'), { progressBar: true, duration: 1000 })
+    toast.error(t('exerciseForm.nameRequired'), { progressBar: true, duration: 5000 })
     return
   }
 
@@ -265,10 +266,10 @@ const createNewExercise = async () => {
       exerciseStore.setExercises(true)
       emit('close')
     } else {
-      toast.error(t('exercise.failedToCreate'), { progressBar: true, duration: 1000 })
+      toast.error(t('exercise.failedToCreate'), { progressBar: true, duration: 5000 })
     }
   } catch {
-    toast.error(t('exercise.createGenericError'), { progressBar: true, duration: 1000 })
+    toast.error(t('exercise.createGenericError'), { progressBar: true, duration: 5000 })
   } finally {
     isCreating.value = false
   }

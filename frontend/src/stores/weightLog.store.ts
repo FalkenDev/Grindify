@@ -31,6 +31,8 @@ export const useWeightLogStore = defineStore('weightLogStore', () => {
   const cacheDuration = 10 * 1000 // 10 seconds
 
   const fetchWeightLogs = async (reload = false) => {
+    // Weight logs are health data – only available with health data consent.
+    if (!authStore.isAuthenticated || !authStore.hasHealthConsent) return
     const now = Date.now()
     if (
       weightLogs.value.length > 0 &&
@@ -52,6 +54,7 @@ export const useWeightLogStore = defineStore('weightLogStore', () => {
   }
 
   const fetchStats = async (reload = false) => {
+    if (!authStore.isAuthenticated || !authStore.hasHealthConsent) return
     const now = Date.now()
     if (
       stats.value &&
@@ -77,9 +80,9 @@ export const useWeightLogStore = defineStore('weightLogStore', () => {
   }
 
   watch(
-    () => authStore.isAuthenticated,
-    authed => {
-      if (authed) {
+    () => authStore.isAuthenticated && authStore.hasHealthConsent,
+    enabled => {
+      if (enabled) {
         void fetchWeightLogs(true)
         void fetchStats(true)
       }

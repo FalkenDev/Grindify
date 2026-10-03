@@ -110,7 +110,7 @@ const handleVerify = async () => {
       toast.info(t('auth.emailAlreadyVerified'))
       router.push('/')
     } else {
-      toast.error(t('auth.invalidVerificationCode'))
+      toast.error(t('auth.invalidVerificationCode'), { progressBar: true, duration: 5000 })
     }
     code.value = ''
   } finally {
@@ -130,7 +130,7 @@ const handleResend = async () => {
       toast.warning(t('auth.resendTooSoon'))
       startCooldown()
     } else {
-      toast.error(t('auth.resendFailed'))
+      toast.error(t('auth.resendFailed'), { progressBar: true, duration: 5000 })
     }
   }
 }

@@ -17,7 +17,7 @@
   <div class="d-flex justify-space-between align-center">
     <div class="d-flex ga-3 align-center">
       <v-avatar color="white" style="border-radius: 8px" size="40">
-        <v-img v-if="user?.avatar" :src="getImageUrl(user.avatar)" alt="User avatar" cover />
+        <v-img v-if="user?.avatar" :src="getImageUrl(user.avatar)" :alt="$t('a11y.userAvatar')" cover />
         <v-icon v-else color="grey"> mdi-account </v-icon>
       </v-avatar>
       <div>
@@ -33,7 +33,7 @@
       <v-icon>mdi-menu</v-icon>
       <v-menu activator="parent">
         <v-list>
-          <v-list-item @click="authStore.logout">
+          <v-list-item @click="authStore.logout()">
             <v-list-item-title>{{ $t('settings.logout') }}</v-list-item-title>
           </v-list-item>
         </v-list>

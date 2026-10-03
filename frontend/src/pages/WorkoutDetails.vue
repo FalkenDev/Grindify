@@ -405,11 +405,11 @@ const startSession = async () => {
       await workoutSessionStore.fetchSelectedWorkoutSession(response.id)
       router.push(`/session/${response.id}`)
     } else {
-      toast.error(t('workout.failedToStartSession'), { progressBar: true, duration: 1000 })
+      toast.error(t('workout.failedToStartSession'), { progressBar: true, duration: 5000 })
     }
   } catch (error) {
     console.error('Error starting session:', error)
-    toast.error(t('workout.failedToStartSession'), { progressBar: true, duration: 1000 })
+    toast.error(t('workout.failedToStartSession'), { progressBar: true, duration: 5000 })
   }
 }
 

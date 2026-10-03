@@ -13,6 +13,8 @@
  * <https://www.gnu.org/licenses/>.
  */
 
+import legal from './legal.en'
+
 export default {
   common: {
     accept: 'Accept',
@@ -264,6 +266,27 @@ export default {
     noReleaseHistory: 'No release history is available yet.',
     noReleaseNotes: 'No release notes were provided for this release.',
     viewReleaseOnGitHub: 'View on GitHub',
+    // Health data consent
+    withdrawHealthConsent: 'Withdraw health data consent',
+    withdrawHealthConsentDescription: 'Deletes weight logs, progress photos and body measurements',
+    healthConsentNotGiven: 'Optional – enables weight tracking, body measurements and progress photos',
+    giveHealthConsent: 'Give health data consent',
+    withdrawHealthConsentTitle: 'Withdraw consent to health data?',
+    withdrawHealthConsentText: 'If you withdraw your consent, the following is permanently deleted:',
+    withdrawDeletesWeightLogs: 'All weight logs',
+    withdrawDeletesProgressPhotos: 'All progress photos',
+    withdrawDeletesBodyMeasurements: 'Body measurements: weight, height, target weight, gender and date of birth',
+    withdrawHealthConsentIrreversible: 'This cannot be undone. Export your data first if you want to keep a copy.',
+    withdrawHealthConsentAfter: 'Weight tracking, body measurements and progress photos will be unavailable until you consent again. The rest of your account and training data is not affected.',
+    withdrawHealthConsentConfirm: 'Withdraw and delete',
+    healthConsentWithdrawn: 'Consent withdrawn and health data deleted',
+    withdrawHealthConsentFailed: 'Could not withdraw consent. Please try again.',
+    exportDataPreparing: 'Preparing export…',
+    contactNotConfigured: 'No contact email has been configured for this service.',
+    emailChangePasswordHint: 'Required to change email if your account has a password',
+    emailChangePasswordError: 'Enter your correct current password to change email.',
+    emailAlreadyInUse: 'That email address is already in use.',
+    emailChangeVerificationSent: 'We sent a verification code to your new email address.',
   },
   auth: {
     gymAccess: 'Gym Access',
@@ -350,6 +373,9 @@ export default {
     passwordResetFailed: 'Failed to reset password. Please try again.',
 
     oauthFailed: 'Sign-in failed. Please try again.',
+    oauthEmailUnverified: 'Your email address is not verified with the provider. Verify it there and try again.',
+    oauthAccountExists: 'An account with this email already exists. Sign in with your password.',
+    tooManyAttempts: 'Too many attempts. Please wait a few minutes and try again.',
   },
   onboarding: {
     welcome: 'Welcome',
@@ -569,6 +595,7 @@ export default {
     howToPerform: 'How to perform',
     proTips: 'Pro Tips',
     mistakes: 'Avoid These Mistakes',
+    mediaAlt: 'Image of {name}',
   },
   exerciseForm: {
     createTitle: 'Create exercise',
@@ -986,6 +1013,8 @@ export default {
     compareSelected: '{count} selected',
     viewPhoto: 'View photo',
     tapToSelectPhoto: 'Tap to select a photo',
+    photoAlt: 'Progress photo {date}',
+    previewAlt: 'Preview of the selected photo',
   },
   statistics: {
     title: 'Statistics',
@@ -1120,5 +1149,69 @@ export default {
     update: 'Update',
     dismiss: 'Dismiss',
     offlineReady: 'App ready for offline use',
+  },
+  consent: {
+    title: 'Your consent',
+    subtitle: 'Before you start, please review and accept our terms and privacy policy.',
+    updatedSubtitle: 'We have updated our terms and privacy policy (version {version}). Please review and accept them to continue.',
+    healthLabel: 'Optional: I explicitly consent to Grindify processing my health data (body weight, body measurements and progress photos).',
+    healthHint: 'Only needed for weight tracking, body measurements and progress photos – everything else works without it. You can give or withdraw it at any time in Settings; withdrawing deletes that data. Read more in the',
+    continue: 'Accept and continue',
+    declineHint: 'Don’t want to accept? You can log out or delete your account.',
+    failed: 'Could not save your consent. Please try again.',
+  },
+  legal: legal,
+  pageTitles: {
+    home: 'Home',
+    login: 'Sign in',
+    register: 'Create account',
+    verifyEmail: 'Verify email',
+    forgotPassword: 'Forgot password',
+    resetPassword: 'Reset password',
+    signingIn: 'Signing in',
+    onboarding: 'Get started',
+    statistics: 'Statistics',
+    addWorkout: 'Workouts',
+    logActivity: 'Log activity',
+    workout: 'Workout',
+    session: 'Workout session',
+    sessionSummary: 'Session summary',
+    sessionHistory: 'Session history',
+    calendar: 'Calendar',
+    settings: 'Settings',
+    privacy: 'Privacy Policy',
+    terms: 'Terms & Conditions',
+    imprint: 'Legal Notice',
+    consent: 'Consent',
+    notFound: 'Page not found',
+  },
+  notFound: {
+    title: 'Page not found',
+    text: 'The page you are looking for does not exist or has been moved.',
+    goHome: 'Go to start page',
+  },
+  a11y: {
+    mainNavigation: 'Main navigation',
+    userAvatar: 'Profile picture',
+    nav: {
+      home: 'Home',
+      calendar: 'Calendar',
+      addWorkout: 'Add workout',
+      statistics: 'Statistics',
+      settings: 'Settings',
+    },
+  },
+  healthConsent: {
+    promptTitle: 'Consent needed for this feature',
+    promptText: 'This feature uses health data. Give your consent to Grindify processing it to use the feature.',
+    promptVoluntary: 'Consent is optional and can be withdrawn at any time in Settings. Read more in the',
+    promptButton: 'Give consent',
+    given: 'Thanks! Health data features are now enabled.',
+    failed: 'Could not save your consent. Please try again.',
+    requiredToast: 'This feature requires consent to health data processing.',
+    weightDescription: 'Weight logs, weight goals and progress photos are health data. Give your consent to Grindify processing them to use weight tracking.',
+    measurementsDescription: 'Weight, height and date of birth are health data and can only be saved with your consent.',
+    onboardingDescription: 'Weight, height, date of birth and gender are health data. Give your consent if you want to add them – or skip this.',
+    onboardingSkipHint: 'You can continue without consent and add body measurements later.',
   },
 } as const

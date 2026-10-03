@@ -114,7 +114,7 @@
           <v-btn variant="text" @click="isDeleteDialogOpen = false">
             {{ $t('common.cancel') }}
           </v-btn>
-          <v-btn color="error" variant="flat" :loading="isDeleting" @click="deleteActivity">
+          <v-btn color="error" variant="flat" :loading="isDeleting" :disabled="isDeleting" @click="deleteActivity">
             {{ $t('common.delete') }}
           </v-btn>
         </v-card-actions>
@@ -182,7 +182,7 @@ async function deleteActivity() {
     await activityStore.fetchActivities(true)
     isDeleteDialogOpen.value = false
   } catch (error: unknown) {
-    toast.error((error as Error).message || t('activity.failedToDelete'))
+    toast.error((error as Error).message || t('activity.failedToDelete'), { progressBar: true, duration: 5000 })
   } finally {
     isDeleting.value = false
   }

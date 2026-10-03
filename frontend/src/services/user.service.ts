@@ -32,17 +32,21 @@ export const createUser = async (user: CreateUser) => {
   }
 }
 
-export const updateUser = async (userData: Partial<User>) => {
+export const updateUser = async (userData: Partial<User> & { currentPassword?: string }) => {
   try {
+    // The avatar can only be changed via POST /users/avatar.
+    const payload = { ...userData }
+    delete payload.avatar
     const data = await fetchWrapper<User>(`${apiUrl}/users`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(payload),
     })
     return data
   } catch (error) {
     console.error('Error updating user:', error)
-    throw new Error('Failed to update user')
+    // Rethrow the original error so callers can inspect the HTTP status (HttpError).
+    throw error
   }
 }
 

@@ -41,7 +41,7 @@
         :rules="emailRules"
         type="email"
         variant="outlined"
-        hide-details
+        hide-details="auto"
       />
 
       <v-btn
@@ -97,7 +97,7 @@ const handleSubmit = async () => {
     toast.success(t('auth.resetCodeSent'))
     router.push({ path: '/reset-password', query: { email: email.value } })
   } catch {
-    toast.error(t('auth.resetCodeFailed'))
+    toast.error(t('auth.resetCodeFailed'), { progressBar: true, duration: 5000 })
   } finally {
     loading.value = false
   }

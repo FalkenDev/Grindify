@@ -85,6 +85,7 @@
         <div class="photo-thumbnail" style="position: relative">
           <v-img
             :src="getImageUrl(photo.photoUrl) ?? ''"
+            :alt="$t('progressPhotos.photoAlt', { date: formatDate(photo.date) })"
             aspect-ratio="0.75"
             cover
             class="rounded-t-lg"
@@ -196,13 +197,14 @@
           <v-img
             v-if="uploadPreviewUrl"
             :src="uploadPreviewUrl"
+            :alt="$t('progressPhotos.previewAlt')"
             max-height="200"
             contain
             class="mb-2"
           />
           <template v-else>
             <v-icon size="40" color="textSecondary" class="mb-2">mdi-image-plus</v-icon>
-            <p class="text-body-2 text-textSecondary">Tap to select a photo</p>
+            <p class="text-body-2 text-textSecondary">{{ $t('progressPhotos.tapToSelectPhoto') }}</p>
           </template>
         </v-card>
       </div>
@@ -239,7 +241,7 @@
           color="primary"
           flex-grow-1
           :loading="isUploading"
-          :disabled="!uploadForm.file"
+          :disabled="!uploadForm.file || isUploading"
           class="flex-grow-1"
           @click="doUpload"
         >
@@ -278,6 +280,7 @@
         <v-img
           v-if="viewerPhoto"
           :src="getImageUrl(viewerPhoto.photoUrl) ?? ''"
+          :alt="$t('progressPhotos.photoAlt', { date: formatDate(viewerPhoto.date) })"
           contain
           max-height="100%"
         />
@@ -304,6 +307,7 @@
           <div class="flex-grow-1 d-flex align-center justify-center" style="min-height: 0">
             <v-img
               :src="getImageUrl(photo.photoUrl) ?? ''"
+              :alt="$t('progressPhotos.photoAlt', { date: formatDate(photo.date) })"
               contain
               style="max-height: 100%; width: 100%"
             />
@@ -338,7 +342,7 @@
       <v-card-actions class="pa-4">
         <v-btn variant="text" @click="deleteDialogOpen = false">{{ $t('common.cancel') }}</v-btn>
         <v-spacer />
-        <v-btn color="error" :loading="isDeleting" @click="doDelete">{{
+        <v-btn color="error" :loading="isDeleting" :disabled="isDeleting" @click="doDelete">{{
           $t('common.delete')
         }}</v-btn>
       </v-card-actions>
@@ -428,7 +432,7 @@ const closeUploadSheet = () => {
 }
 
 const doUpload = async () => {
-  if (!uploadForm.value.file) return
+  if (!uploadForm.value.file || isUploading.value) return
   isUploading.value = true
   try {
     await photoStore.uploadPhoto(uploadForm.value.file, {
@@ -439,7 +443,7 @@ const doUpload = async () => {
     toast.success(t('progressPhotos.photoAdded'), { progressBar: true, duration: 1000 })
     closeUploadSheet()
   } catch {
-    toast.error(t('progressPhotos.failedToUpload'), { progressBar: true, duration: 1000 })
+    toast.error(t('progressPhotos.failedToUpload'), { progressBar: true, duration: 5000 })
   } finally {
     isUploading.value = false
   }
@@ -507,7 +511,7 @@ const doDelete = async () => {
     toast.success(t('progressPhotos.photoDeleted'), { progressBar: true, duration: 1000 })
     deleteDialogOpen.value = false
   } catch {
-    toast.error(t('progressPhotos.failedToDelete'), { progressBar: true, duration: 1000 })
+    toast.error(t('progressPhotos.failedToDelete'), { progressBar: true, duration: 5000 })
   } finally {
     isDeleting.value = false
   }

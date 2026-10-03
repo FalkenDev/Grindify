@@ -94,7 +94,7 @@ async function saveSession() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('sessionDetail.failedToUpdate'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   }
 }

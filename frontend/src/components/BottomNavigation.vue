@@ -17,25 +17,27 @@
   <v-bottom-navigation
     v-if="!route.meta.hideBottomNav"
     bg-color="cardBg"
-    class="d-flex justify-space-around"
+    class="d-flex justify-space-around app-bottom-nav"
+    :aria-label="$t('a11y.mainNavigation')"
+    tag="nav"
   >
-    <v-btn icon to="/" :ripple="false">
+    <v-btn icon to="/" :ripple="false" :aria-label="$t('a11y.nav.home')">
       <v-icon :color="route.path === '/' ? 'primary' : ''">
         {{ route.path === '/' ? 'mdi-home' : 'mdi-home-outline' }}
       </v-icon>
     </v-btn>
-    <v-btn icon to="/calendar" :ripple="false">
+    <v-btn icon to="/calendar" :ripple="false" :aria-label="$t('a11y.nav.calendar')">
       <v-icon :color="route.path === '/calendar' ? 'primary' : ''">
         {{ route.path === '/calendar' ? 'mdi-calendar' : 'mdi-calendar-outline' }}
       </v-icon>
     </v-btn>
-    <v-btn icon to="/workout" :ripple="false">
+    <v-btn icon to="/workout" :ripple="false" :aria-label="$t('a11y.nav.addWorkout')">
       <v-icon color="primary" size="40">mdi-plus-circle</v-icon>
     </v-btn>
-    <v-btn icon to="/statistics" :ripple="false">
+    <v-btn icon to="/statistics" :ripple="false" :aria-label="$t('a11y.nav.statistics')">
       <v-icon :color="route.path === '/statistics' ? 'primary' : ''">mdi-chart-bar</v-icon>
     </v-btn>
-    <v-btn icon to="/settings" :ripple="false">
+    <v-btn icon to="/settings" :ripple="false" :aria-label="$t('a11y.nav.settings')">
       <v-icon :color="route.path === '/settings' ? 'primary' : ''">
         {{ route.path === '/settings' ? 'mdi-account' : 'mdi-account-outline' }}
       </v-icon>

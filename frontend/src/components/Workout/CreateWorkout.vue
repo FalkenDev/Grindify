@@ -464,7 +464,7 @@ const saveWorkout = async () => {
     emit('close')
   } catch (error) {
     console.error('Error creating workout:', error)
-    toast.error(t('workout.failedToCreate'), { progressBar: true, duration: 1000 })
+    toast.error(t('workout.failedToCreate'), { progressBar: true, duration: 5000 })
   } finally {
     isSaving.value = false
   }

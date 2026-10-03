@@ -166,7 +166,7 @@
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center ga-3">
             <v-avatar v-if="exercise.image" size="40" rounded="lg">
-              <v-img :src="getImageUrl(exercise.image)" />
+              <v-img :src="getImageUrl(exercise.image)" :alt="resolveI18n(exercise.title, lang) ?? ''" />
             </v-avatar>
             <v-avatar v-else color="blue-grey-darken-3" size="40" rounded="lg">
               <v-icon size="18">mdi-dumbbell</v-icon>

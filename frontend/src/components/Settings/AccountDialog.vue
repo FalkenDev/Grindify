@@ -28,7 +28,7 @@
             <v-img
               v-if="currentUser?.avatar"
               :src="getImageUrl(currentUser.avatar)"
-              alt="User avatar"
+              :alt="$t('a11y.userAvatar')"
               cover
             />
             <v-icon v-else size="48">mdi-account</v-icon>
@@ -48,6 +48,7 @@
           color="primary"
           size="small"
           :loading="isUploadingPhoto"
+          :disabled="isUploadingPhoto"
           @click="triggerFileInput"
         >
           {{ $t('settings.changePhoto') }}
@@ -210,7 +211,7 @@
         <v-card-actions class="px-5 pb-5">
           <v-spacer />
           <v-btn variant="text" @click="closePasswordSheet">{{ $t('common.cancel') }}</v-btn>
-          <v-btn color="primary" variant="flat" :loading="isSavingPassword" @click="savePassword">
+          <v-btn color="primary" variant="flat" :loading="isSavingPassword" :disabled="isSavingPassword" @click="savePassword">
             {{ $t('common.save') }}
           </v-btn>
         </v-card-actions>
@@ -234,7 +235,7 @@
           <v-btn variant="text" @click="isDeleteDialogOpen = false">{{
             $t('common.cancel')
           }}</v-btn>
-          <v-btn color="error" variant="flat" :loading="isDeleting" @click="confirmDeleteAccount">
+          <v-btn color="error" variant="flat" :loading="isDeleting" :disabled="isDeleting" @click="confirmDeleteAccount">
             {{ $t('settings.deleteAccount') }}
           </v-btn>
         </v-card-actions>
@@ -327,7 +328,7 @@ const handlePhotoSelect = async (event: Event) => {
     await authStore.refreshUser()
     toast.success(t('settings.avatarUpdated'), { progressBar: true, duration: 1000 })
   } catch {
-    toast.error(t('settings.failedToUploadAvatar'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.failedToUploadAvatar'), { progressBar: true, duration: 5000 })
   } finally {
     isUploadingPhoto.value = false
     // Reset input so same file can be re-selected
@@ -376,7 +377,7 @@ const savePassword = async () => {
   if (!valid) return
 
   if (!currentPassword.value) {
-    toast.error(t('settings.currentPasswordRequired'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.currentPasswordRequired'), { progressBar: true, duration: 5000 })
     return
   }
 
@@ -392,7 +393,7 @@ const savePassword = async () => {
     toast.success(t('settings.accountUpdated'), { progressBar: true, duration: 1000 })
     closePasswordSheet()
   } catch {
-    toast.error(t('settings.failedToUpdateAccount'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.failedToUpdateAccount'), { progressBar: true, duration: 5000 })
   } finally {
     isSavingPassword.value = false
   }
@@ -410,7 +411,7 @@ const confirmDeleteAccount = async () => {
     isDeleteDialogOpen.value = false
     authStore.logout()
   } catch {
-    toast.error(t('settings.failedToDeleteAccount'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.failedToDeleteAccount'), { progressBar: true, duration: 5000 })
   } finally {
     isDeleting.value = false
   }

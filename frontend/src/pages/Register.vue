@@ -14,12 +14,18 @@
   -->
 
 <template>
-  <div class="login-page d-flex flex-column fill-height pa-0 background-background px-5 py-16">
-    <v-btn icon color="textSecondary" variant="text" @click="navigateToLogin">
+  <div class="login-page d-flex flex-column fill-height pa-0 background-background px-5 py-4">
+    <v-btn
+      icon
+      color="textSecondary"
+      variant="text"
+      :aria-label="$t('auth.backToLogin')"
+      @click="navigateToLogin"
+    >
       <v-icon size="32">mdi-arrow-left</v-icon>
     </v-btn>
-    <div class="my-5">
-      <h1 class="text-textPrimary">{{ $t('auth.register') }}</h1>
+    <div class="my-3">
+      <h1 class="text-h5 font-weight-bold text-textPrimary">{{ $t('auth.register') }}</h1>
       <p class="text-textSecondary">{{ $t('auth.registerSubtitle') }}</p>
     </div>
 
@@ -27,18 +33,19 @@
       <v-text-field
         v-model="fullName"
         autocomplete="name"
-        class="mb-4"
+        class="mb-2"
         :label="$t('auth.fullName')"
         prepend-inner-icon="mdi-account-outline"
         required
         :rules="nameRules"
         variant="outlined"
-        hide-details
+        density="comfortable"
+        hide-details="auto"
       />
 
       <v-text-field
         v-model="email"
-        class="mb-4"
+        class="mb-2"
         autocomplete="email"
         :label="$t('auth.emailAddress')"
         prepend-inner-icon="mdi-email-outline"
@@ -46,13 +53,14 @@
         :rules="emailRules"
         type="email"
         variant="outlined"
-        hide-details
+        density="comfortable"
+        hide-details="auto"
       />
 
       <v-text-field
         v-model="password_new"
         :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-        class="mb-4"
+        class="mb-2"
         :label="$t('auth.password')"
         autocomplete="new-password"
         prepend-inner-icon="mdi-lock-outline"
@@ -60,14 +68,15 @@
         :rules="passwordRules"
         :type="showPassword ? 'text' : 'password'"
         variant="outlined"
-        hide-details
+        density="comfortable"
+        hide-details="auto"
         @click:append-inner="showPassword = !showPassword"
       />
 
       <v-text-field
         v-model="confirmPassword_new"
         :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-        class="mb-4"
+        class="mb-2"
         :label="$t('auth.confirmPassword')"
         autocomplete="new-password"
         prepend-inner-icon="mdi-lock-check-outline"
@@ -75,36 +84,10 @@
         :rules="confirmPasswordRules"
         :type="showConfirmPassword ? 'text' : 'password'"
         variant="outlined"
-        hide-details
+        density="comfortable"
+        hide-details="auto"
         @click:append-inner="showConfirmPassword = !showConfirmPassword"
       />
-
-      <div class="d-flex flex-column ga-2 mt-4 mb-4">
-        <div class="d-flex align-cente">
-          <v-avatar size="20" class="mr-2" color="iconBackground">
-            <v-icon color="primary" size="14">mdi-check</v-icon>
-          </v-avatar>
-          <h1 class="text-textSecondary text-body-2 align-center d-flex">
-            {{ $t('auth.personalizedPlans') }}
-          </h1>
-        </div>
-        <div class="d-flex align-cente">
-          <v-avatar size="20" class="mr-2" color="iconBackground">
-            <v-icon color="primary" size="14">mdi-check</v-icon>
-          </v-avatar>
-          <h1 class="text-textSecondary text-body-2 align-center d-flex">
-            {{ $t('auth.trackYourProgress') }}
-          </h1>
-        </div>
-        <div class="d-flex align-cente">
-          <v-avatar size="20" class="mr-2" color="iconBackground">
-            <v-icon color="primary" size="14">mdi-check</v-icon>
-          </v-avatar>
-          <h1 class="text-textSecondary text-body-2 align-center d-flex">
-            {{ $t('auth.joinCommunity') }}
-          </h1>
-        </div>
-      </div>
 
       <!-- Consent checkboxes -->
       <div class="mb-2">
@@ -118,7 +101,7 @@
           <template #label>
             <span class="text-body-2">
               {{ $t('auth.agreeToThe') }}
-              <a class="text-primary" @click.prevent.stop="showTermsDialog = true">{{
+              <a class="text-primary" href="/terms" @click.prevent.stop="showTermsDialog = true">{{
                 $t('auth.termsAndConditions')
               }}</a>
             </span>
@@ -135,22 +118,20 @@
           <template #label>
             <span class="text-body-2">
               {{ $t('auth.agreeToThe') }}
-              <a class="text-primary" @click.prevent.stop="showPrivacyDialog = true">{{
+              <a class="text-primary" href="/privacy" @click.prevent.stop="showPrivacyDialog = true">{{
                 $t('auth.privacyPolicy')
               }}</a>
             </span>
           </template>
         </v-checkbox>
 
-        <p class="text-caption text-textSecondary mt-2">
-          {{ $t('settings.minAgeNotice') }}
-          <a class="text-primary" @click.prevent="showImprintDialog = true">{{ $t('settings.imprint') }}</a>
-        </p>
+        <HealthConsentCheckbox v-model="healthDataConsent" @open-privacy="showPrivacyDialog = true" />
+
       </div>
 
       <v-btn
         block
-        class="mb-6 mt-4 text-white"
+        class="mb-4 mt-2 text-white"
         color="primary"
         :disabled="authStore.loading"
         :loading="authStore.loading"
@@ -160,12 +141,29 @@
       >
         {{ $t('auth.createAccount') }}
       </v-btn>
+
+      <p class="text-caption text-textSecondary mb-4">
+        {{ $t('settings.minAgeNotice') }}
+        <a class="text-primary" href="/legal" @click.prevent="showImprintDialog = true">{{
+          $t('settings.imprint')
+        }}</a>
+      </p>
+
+      <OAuthButtons class="mb-4" />
     </v-form>
 
-    <TermsAndConditionsDialog v-model="showTermsDialog" />
-    <PrivacyPolicyDialog v-model="showPrivacyDialog" />
-    <ImprintDialog v-model="showImprintDialog" />
+    <div class="d-flex flex-column ga-2 mt-2 mb-4">
+      <div v-for="key in benefitKeys" :key="key" class="d-flex align-center">
+        <v-avatar size="20" class="mr-2" color="iconBackground">
+          <v-icon color="primary" size="14">mdi-check</v-icon>
+        </v-avatar>
+        <span class="text-textSecondary text-body-2">{{ $t(key) }}</span>
+      </div>
+    </div>
 
+    <LegalDialog v-model="showTermsDialog" doc="terms" />
+    <LegalDialog v-model="showPrivacyDialog" doc="privacy" />
+    <LegalDialog v-model="showImprintDialog" doc="imprint" />
   </div>
 </template>
 
@@ -174,9 +172,9 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import type { VForm } from 'vuetify/components'
 import { useI18n } from 'vue-i18n'
-import TermsAndConditionsDialog from '@/components/legal/TermsAndConditionsDialog.vue'
-import PrivacyPolicyDialog from '@/components/legal/PrivacyPolicyDialog.vue'
-import ImprintDialog from '@/components/legal/ImprintDialog.vue'
+import LegalDialog from '@/components/legal/LegalDialog.vue'
+import HealthConsentCheckbox from '@/components/legal/HealthConsentCheckbox.vue'
+import OAuthButtons from '@/components/OAuthButtons.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -194,8 +192,12 @@ const showPrivacyDialog = ref(false)
 const showImprintDialog = ref(false)
 const termsAccepted = ref(false)
 const privacyAccepted = ref(false)
+const healthDataConsent = ref(false)
 
-const nameRules = [(v: string) => !!v || t('auth.fullNameRequired')]
+// Benefits are shown below the form so the submit button stays above the fold on small screens.
+const benefitKeys = ['auth.personalizedPlans', 'auth.trackYourProgress'] as const
+
+const nameRules = [(v: string) => !!v?.trim() || t('auth.fullNameRequired')]
 const emailRules = [
   (v: string) => !!v || t('auth.emailRequired'),
   (v: string) => /.+@.+\..+/.test(v) || t('auth.emailValid'),
@@ -212,23 +214,19 @@ const termsRules = [(v: boolean) => !!v || t('auth.mustAgreeToTerms')]
 const privacyRules = [(v: boolean) => !!v || t('auth.mustAgreeToPrivacy')]
 
 const handleCreateAccount = async () => {
-  if (!form.value) return
+  if (!form.value || authStore.loading) return
   const { valid } = await form.value.validate()
+  if (!valid) return
 
-  if (password_new.value !== confirmPassword_new.value) {
-    alert(t('auth.passwordsDoNotMatchAlert'))
-    return
-  }
-
-  if (valid) {
-    await authStore.createAccount({
-      fullName: fullName.value,
-      email: email.value,
-      password: password_new.value,
-    })
-    // Navigation is handled inside authStore.createAccount
-    // (verify-email page when verification is required, or auto-login to onboarding)
-  }
+  await authStore.createAccount({
+    fullName: fullName.value,
+    email: email.value,
+    password: password_new.value,
+    termsAccepted: termsAccepted.value && privacyAccepted.value,
+    healthDataConsent: healthDataConsent.value,
+  })
+  // Navigation is handled inside authStore.createAccount
+  // (verify-email page when verification is required, or auto-login to onboarding)
 }
 
 const navigateToLogin = () => {

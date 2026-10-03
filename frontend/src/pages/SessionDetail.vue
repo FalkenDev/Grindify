@@ -379,7 +379,7 @@
           <v-btn variant="text" color="textSecondary" @click="deleteDialog = false">
             {{ $t('common.cancel') }}
           </v-btn>
-          <v-btn variant="flat" color="error" :loading="isDeleting" @click="executeDelete">
+          <v-btn variant="flat" color="error" :loading="isDeleting" :disabled="isDeleting" @click="executeDelete">
             {{ $t('common.delete') }}
           </v-btn>
         </v-card-actions>

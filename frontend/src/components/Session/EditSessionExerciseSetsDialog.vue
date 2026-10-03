@@ -171,7 +171,7 @@ async function saveSets() {
   } catch (error: unknown) {
     toast.error((error as Error).message || t('sessionDetail.failedToUpdateSets'), {
       progressBar: true,
-      duration: 1000,
+      duration: 5000,
     })
   }
 }

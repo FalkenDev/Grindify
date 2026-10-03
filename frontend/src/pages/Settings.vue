@@ -25,7 +25,7 @@
           <v-img
             v-if="currentUser?.avatar"
             :src="getImageUrl(currentUser.avatar)"
-            alt="User avatar"
+            :alt="$t('a11y.userAvatar')"
             cover
           />
           <v-icon v-else size="48"> mdi-account </v-icon>
@@ -38,7 +38,9 @@
         <h1 class="text-h5 white--text">
           {{ currentUser?.firstName || '' }} {{ currentUser?.lastName || '' }}
         </h1>
-        <p class="text-textSecondary text-subtitle-1">Member since Jan 2024</p>
+        <p v-if="memberSince" class="text-textSecondary text-subtitle-1">
+          {{ $t('settings.memberSince', { date: memberSince }) }}
+        </p>
       </div>
     </v-card>
     <div class="d-flex flex-column ga-5">
@@ -65,7 +67,7 @@
         </v-card>
       </div>
       <div>
-        <h1 class="text-h6 mb-3">Data</h1>
+        <h1 class="text-h6 mb-3">{{ $t('settings.data') }}</h1>
         <v-card
           v-for="item in dataList"
           :key="item.titleKey"
@@ -85,7 +87,7 @@
         </v-card>
       </div>
       <div>
-        <h1 class="text-h6 mb-3">Preferences</h1>
+        <h1 class="text-h6 mb-3">{{ $t('settings.preferences') }}</h1>
         <v-list
           class="bg-cardBg rounded-lg"
           :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
@@ -138,17 +140,59 @@
               <v-icon>mdi-chevron-right</v-icon>
             </v-list-item-title>
           </v-list-item>
-          <v-list-item class="px-5" @click="exportUserData">
+          <v-list-item
+            class="px-5 border-b"
+            :disabled="isExporting"
+            :aria-busy="isExporting"
+            @click="exportUserData"
+          >
             <v-list-item-title class="d-flex flex-row justify-space-between align-center">
               <div>
-                <p>{{ $t('settings.exportData') }}</p>
+                <p>{{ isExporting ? $t('settings.exportDataPreparing') : $t('settings.exportData') }}</p>
+                <p class="text-caption text-textSecondary text-wrap">
+                  {{ $t('settings.exportDataDescription') }}
+                </p>
               </div>
-              <v-icon>mdi-download</v-icon>
+              <v-progress-circular v-if="isExporting" indeterminate size="20" width="2" color="primary" />
+              <v-icon v-else>mdi-download</v-icon>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+            class="px-5"
+            @click="hasHealthConsent ? (isWithdrawConsentOpen = true) : (isGiveConsentOpen = true)"
+          >
+            <v-list-item-title class="d-flex flex-row justify-space-between align-center">
+              <div>
+                <p>
+                  {{
+                    hasHealthConsent
+                      ? $t('settings.withdrawHealthConsent')
+                      : $t('settings.giveHealthConsent')
+                  }}
+                </p>
+                <p class="text-caption text-textSecondary text-wrap">
+                  {{
+                    hasHealthConsent
+                      ? $t('settings.withdrawHealthConsentDescription')
+                      : $t('settings.healthConsentNotGiven')
+                  }}
+                </p>
+              </div>
+              <v-icon>{{
+                hasHealthConsent ? 'mdi-shield-remove-outline' : 'mdi-shield-check-outline'
+              }}</v-icon>
             </v-list-item-title>
           </v-list-item>
         </v-list>
       </div>
-      <v-btn variant="outlined" @click="setPreferenceDialogToOpen('logout')">Logout</v-btn>
+      <v-btn
+        variant="outlined"
+        :loading="isLoggingOut"
+        :disabled="isLoggingOut"
+        @click="setPreferenceDialogToOpen('logout')"
+      >
+        {{ $t('settings.logout') }}
+      </v-btn>
     </div>
 
     <!-- Account Edit Dialog -->
@@ -199,9 +243,55 @@
       />
     </v-dialog>
 
-    <PrivacyPolicyDialog v-model="isPrivacyPolicyOpen" />
-    <TermsAndConditionsDialog v-model="isTermsOpen" />
-    <ImprintDialog v-model="isImprintOpen" />
+    <LegalDialog v-model="isPrivacyPolicyOpen" doc="privacy" />
+    <LegalDialog v-model="isTermsOpen" doc="terms" />
+    <LegalDialog v-model="isImprintOpen" doc="imprint" />
+
+    <!-- Give health data consent (optional) -->
+    <v-dialog v-model="isGiveConsentOpen" max-width="400">
+      <HealthConsentPrompt @consented="onHealthConsentGiven" />
+    </v-dialog>
+
+    <!-- Withdraw health data consent -->
+    <v-dialog v-model="isWithdrawConsentOpen" max-width="400" :persistent="isWithdrawingConsent">
+      <v-card
+        class="bg-cardBg rounded-lg"
+        :style="{ border: '1px solid rgb(var(--v-theme-borderColor))' }"
+      >
+        <v-card-title class="text-h6 pt-5 px-5 text-wrap">
+          {{ $t('settings.withdrawHealthConsentTitle') }}
+        </v-card-title>
+        <v-card-text class="text-textSecondary px-5">
+          <p class="mb-3">{{ $t('settings.withdrawHealthConsentText') }}</p>
+          <ul class="pl-4 mb-3">
+            <li>{{ $t('settings.withdrawDeletesWeightLogs') }}</li>
+            <li>{{ $t('settings.withdrawDeletesProgressPhotos') }}</li>
+            <li>{{ $t('settings.withdrawDeletesBodyMeasurements') }}</li>
+          </ul>
+          <p class="mb-3">{{ $t('settings.withdrawHealthConsentAfter') }}</p>
+          <p class="font-weight-bold">{{ $t('settings.withdrawHealthConsentIrreversible') }}</p>
+        </v-card-text>
+        <v-card-actions class="px-5 pb-5">
+          <v-spacer />
+          <v-btn
+            variant="text"
+            :disabled="isWithdrawingConsent"
+            @click="isWithdrawConsentOpen = false"
+          >
+            {{ $t('common.cancel') }}
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            :disabled="isWithdrawingConsent"
+            :loading="isWithdrawingConsent"
+            @click="confirmWithdrawHealthConsent"
+          >
+            {{ $t('settings.withdrawHealthConsentConfirm') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -213,10 +303,10 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useTheme } from 'vuetify'
-import PrivacyPolicyDialog from '@/components/legal/PrivacyPolicyDialog.vue'
-import TermsAndConditionsDialog from '@/components/legal/TermsAndConditionsDialog.vue'
-import ImprintDialog from '@/components/legal/ImprintDialog.vue'
+import LegalDialog from '@/components/legal/LegalDialog.vue'
 import VersionHistoryDialog from '@/components/Settings/VersionHistoryDialog.vue'
+import { legalConfig } from '@/config/legal'
+import HealthConsentPrompt from '@/components/legal/HealthConsentPrompt.vue'
 
 const authStore = useAuthStore()
 const appStore = useAppStore()
@@ -244,6 +334,11 @@ const isGoalsDialogOpen = ref(false)
 const isPrivacyPolicyOpen = ref(false)
 const isTermsOpen = ref(false)
 const isImprintOpen = ref(false)
+const isWithdrawConsentOpen = ref(false)
+const isGiveConsentOpen = ref(false)
+const isWithdrawingConsent = ref(false)
+const isExporting = ref(false)
+const isLoggingOut = ref(false)
 const currentUser = ref<User | null>(null)
 const weightTrackingEnabled = ref(false)
 const streakInfo = ref<StreakInfo | null>(null)
@@ -255,6 +350,14 @@ const getImageUrl = (imagePath: string) => {
   const baseUrl = apiUrl.replace('/v1', '')
   return `${baseUrl}${imagePath}`
 }
+
+const memberSince = computed(() => {
+  const createdAt = currentUser.value?.createdAt
+  if (!createdAt) return ''
+  return new Date(createdAt).toLocaleDateString(locale.value, { month: 'short', year: 'numeric' })
+})
+
+const hasHealthConsent = computed(() => authStore.hasHealthConsent)
 
 const onUserUpdated = (user: User) => {
   currentUser.value = user
@@ -268,7 +371,7 @@ const loadUserData = async () => {
     weightTrackingEnabled.value = user.showWeightTracking ?? false
   } catch (error) {
     console.error('Error loading user data:', error)
-    toast.error(t('settings.errorLoadingUserData'), { progressBar: true, duration: 1000 })
+    toast.error(t('settings.errorLoadingUserData'), { progressBar: true, duration: 5000 })
   }
 }
 
@@ -313,17 +416,36 @@ const setPreferenceDialogToOpen = async (type?: string) => {
       isVersionHistoryOpen.value = true
       break
     case 'contact':
-      window.location.href = `mailto:${import.meta.env.VITE_CONTACT_EMAIL ?? ''}`
+      if (legalConfig.contactEmail) {
+        window.location.href = `mailto:${legalConfig.contactEmail}`
+      } else {
+        toast.error(t('settings.contactNotConfigured'), { progressBar: true, duration: 5000 })
+      }
       break
     case 'logout':
-      await authStore.logout()
+      if (isLoggingOut.value) return
+      isLoggingOut.value = true
+      try {
+        await authStore.logout()
+      } finally {
+        isLoggingOut.value = false
+      }
       break
     default:
       return
   }
 }
 
+const filenameFromDisposition = (header: string | null): string | null => {
+  if (!header) return null
+  const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(header)
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 const exportUserData = async () => {
+  // Guard against double clicks while the (potentially large) zip is being generated.
+  if (isExporting.value) return
+  isExporting.value = true
   try {
     const response = await fetch(`${apiUrl}/users/export`, {
       method: 'GET',
@@ -334,12 +456,40 @@ const exportUserData = async () => {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'grindify-data-export.json'
+    a.download =
+      filenameFromDisposition(response.headers.get('content-disposition')) ?? 'grindify-export.zip'
+    document.body.appendChild(a)
     a.click()
-    URL.revokeObjectURL(url)
+    a.remove()
+    // Give the browser time to start the download before revoking the URL.
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
     toast.success(t('settings.exportDataSuccess'), { progressBar: true, duration: 3000 })
   } catch {
-    toast.error(t('settings.exportDataError'), { progressBar: true, duration: 3000 })
+    toast.error(t('settings.exportDataError'), { progressBar: true, duration: 5000 })
+  } finally {
+    isExporting.value = false
+  }
+}
+
+const onHealthConsentGiven = (user: User) => {
+  currentUser.value = user
+  isGiveConsentOpen.value = false
+}
+
+const confirmWithdrawHealthConsent = async () => {
+  if (isWithdrawingConsent.value) return
+  isWithdrawingConsent.value = true
+  try {
+    const user = await authStore.withdrawHealthConsent()
+    currentUser.value = user
+    weightTrackingEnabled.value = user.showWeightTracking ?? false
+    isWithdrawConsentOpen.value = false
+    toast.success(t('settings.healthConsentWithdrawn'), { progressBar: true, duration: 3000 })
+  } catch (error) {
+    console.error('Failed to withdraw health consent:', error)
+    toast.error(t('settings.withdrawHealthConsentFailed'), { progressBar: true, duration: 5000 })
+  } finally {
+    isWithdrawingConsent.value = false
   }
 }
 
