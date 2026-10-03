@@ -323,7 +323,10 @@ export class UserService {
    */
   private async collectUserFileUrls(userId: number): Promise<string[]> {
     const [user, photos, exercises] = await Promise.all([
-      this.userRepo.findOne({ where: { id: userId }, select: ['id', 'avatar'] }),
+      this.userRepo.findOne({
+        where: { id: userId },
+        select: ['id', 'avatar'],
+      }),
       this.progressPhotoRepo.find({ where: { user: { id: userId } } }),
       this.exerciseRepo.find({
         where: { createdBy: { id: userId } },
@@ -822,7 +825,10 @@ export class UserService {
     const zip = new JSZip();
     const files: { path: string; source: string }[] = [];
 
-    const addFile = async (source: string | null | undefined, target: string) => {
+    const addFile = async (
+      source: string | null | undefined,
+      target: string,
+    ) => {
       if (!source) return null;
       const buffer = await this.uploadService.readFileAsBuffer(source);
       if (!buffer) return null;

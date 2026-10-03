@@ -18,7 +18,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class UseStreakFreezeDto {
   @ApiProperty({
-    description: 'ISO 8601 date string (YYYY-MM-DD) of a day in the current week to freeze',
+    description:
+      'ISO 8601 date string (YYYY-MM-DD) of a day in the current week to freeze',
     example: '2026-05-08',
   })
   @IsDateString()

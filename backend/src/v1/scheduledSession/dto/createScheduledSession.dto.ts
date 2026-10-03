@@ -71,7 +71,8 @@ export class CreateScheduledSessionDto {
 
   @ApiProperty({
     example: '2026-12-31',
-    description: 'Optional end date for recurring sessions (YYYY-MM-DD, inclusive)',
+    description:
+      'Optional end date for recurring sessions (YYYY-MM-DD, inclusive)',
     required: false,
   })
   @ValidateIf((o) => o.isRecurring)

@@ -37,8 +37,10 @@ export class EmailService {
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
-    this.from = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@localhost';
-    this.frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+    this.from =
+      this.configService.get<string>('EMAIL_FROM') ?? 'noreply@localhost';
+    this.frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
     // Resend throws on a missing key — only create the client when configured
     this.resend = apiKey?.trim() ? new Resend(apiKey.trim()) : null;
     if (!this.resend) {

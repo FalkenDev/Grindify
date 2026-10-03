@@ -157,7 +157,8 @@ export class WorkoutService {
     if (dto.weight !== undefined) workoutExercise.weight = dto.weight;
     if (dto.pauseSeconds !== undefined)
       workoutExercise.pauseSeconds = dto.pauseSeconds;
-    if (dto.setWeights !== undefined) workoutExercise.setWeights = dto.setWeights;
+    if (dto.setWeights !== undefined)
+      workoutExercise.setWeights = dto.setWeights;
 
     // Keep `weight` in sync with the first set's weight when setWeights is provided
     if (dto.setWeights && dto.setWeights.length > 0) {
@@ -379,7 +380,8 @@ export class WorkoutService {
               title: e.exercise.title,
               description: e.exercise.descriptionI18n ?? null,
               isGlobal: e.exercise.isGlobal,
-              personalizedFromGlobalId: e.exercise.personalizedFromGlobalId ?? null,
+              personalizedFromGlobalId:
+                e.exercise.personalizedFromGlobalId ?? null,
               primaryMuscleGroups:
                 e.exercise.primaryMuscleGroups?.map((mg) => ({
                   id: mg.id,

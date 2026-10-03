@@ -51,7 +51,9 @@ export class UpdateWorkoutExerciseDto {
   @Transform(({ value }) =>
     Array.isArray(value)
       ? value.map((item) =>
-          typeof item === 'string' ? Number(item.replace(',', '.')) : Number(item),
+          typeof item === 'string'
+            ? Number(item.replace(',', '.'))
+            : Number(item),
         )
       : value,
   )

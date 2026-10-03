@@ -13,13 +13,22 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { IsNotEmpty, IsOptional, IsObject, IsString, ValidateNested } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsObject,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { I18nStringDto } from '../../exercise/dto/createGlobalExercise.dto';
 
 export class CreateMuscleGroupAdminDto {
-  @ApiProperty({ example: 'chest', description: 'Unique internal key, e.g. "chest", "lowerBack"' })
+  @ApiProperty({
+    example: 'chest',
+    description: 'Unique internal key, e.g. "chest", "lowerBack"',
+  })
   @IsString()
   @IsNotEmpty()
   name: string;

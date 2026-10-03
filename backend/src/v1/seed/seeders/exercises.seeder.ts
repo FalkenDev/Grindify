@@ -37,7 +37,9 @@ export async function seedUserExercises(
       descriptionI18n: { default: ex.defaultDescription ?? '' },
       exerciseType: ex.exerciseType,
       equipmentI18n: ex.equipment ? { default: ex.equipment } : undefined,
-      instructionsI18n: ex.instructions ? { default: ex.instructions } : undefined,
+      instructionsI18n: ex.instructions
+        ? { default: ex.instructions }
+        : undefined,
       proTipsI18n: ex.proTips ? { default: ex.proTips } : undefined,
       mistakesI18n: ex.mistakes ? { default: ex.mistakes } : undefined,
       createdBy: user,

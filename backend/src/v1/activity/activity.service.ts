@@ -13,17 +13,17 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Activity } from './activity.entity';
 import { CreateActivityDto } from './dto/createActivity.dto';
 import { UpdateActivityDto } from './dto/updateActivity.dto';
 import { ActivityResponseDto } from './dto/activityResponse.dto';
-import { CreateGlobalActivityDto, UpdateGlobalActivityDto } from './dto/createGlobalActivity.dto';
+import {
+  CreateGlobalActivityDto,
+  UpdateGlobalActivityDto,
+} from './dto/createGlobalActivity.dto';
 
 export type ActivityFilter = 'all' | 'global' | 'mine';
 
@@ -54,7 +54,10 @@ export class ActivityService {
     };
   }
 
-  async findAll(userId: number, filter: ActivityFilter = 'all'): Promise<ActivityResponseDto[]> {
+  async findAll(
+    userId: number,
+    filter: ActivityFilter = 'all',
+  ): Promise<ActivityResponseDto[]> {
     if (filter === 'mine') {
       const activities = await this.activityRepo.find({
         where: { createdBy: { id: userId }, isGlobal: false },
@@ -72,10 +75,17 @@ export class ActivityService {
 
     // 'all': user's own first, then globals
     const [userActivities, globalActivities] = await Promise.all([
-      this.activityRepo.find({ where: { createdBy: { id: userId }, isGlobal: false } }),
-      this.activityRepo.find({ where: { isGlobal: true }, order: { id: 'ASC' } }),
+      this.activityRepo.find({
+        where: { createdBy: { id: userId }, isGlobal: false },
+      }),
+      this.activityRepo.find({
+        where: { isGlobal: true },
+        order: { id: 'ASC' },
+      }),
     ]);
-    return [...userActivities, ...globalActivities].map((a) => this.toResponseDto(a));
+    return [...userActivities, ...globalActivities].map((a) =>
+      this.toResponseDto(a),
+    );
   }
 
   async findOne(id: number, userId: number): Promise<ActivityResponseDto> {
@@ -89,7 +99,10 @@ export class ActivityService {
     return this.toResponseDto(activity);
   }
 
-  async create(dto: CreateActivityDto, userId: number): Promise<ActivityResponseDto> {
+  async create(
+    dto: CreateActivityDto,
+    userId: number,
+  ): Promise<ActivityResponseDto> {
     const { name, description, ...rest } = dto;
 
     const activity = this.activityRepo.create({
@@ -104,7 +117,9 @@ export class ActivityService {
     return this.toResponseDto(saved);
   }
 
-  async createGlobal(dto: CreateGlobalActivityDto): Promise<ActivityResponseDto> {
+  async createGlobal(
+    dto: CreateGlobalActivityDto,
+  ): Promise<ActivityResponseDto> {
     const activity = this.activityRepo.create({
       ...dto,
       isGlobal: true,
@@ -114,8 +129,13 @@ export class ActivityService {
     return this.toResponseDto(saved);
   }
 
-  async updateGlobal(id: number, dto: UpdateGlobalActivityDto): Promise<ActivityResponseDto> {
-    const activity = await this.activityRepo.findOne({ where: { id, isGlobal: true } });
+  async updateGlobal(
+    id: number,
+    dto: UpdateGlobalActivityDto,
+  ): Promise<ActivityResponseDto> {
+    const activity = await this.activityRepo.findOne({
+      where: { id, isGlobal: true },
+    });
     if (!activity) throw new NotFoundException('Global activity not found');
     Object.assign(activity, dto);
     const saved = await this.activityRepo.save(activity);
@@ -123,16 +143,21 @@ export class ActivityService {
   }
 
   async deleteGlobal(id: number): Promise<{ message: string }> {
-    const activity = await this.activityRepo.findOne({ where: { id, isGlobal: true } });
+    const activity = await this.activityRepo.findOne({
+      where: { id, isGlobal: true },
+    });
     if (!activity) throw new NotFoundException('Global activity not found');
 
     await this.dataSource.transaction(async (manager) => {
       // Find all users with activity logs referencing this activity
-      const affectedUsers: { userId: number }[] = await manager.query(`
+      const affectedUsers: { userId: number }[] = await manager.query(
+        `
         SELECT DISTINCT "userId" AS "userId"
         FROM activity_log
         WHERE "activityId" = $1
-      `, [id]);
+      `,
+        [id],
+      );
 
       for (const { userId } of affectedUsers) {
         const copy = manager.create(Activity, {
@@ -163,7 +188,11 @@ export class ActivityService {
     return { message: 'Global activity deleted and user data preserved' };
   }
 
-  async update(id: number, dto: UpdateActivityDto, userId: number): Promise<ActivityResponseDto> {
+  async update(
+    id: number,
+    dto: UpdateActivityDto,
+    userId: number,
+  ): Promise<ActivityResponseDto> {
     const activity = await this.activityRepo.findOne({
       where: { id, createdBy: { id: userId }, isGlobal: false },
     });
@@ -176,7 +205,10 @@ export class ActivityService {
       activity.title = { ...activity.title, default: name };
     }
     if (description !== undefined) {
-      activity.descriptionI18n = { ...(activity.descriptionI18n ?? {}), default: description };
+      activity.descriptionI18n = {
+        ...(activity.descriptionI18n ?? {}),
+        default: description,
+      };
     }
 
     const saved = await this.activityRepo.save(activity);
@@ -196,7 +228,9 @@ export class ActivityService {
     userId: number,
     transferStats: boolean = false,
   ): Promise<ActivityResponseDto> {
-    const source = await this.activityRepo.findOne({ where: { id: activityId, isGlobal: true } });
+    const source = await this.activityRepo.findOne({
+      where: { id: activityId, isGlobal: true },
+    });
     if (!source) throw new NotFoundException('Global activity not found');
 
     return this.dataSource.transaction(async (manager) => {

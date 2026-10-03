@@ -20,8 +20,12 @@ export class RemoveCardioFromExercises1768837747655
 {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Remove trackingMode and defaultDistance from exercise table (if they exist)
-    await queryRunner.query(`ALTER TABLE "exercise" DROP COLUMN IF EXISTS "defaultDistance"`);
-    await queryRunner.query(`ALTER TABLE "exercise" DROP COLUMN IF EXISTS "trackingMode"`);
+    await queryRunner.query(
+      `ALTER TABLE "exercise" DROP COLUMN IF EXISTS "defaultDistance"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "exercise" DROP COLUMN IF EXISTS "trackingMode"`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -30,11 +34,10 @@ export class RemoveCardioFromExercises1768837747655
       ALTER TABLE "exercise" 
       ADD "trackingMode" character varying NOT NULL DEFAULT 'strength'
     `);
-    
+
     await queryRunner.query(`
       ALTER TABLE "exercise" 
       ADD "defaultDistance" numeric(6,2)
     `);
-
   }
 }

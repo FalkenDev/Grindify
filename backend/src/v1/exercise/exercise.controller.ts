@@ -166,7 +166,8 @@ export class ExerciseController {
     }
 
     // Process and save the image
-    const { url: imageUrl } = await this.uploadService.processExerciseImage(file);
+    const { url: imageUrl } =
+      await this.uploadService.processExerciseImage(file);
 
     // Update the exercise with the new image URL
     return this.exerciseService.updateImage(id, imageUrl, +req.user.id);
@@ -183,7 +184,11 @@ export class ExerciseController {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.exerciseService.duplicateGlobalExercise(id, +req.user.id, body.transferStats ?? false);
+    return this.exerciseService.duplicateGlobalExercise(
+      id,
+      +req.user.id,
+      body.transferStats ?? false,
+    );
   }
 
   // --- Media endpoints ---

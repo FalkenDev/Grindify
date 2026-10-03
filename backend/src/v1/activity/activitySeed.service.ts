@@ -37,7 +37,9 @@ export class ActivitySeedService implements OnModuleInit {
   }
 
   async seedGlobalActivities(): Promise<void> {
-    const existing = await this.activityRepo.count({ where: { isGlobal: true } });
+    const existing = await this.activityRepo.count({
+      where: { isGlobal: true },
+    });
     if (existing > 0) return;
 
     this.logger.log('No global activities found – seeding defaults…');

@@ -60,13 +60,19 @@ function makeGlobalExercise(overrides: Partial<Exercise> = {}): Exercise {
   });
 }
 
-function makeMockManager(affectedUsers: { userId: number }[] = [], copyId = 200) {
+function makeMockManager(
+  affectedUsers: { userId: number }[] = [],
+  copyId = 200,
+) {
   return {
-    query: jest.fn()
+    query: jest
+      .fn()
       .mockResolvedValueOnce(affectedUsers)
       .mockResolvedValue(undefined),
     create: jest.fn((_entity: any, data: any) => ({ ...data })),
-    save: jest.fn((_entity: any, data: any) => Promise.resolve({ ...data, id: copyId++ })),
+    save: jest.fn((_entity: any, data: any) =>
+      Promise.resolve({ ...data, id: copyId++ }),
+    ),
     softDelete: jest.fn().mockResolvedValue(undefined),
     findOne: jest.fn(),
   };
@@ -130,7 +136,9 @@ describe('ExerciseService', () => {
 
       expect(exerciseRepo.find).toHaveBeenCalledTimes(1);
       expect(exerciseRepo.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { createdBy: { id: 1 }, isGlobal: false } }),
+        expect.objectContaining({
+          where: { createdBy: { id: 1 }, isGlobal: false },
+        }),
       );
       expect(result).toHaveLength(1);
       expect(result[0].isGlobal).toBe(false);
@@ -236,15 +244,23 @@ describe('ExerciseService', () => {
       await service.create({ name: 'Squat' } as any, 1);
 
       expect(exerciseRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ title: { default: 'Squat' }, isGlobal: false }),
+        expect.objectContaining({
+          title: { default: 'Squat' },
+          isGlobal: false,
+        }),
       );
     });
 
     it('wraps optional description into descriptionI18n.default', async () => {
-      await service.create({ name: 'Squat', description: 'Leg exercise' } as any, 1);
+      await service.create(
+        { name: 'Squat', description: 'Leg exercise' } as any,
+        1,
+      );
 
       expect(exerciseRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ descriptionI18n: { default: 'Leg exercise' } }),
+        expect.objectContaining({
+          descriptionI18n: { default: 'Leg exercise' },
+        }),
       );
     });
 
@@ -270,7 +286,10 @@ describe('ExerciseService', () => {
     it('updates title.default when name is provided', async () => {
       const existing = makeExercise({ title: { default: 'Old Name' } });
       exerciseRepo.findOne.mockResolvedValue(existing);
-      exerciseRepo.save.mockResolvedValue({ ...existing, title: { default: 'New Name' } });
+      exerciseRepo.save.mockResolvedValue({
+        ...existing,
+        title: { default: 'New Name' },
+      });
 
       await service.update(1, { name: 'New Name' } as any, 1);
 
@@ -285,15 +304,17 @@ describe('ExerciseService', () => {
     it('throws NotFoundException for global exercises (isGlobal:false guard)', async () => {
       exerciseRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update(100, { name: 'X' } as any, 1)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.update(100, { name: 'X' } as any, 1),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws NotFoundException when exercise belongs to another user', async () => {
       exerciseRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update(1, {} as any, 99)).rejects.toThrow(NotFoundException);
+      await expect(service.update(1, {} as any, 99)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -334,7 +355,9 @@ describe('ExerciseService', () => {
     it('throws NotFoundException when global exercise does not exist', async () => {
       exerciseRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.deleteGlobal(999)).rejects.toThrow(NotFoundException);
+      await expect(service.deleteGlobal(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('soft-deletes global exercise — never hard-deletes', async () => {
@@ -419,11 +442,14 @@ describe('ExerciseService', () => {
 
       let savedId = 200;
       const manager = {
-        query: jest.fn()
+        query: jest
+          .fn()
           .mockResolvedValueOnce([{ userId: 7 }])
           .mockResolvedValue(undefined),
         create: jest.fn((_e: any, data: any) => data),
-        save: jest.fn((_e: any, data: any) => Promise.resolve({ ...data, id: savedId++ })),
+        save: jest.fn((_e: any, data: any) =>
+          Promise.resolve({ ...data, id: savedId++ }),
+        ),
         softDelete: jest.fn().mockResolvedValue(undefined),
       };
       dataSource.transaction.mockImplementation(async (cb: any) => cb(manager));
@@ -466,7 +492,9 @@ describe('ExerciseService', () => {
       };
       return {
         create: jest.fn((_e: any, data: any) => data),
-        save: jest.fn((_e: any, data: any) => Promise.resolve({ ...data, id: copyId })),
+        save: jest.fn((_e: any, data: any) =>
+          Promise.resolve({ ...data, id: copyId }),
+        ),
         query: jest.fn().mockResolvedValue(undefined),
         findOne: jest.fn().mockResolvedValue(fullCopy),
       };
@@ -475,9 +503,9 @@ describe('ExerciseService', () => {
     it('throws NotFoundException when global exercise does not exist', async () => {
       exerciseRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.duplicateGlobalExercise(999, 1, false)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.duplicateGlobalExercise(999, 1, false),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('creates a personal copy with isGlobal=false and personalization metadata', async () => {
@@ -562,7 +590,11 @@ describe('ExerciseService', () => {
     it('maps multilingual title correctly', async () => {
       exerciseRepo.findOne.mockResolvedValue(
         makeExercise({
-          title: { default: 'Bench Press', eng: 'Bench Press', swe: 'Bänkpress' },
+          title: {
+            default: 'Bench Press',
+            eng: 'Bench Press',
+            swe: 'Bänkpress',
+          },
         }),
       );
 
@@ -578,7 +610,10 @@ describe('ExerciseService', () => {
     it('maps I18nStringArray fields (instructions, proTips, mistakes)', async () => {
       exerciseRepo.findOne.mockResolvedValue(
         makeExercise({
-          instructionsI18n: { default: ['Step 1', 'Step 2'], swe: ['Steg 1', 'Steg 2'] },
+          instructionsI18n: {
+            default: ['Step 1', 'Step 2'],
+            swe: ['Steg 1', 'Steg 2'],
+          },
           proTipsI18n: { default: ['Keep core tight'] },
           mistakesI18n: { default: ['Flared elbows'] },
         }),
@@ -664,9 +699,9 @@ describe('ExerciseService', () => {
     it('throws NotFoundException when global exercise does not exist', async () => {
       exerciseRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.updateGlobal(999, { title: { default: 'X' } } as any)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.updateGlobal(999, { title: { default: 'X' } } as any),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('queries with isGlobal=true filter', async () => {

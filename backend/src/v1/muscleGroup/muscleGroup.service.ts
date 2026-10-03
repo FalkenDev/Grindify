@@ -71,7 +71,9 @@ export class MuscleGroupService implements OnModuleInit {
         mg.nameI18n = { default: mg.name };
       }
       await this.muscleGroupRepo.save(missing);
-      this.logger.log(`Backfilled nameI18n for ${missing.length} muscle group(s)`);
+      this.logger.log(
+        `Backfilled nameI18n for ${missing.length} muscle group(s)`,
+      );
     }
   }
 

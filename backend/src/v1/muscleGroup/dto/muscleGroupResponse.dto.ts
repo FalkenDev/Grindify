@@ -20,7 +20,9 @@ export class MuscleGroupResponseDto {
   @ApiProperty()
   id: number;
 
-  @ApiProperty({ description: 'Internal key identifier, e.g. muscleGroups.chest' })
+  @ApiProperty({
+    description: 'Internal key identifier, e.g. muscleGroups.chest',
+  })
   name: string;
 
   @ApiProperty()

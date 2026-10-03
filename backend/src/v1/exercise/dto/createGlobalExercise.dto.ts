@@ -105,7 +105,8 @@ export class CreateGlobalExerciseDto {
 
   @ApiProperty({
     required: false,
-    description: 'URL of an image from the exercise image library (/uploads/exercises/...)',
+    description:
+      'URL of an image from the exercise image library (/uploads/exercises/...)',
   })
   @IsOptional()
   @IsString()

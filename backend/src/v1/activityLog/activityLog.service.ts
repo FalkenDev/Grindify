@@ -67,7 +67,8 @@ export class ActivityLogService {
         title: activity.title,
         description: activity.descriptionI18n ?? undefined,
         isGlobal: activity.isGlobal,
-        personalizedFromGlobalId: activity.personalizedFromGlobalId ?? undefined,
+        personalizedFromGlobalId:
+          activity.personalizedFromGlobalId ?? undefined,
         personalizedAt: activity.personalizedAt ?? undefined,
         icon: activity.icon,
         equipment: activity.equipment ?? undefined,

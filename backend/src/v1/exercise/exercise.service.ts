@@ -21,7 +21,10 @@ import { ExerciseMedia } from './exerciseMedia.entity';
 import { CreateExerciseDto } from './dto/createExercise.dto';
 import { UpdateExerciseDto } from './dto/updateExercise.dto';
 import { ExerciseResponseDto } from './dto/exerciseResponse.dto';
-import { CreateGlobalExerciseDto, UpdateGlobalExerciseDto } from './dto/createGlobalExercise.dto';
+import {
+  CreateGlobalExerciseDto,
+  UpdateGlobalExerciseDto,
+} from './dto/createGlobalExercise.dto';
 import { MuscleGroupService } from '../muscleGroup/muscleGroup.service';
 import { UploadService } from '../upload/upload.service';
 import { UploadCleanupService } from '../upload/uploadCleanup.service';
@@ -89,11 +92,20 @@ export class ExerciseService {
       instructions: exercise.instructionsI18n,
       proTips: exercise.proTipsI18n,
       mistakes: exercise.mistakesI18n,
-      primaryMuscleGroups: exercise.primaryMuscleGroups?.map((mg) => this.toMuscleGroupDto(mg)) || [],
-      muscleGroups: exercise.muscleGroups?.map((mg) => this.toMuscleGroupDto(mg)) || [],
-      media: exercise.media
-        ?.sort((a, b) => a.order - b.order)
-        .map((m) => ({ id: m.id, type: m.type, url: m.url, order: m.order })) || [],
+      primaryMuscleGroups:
+        exercise.primaryMuscleGroups?.map((mg) => this.toMuscleGroupDto(mg)) ||
+        [],
+      muscleGroups:
+        exercise.muscleGroups?.map((mg) => this.toMuscleGroupDto(mg)) || [],
+      media:
+        exercise.media
+          ?.sort((a, b) => a.order - b.order)
+          .map((m) => ({
+            id: m.id,
+            type: m.type,
+            url: m.url,
+            order: m.order,
+          })) || [],
     };
   }
 
@@ -101,7 +113,10 @@ export class ExerciseService {
     return exercises.map((e) => this.toResponseDto(e));
   }
 
-  async findAll(userId: number, filter: ExerciseFilter = 'all'): Promise<ExerciseResponseDto[]> {
+  async findAll(
+    userId: number,
+    filter: ExerciseFilter = 'all',
+  ): Promise<ExerciseResponseDto[]> {
     const relations = ['muscleGroups', 'primaryMuscleGroups', 'media'];
 
     if (filter === 'mine') {
@@ -157,15 +172,30 @@ export class ExerciseService {
     return this.toResponseDto(exercise);
   }
 
-  async create(dto: CreateExerciseDto, userId: number): Promise<ExerciseResponseDto> {
-    const { muscleGroupIds, primaryMuscleGroupIds, name, description, instructions, proTips, mistakes, equipment, exerciseType } = dto;
+  async create(
+    dto: CreateExerciseDto,
+    userId: number,
+  ): Promise<ExerciseResponseDto> {
+    const {
+      muscleGroupIds,
+      primaryMuscleGroupIds,
+      name,
+      description,
+      instructions,
+      proTips,
+      mistakes,
+      equipment,
+      exerciseType,
+    } = dto;
 
     const exercise = this.exerciseRepo.create({
       exerciseType,
       title: { default: name },
       descriptionI18n: description ? { default: description } : undefined,
       equipmentI18n: equipment?.length ? { default: equipment } : undefined,
-      instructionsI18n: instructions?.length ? { default: instructions } : undefined,
+      instructionsI18n: instructions?.length
+        ? { default: instructions }
+        : undefined,
       proTipsI18n: proTips?.length ? { default: proTips } : undefined,
       mistakesI18n: mistakes?.length ? { default: mistakes } : undefined,
       isGlobal: false,
@@ -173,7 +203,8 @@ export class ExerciseService {
     });
 
     if (muscleGroupIds?.length) {
-      exercise.muscleGroups = await this.muscleGroupService.findByIds(muscleGroupIds);
+      exercise.muscleGroups =
+        await this.muscleGroupService.findByIds(muscleGroupIds);
     }
     exercise.primaryMuscleGroups = primaryMuscleGroupIds?.length
       ? await this.muscleGroupService.findByIds(primaryMuscleGroupIds)
@@ -183,8 +214,16 @@ export class ExerciseService {
     return this.findOne(saved.id, userId);
   }
 
-  async createGlobal(dto: CreateGlobalExerciseDto): Promise<ExerciseResponseDto> {
-    const { muscleGroupIds, primaryMuscleGroupIds, imageUrl, description, ...rest } = dto;
+  async createGlobal(
+    dto: CreateGlobalExerciseDto,
+  ): Promise<ExerciseResponseDto> {
+    const {
+      muscleGroupIds,
+      primaryMuscleGroupIds,
+      imageUrl,
+      description,
+      ...rest
+    } = dto;
 
     const exercise = this.exerciseRepo.create({
       ...rest,
@@ -195,7 +234,8 @@ export class ExerciseService {
     });
 
     if (muscleGroupIds?.length) {
-      exercise.muscleGroups = await this.muscleGroupService.findByIds(muscleGroupIds);
+      exercise.muscleGroups =
+        await this.muscleGroupService.findByIds(muscleGroupIds);
     }
     exercise.primaryMuscleGroups = primaryMuscleGroupIds?.length
       ? await this.muscleGroupService.findByIds(primaryMuscleGroupIds)
@@ -209,26 +249,35 @@ export class ExerciseService {
     return this.toResponseDto(full!);
   }
 
-  async updateGlobal(id: number, dto: UpdateGlobalExerciseDto): Promise<ExerciseResponseDto> {
+  async updateGlobal(
+    id: number,
+    dto: UpdateGlobalExerciseDto,
+  ): Promise<ExerciseResponseDto> {
     const existing = await this.exerciseRepo.findOne({
       where: { id, isGlobal: true },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
     });
     if (!existing) throw new NotFoundException('Global exercise not found');
 
-    const { muscleGroupIds, primaryMuscleGroupIds, imageUrl, description } = dto;
+    const { muscleGroupIds, primaryMuscleGroupIds, imageUrl, description } =
+      dto;
     // Explicit field mapping — never Object.assign request bodies onto entities
     if (dto.title !== undefined) existing.title = dto.title;
-    if (dto.exerciseType !== undefined) existing.exerciseType = dto.exerciseType;
-    if (dto.equipmentI18n !== undefined) existing.equipmentI18n = dto.equipmentI18n;
-    if (dto.instructionsI18n !== undefined) existing.instructionsI18n = dto.instructionsI18n;
+    if (dto.exerciseType !== undefined)
+      existing.exerciseType = dto.exerciseType;
+    if (dto.equipmentI18n !== undefined)
+      existing.equipmentI18n = dto.equipmentI18n;
+    if (dto.instructionsI18n !== undefined)
+      existing.instructionsI18n = dto.instructionsI18n;
     if (dto.proTipsI18n !== undefined) existing.proTipsI18n = dto.proTipsI18n;
-    if (dto.mistakesI18n !== undefined) existing.mistakesI18n = dto.mistakesI18n;
+    if (dto.mistakesI18n !== undefined)
+      existing.mistakesI18n = dto.mistakesI18n;
     if (description !== undefined) existing.descriptionI18n = description;
     if (imageUrl !== undefined) existing.image = imageUrl;
 
     if (muscleGroupIds !== undefined) {
-      existing.muscleGroups = await this.muscleGroupService.findByIds(muscleGroupIds);
+      existing.muscleGroups =
+        await this.muscleGroupService.findByIds(muscleGroupIds);
     }
     if (primaryMuscleGroupIds !== undefined) {
       existing.primaryMuscleGroups = primaryMuscleGroupIds.length
@@ -249,7 +298,8 @@ export class ExerciseService {
 
     await this.dataSource.transaction(async (manager) => {
       // Find all users with workout data referencing this exercise
-      const affectedUsers: { userId: number }[] = await manager.query(`
+      const affectedUsers: { userId: number }[] = await manager.query(
+        `
         SELECT DISTINCT ws."userId" AS "userId"
         FROM workout_session_exercise wse
         JOIN workout_session ws ON wse."sessionId" = ws.id
@@ -263,7 +313,9 @@ export class ExerciseService {
         FROM workout_exercise we
         JOIN workout w ON we."workoutId" = w.id
         WHERE we."exerciseId" = $1
-      `, [id]);
+      `,
+        [id],
+      );
 
       for (const { userId } of affectedUsers) {
         // Create a personal copy for this user
@@ -317,8 +369,21 @@ export class ExerciseService {
     return { message: 'Global exercise deleted and user data preserved' };
   }
 
-  async update(id: number, dto: UpdateExerciseDto, userId: number): Promise<ExerciseResponseDto> {
-    const { muscleGroupIds, primaryMuscleGroupIds, name, description, instructions, proTips, mistakes, equipment } = dto;
+  async update(
+    id: number,
+    dto: UpdateExerciseDto,
+    userId: number,
+  ): Promise<ExerciseResponseDto> {
+    const {
+      muscleGroupIds,
+      primaryMuscleGroupIds,
+      name,
+      description,
+      instructions,
+      proTips,
+      mistakes,
+      equipment,
+    } = dto;
 
     const existing = await this.exerciseRepo.findOne({
       where: { id, createdBy: { id: userId }, isGlobal: false },
@@ -327,29 +392,46 @@ export class ExerciseService {
     if (!existing) throw new NotFoundException('Exercise not found');
 
     // Explicit field mapping — image is only set via POST /exercises/:id/image
-    if (dto.exerciseType !== undefined) existing.exerciseType = dto.exerciseType;
+    if (dto.exerciseType !== undefined)
+      existing.exerciseType = dto.exerciseType;
 
     if (name !== undefined) {
       existing.title = { ...existing.title, default: name };
     }
     if (description !== undefined) {
-      existing.descriptionI18n = { ...(existing.descriptionI18n ?? {}), default: description };
+      existing.descriptionI18n = {
+        ...(existing.descriptionI18n ?? {}),
+        default: description,
+      };
     }
     if (instructions !== undefined) {
-      existing.instructionsI18n = { ...(existing.instructionsI18n ?? {}), default: instructions };
+      existing.instructionsI18n = {
+        ...(existing.instructionsI18n ?? {}),
+        default: instructions,
+      };
     }
     if (proTips !== undefined) {
-      existing.proTipsI18n = { ...(existing.proTipsI18n ?? {}), default: proTips };
+      existing.proTipsI18n = {
+        ...(existing.proTipsI18n ?? {}),
+        default: proTips,
+      };
     }
     if (mistakes !== undefined) {
-      existing.mistakesI18n = { ...(existing.mistakesI18n ?? {}), default: mistakes };
+      existing.mistakesI18n = {
+        ...(existing.mistakesI18n ?? {}),
+        default: mistakes,
+      };
     }
     if (equipment !== undefined) {
-      existing.equipmentI18n = { ...(existing.equipmentI18n ?? {}), default: equipment };
+      existing.equipmentI18n = {
+        ...(existing.equipmentI18n ?? {}),
+        default: equipment,
+      };
     }
 
     if (muscleGroupIds !== undefined) {
-      existing.muscleGroups = await this.muscleGroupService.findByIds(muscleGroupIds);
+      existing.muscleGroups =
+        await this.muscleGroupService.findByIds(muscleGroupIds);
     }
     if (primaryMuscleGroupIds !== undefined) {
       existing.primaryMuscleGroups = primaryMuscleGroupIds.length
@@ -434,7 +516,11 @@ export class ExerciseService {
     });
   }
 
-  async updateImage(id: number, imageUrl: string, userId: number): Promise<ExerciseResponseDto> {
+  async updateImage(
+    id: number,
+    imageUrl: string,
+    userId: number,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id, createdBy: { id: userId }, isGlobal: false },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
@@ -453,7 +539,12 @@ export class ExerciseService {
     return this.toResponseDto(updated);
   }
 
-  async addMedia(exerciseId: number, userId: number, mediaUrl: string, mediaType: string): Promise<ExerciseResponseDto> {
+  async addMedia(
+    exerciseId: number,
+    userId: number,
+    mediaUrl: string,
+    mediaType: string,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id: exerciseId, createdBy: { id: userId }, isGlobal: false },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
@@ -463,14 +554,25 @@ export class ExerciseService {
       throw new NotFoundException('Exercise not found');
     }
 
-    const maxOrder = exercise.media?.length ? Math.max(...exercise.media.map((m) => m.order)) : -1;
-    const media = this.mediaRepo.create({ type: mediaType as any, url: mediaUrl, order: maxOrder + 1, exercise });
+    const maxOrder = exercise.media?.length
+      ? Math.max(...exercise.media.map((m) => m.order))
+      : -1;
+    const media = this.mediaRepo.create({
+      type: mediaType as any,
+      url: mediaUrl,
+      order: maxOrder + 1,
+      exercise,
+    });
     await this.mediaRepo.save(media);
 
     return this.findOne(exerciseId, userId);
   }
 
-  async removeMedia(exerciseId: number, mediaId: number, userId: number): Promise<ExerciseResponseDto> {
+  async removeMedia(
+    exerciseId: number,
+    mediaId: number,
+    userId: number,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id: exerciseId, createdBy: { id: userId } },
     });
@@ -488,14 +590,21 @@ export class ExerciseService {
     return this.findOne(exerciseId, userId);
   }
 
-  async reorderMedia(exerciseId: number, mediaIds: number[], userId: number): Promise<ExerciseResponseDto> {
+  async reorderMedia(
+    exerciseId: number,
+    mediaIds: number[],
+    userId: number,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id: exerciseId, createdBy: { id: userId } },
     });
     if (!exercise) throw new NotFoundException('Exercise not found');
 
     for (let i = 0; i < mediaIds.length; i++) {
-      await this.mediaRepo.update({ id: mediaIds[i], exercise: { id: exerciseId } }, { order: i });
+      await this.mediaRepo.update(
+        { id: mediaIds[i], exercise: { id: exerciseId } },
+        { order: i },
+      );
     }
 
     return this.findOne(exerciseId, userId);
@@ -503,7 +612,10 @@ export class ExerciseService {
 
   // --- Admin-only: global exercise image/media methods ---
 
-  async updateGlobalImage(id: number, imageUrl: string | null): Promise<ExerciseResponseDto> {
+  async updateGlobalImage(
+    id: number,
+    imageUrl: string | null,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id, isGlobal: true },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
@@ -515,15 +627,26 @@ export class ExerciseService {
     return this.toResponseDto(updated);
   }
 
-  async addGlobalMedia(exerciseId: number, mediaUrl: string, mediaType: string): Promise<ExerciseResponseDto> {
+  async addGlobalMedia(
+    exerciseId: number,
+    mediaUrl: string,
+    mediaType: string,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id: exerciseId, isGlobal: true },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
     });
     if (!exercise) throw new NotFoundException('Global exercise not found');
 
-    const maxOrder = exercise.media?.length ? Math.max(...exercise.media.map((m) => m.order)) : -1;
-    const media = this.mediaRepo.create({ type: mediaType as any, url: mediaUrl, order: maxOrder + 1, exercise });
+    const maxOrder = exercise.media?.length
+      ? Math.max(...exercise.media.map((m) => m.order))
+      : -1;
+    const media = this.mediaRepo.create({
+      type: mediaType as any,
+      url: mediaUrl,
+      order: maxOrder + 1,
+      exercise,
+    });
     await this.mediaRepo.save(media);
 
     const full = await this.exerciseRepo.findOne({
@@ -533,7 +656,10 @@ export class ExerciseService {
     return this.toResponseDto(full!);
   }
 
-  async removeGlobalMedia(exerciseId: number, mediaId: number): Promise<ExerciseResponseDto> {
+  async removeGlobalMedia(
+    exerciseId: number,
+    mediaId: number,
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id: exerciseId, isGlobal: true },
     });
@@ -555,14 +681,20 @@ export class ExerciseService {
     return this.toResponseDto(full!);
   }
 
-  async reorderGlobalMedia(exerciseId: number, mediaIds: number[]): Promise<ExerciseResponseDto> {
+  async reorderGlobalMedia(
+    exerciseId: number,
+    mediaIds: number[],
+  ): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
       where: { id: exerciseId, isGlobal: true },
     });
     if (!exercise) throw new NotFoundException('Global exercise not found');
 
     for (let i = 0; i < mediaIds.length; i++) {
-      await this.mediaRepo.update({ id: mediaIds[i], exercise: { id: exerciseId } }, { order: i });
+      await this.mediaRepo.update(
+        { id: mediaIds[i], exercise: { id: exerciseId } },
+        { order: i },
+      );
     }
 
     const full = await this.exerciseRepo.findOne({

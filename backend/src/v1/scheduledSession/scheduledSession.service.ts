@@ -139,9 +139,10 @@ export class ScheduledSessionService {
       isRecurring: dto.isRecurring,
       notes: dto.notes || null,
       recurringStartDate: dto.isRecurring ? new Date() : null,
-      recurringEndDate: (dto.isRecurring && dto.recurringEndDate)
-        ? new Date(dto.recurringEndDate)
-        : null,
+      recurringEndDate:
+        dto.isRecurring && dto.recurringEndDate
+          ? new Date(dto.recurringEndDate)
+          : null,
     });
 
     const saved = await this.scheduledRepo.save(scheduled);
@@ -224,9 +225,11 @@ export class ScheduledSessionService {
         let matches = false;
 
         if (s.isRecurring) {
-          if (s.dayOfWeek !== dayOfWeek) { matches = false; }
-          else if (s.exceptionDates.includes(dateStr)) { matches = false; }
-          else {
+          if (s.dayOfWeek !== dayOfWeek) {
+            matches = false;
+          } else if (s.exceptionDates.includes(dateStr)) {
+            matches = false;
+          } else {
             const startStr = this.toDateString(s.recurringStartDate);
             if (startStr && dateStr < startStr) {
               matches = false;

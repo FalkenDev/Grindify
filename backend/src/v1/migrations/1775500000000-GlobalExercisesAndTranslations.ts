@@ -205,12 +205,8 @@ export class GlobalExercisesAndTranslations1775500000000
     );
 
     // ── ACTIVITY ──────────────────────────────────────────────────────────────
-    await queryRunner.query(
-      `DROP INDEX IF EXISTS "UQ_activity_name_global"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX IF EXISTS "UQ_activity_name_user"`,
-    );
+    await queryRunner.query(`DROP INDEX IF EXISTS "UQ_activity_name_global"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "UQ_activity_name_user"`);
     await queryRunner.query(
       `ALTER TABLE "activity" DROP COLUMN IF EXISTS "descriptionI18n"`,
     );

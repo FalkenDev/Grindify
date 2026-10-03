@@ -153,7 +153,10 @@ export class AdminController {
     @Query('search') search?: string,
   ) {
     const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1);
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10) || 20));
+    const limitNum = Math.min(
+      100,
+      Math.max(1, parseInt(limit ?? '20', 10) || 20),
+    );
     return this.adminService.listUsers(
       pageNum,
       limitNum,
@@ -220,7 +223,9 @@ export class AdminController {
   }
 
   @Delete('exercises/:id')
-  @ApiOperation({ summary: 'Soft-delete a global exercise (user data preserved)' })
+  @ApiOperation({
+    summary: 'Soft-delete a global exercise (user data preserved)',
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteGlobalExercise(
     @Param('id', ParseIntPipe) id: number,
@@ -234,7 +239,9 @@ export class AdminController {
   // --- Global Exercise Media ---
 
   @Post('exercises/:id/media')
-  @ApiOperation({ summary: 'Upload instructional media (image or video) to a global exercise' })
+  @ApiOperation({
+    summary: 'Upload instructional media (image or video) to a global exercise',
+  })
   @ApiCreatedResponse({ type: ExerciseResponseDto })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file', MEDIA_UPLOAD_OPTIONS))
@@ -262,7 +269,9 @@ export class AdminController {
     @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
     const result = await this.exerciseService.removeGlobalMedia(id, mediaId);
-    await this.audit(req, 'exercise_media_deleted', 'exercise', id, { mediaId });
+    await this.audit(req, 'exercise_media_deleted', 'exercise', id, {
+      mediaId,
+    });
     return result;
   }
 
@@ -273,7 +282,10 @@ export class AdminController {
     @Body() body: ReorderMediaDto,
     @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
-    const result = await this.exerciseService.reorderGlobalMedia(id, body.mediaIds);
+    const result = await this.exerciseService.reorderGlobalMedia(
+      id,
+      body.mediaIds,
+    );
     await this.audit(req, 'exercise_media_reordered', 'exercise', id);
     return result;
   }
@@ -327,10 +339,16 @@ export class AdminController {
     const validation = this.uploadService.validateImageFile(file);
     if (!validation.valid) throw new BadRequestException(validation.error);
 
-    const { url, fileSize } = await this.uploadService.processExerciseImage(file);
+    const { url, fileSize } =
+      await this.uploadService.processExerciseImage(file);
     const record = this.exerciseImageRepo.create({ url, fileSize });
     const saved = await this.exerciseImageRepo.save(record);
-    await this.audit(req, 'exercise_image_uploaded', 'exercise_image', saved.id);
+    await this.audit(
+      req,
+      'exercise_image_uploaded',
+      'exercise_image',
+      saved.id,
+    );
     return saved;
   }
 
@@ -345,10 +363,11 @@ export class AdminController {
     if (!image) return;
 
     // Block deletion if the image URL is still referenced by any exercise
-    const result: { count: string }[] = await this.exerciseImageRepo.manager.query(
-      `SELECT COUNT(*) AS count FROM exercise WHERE image = $1 AND "deletedAt" IS NULL`,
-      [image.url],
-    );
+    const result: { count: string }[] =
+      await this.exerciseImageRepo.manager.query(
+        `SELECT COUNT(*) AS count FROM exercise WHERE image = $1 AND "deletedAt" IS NULL`,
+        [image.url],
+      );
     const inUse = parseInt(result[0]?.count ?? '0', 10);
 
     if (inUse > 0) {
@@ -399,7 +418,9 @@ export class AdminController {
   }
 
   @Delete('activities/:id')
-  @ApiOperation({ summary: 'Soft-delete a global activity (user data preserved)' })
+  @ApiOperation({
+    summary: 'Soft-delete a global activity (user data preserved)',
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteGlobalActivity(
     @Param('id', ParseIntPipe) id: number,
@@ -447,7 +468,10 @@ export class AdminController {
   }
 
   @Get('muscle-groups/:id/exercises')
-  @ApiOperation({ summary: 'List exercises that reference a muscle group (for delete warnings)' })
+  @ApiOperation({
+    summary:
+      'List exercises that reference a muscle group (for delete warnings)',
+  })
   async getMuscleGroupExercises(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ id: number; title: any }[]> {
@@ -463,7 +487,9 @@ export class AdminController {
   }
 
   @Delete('muscle-groups/:id')
-  @ApiOperation({ summary: 'Delete a muscle group (removes association from all exercises)' })
+  @ApiOperation({
+    summary: 'Delete a muscle group (removes association from all exercises)',
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMuscleGroup(
     @Param('id', ParseIntPipe) id: number,
@@ -477,7 +503,10 @@ export class AdminController {
   // --- Export ---
 
   @Get('export/exercises')
-  @ApiOperation({ summary: 'Export all global exercises as a ZIP archive (one folder per exercise)' })
+  @ApiOperation({
+    summary:
+      'Export all global exercises as a ZIP archive (one folder per exercise)',
+  })
   @Header('Content-Type', 'application/zip')
   async exportExercises(@Req() req: RequestWithUser): Promise<StreamableFile> {
     const zip = new JSZip();
@@ -485,7 +514,10 @@ export class AdminController {
     const exercises = await this.exerciseService.findAll(0, 'global');
 
     const sanitizeFolderName = (title: string): string =>
-      (title ?? '').replace(/[/\\:*?"<>|]/g, '-').trim().slice(0, 80) || 'exercise';
+      (title ?? '')
+        .replace(/[/\\:*?"<>|]/g, '-')
+        .trim()
+        .slice(0, 80) || 'exercise';
 
     const usedNames = new Map<string, number>();
 
@@ -509,12 +541,17 @@ export class AdminController {
       }
 
       // Media items
-      const sortedMedia = [...(ex.media ?? [])].sort((a, b) => a.order - b.order);
+      const sortedMedia = [...(ex.media ?? [])].sort(
+        (a, b) => a.order - b.order,
+      );
       for (const mediaItem of sortedMedia) {
         const buffer = await this.uploadService.readFileAsBuffer(mediaItem.url);
         if (buffer) {
           const ext = mediaItem.url.split('.').pop() ?? 'webp';
-          zip.file(`${folderName}/images/media-${mediaItem.order}.${ext}`, buffer);
+          zip.file(
+            `${folderName}/images/media-${mediaItem.order}.${ext}`,
+            buffer,
+          );
           mediaEntries.push({
             order: mediaItem.order,
             type: mediaItem.type,
@@ -531,7 +568,8 @@ export class AdminController {
             description: ex.description ?? null,
             exerciseType: ex.exerciseType ?? null,
             muscleGroupNames: ex.muscleGroups.map((mg) => mg.name),
-            primaryMuscleGroupNames: ex.primaryMuscleGroups?.map((mg) => mg.name) ?? [],
+            primaryMuscleGroupNames:
+              ex.primaryMuscleGroups?.map((mg) => mg.name) ?? [],
             equipmentI18n: ex.equipmentI18n ?? null,
             instructionsI18n: ex.instructions ?? null,
             proTipsI18n: ex.proTips ?? null,
@@ -545,8 +583,13 @@ export class AdminController {
       );
     }
 
-    const zipBuffer: Buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-    await this.audit(req, 'export_exercises', null, null, { count: exercises.length });
+    const zipBuffer: Buffer = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+    });
+    await this.audit(req, 'export_exercises', null, null, {
+      count: exercises.length,
+    });
     const filename = `exercises-export-${new Date().toISOString().slice(0, 10)}.zip`;
 
     return new StreamableFile(zipBuffer, {
@@ -561,7 +604,9 @@ export class AdminController {
   @Header('Content-Type', 'application/json')
   async exportActivities(@Req() req: RequestWithUser): Promise<StreamableFile> {
     const activities = await this.activityService.findAll(0, 'global');
-    await this.audit(req, 'export_activities', null, null, { count: activities.length });
+    await this.audit(req, 'export_activities', null, null, {
+      count: activities.length,
+    });
 
     const payload = {
       version: 1,
@@ -593,7 +638,9 @@ export class AdminController {
   // --- Import ---
 
   @Post('import/exercises')
-  @ApiOperation({ summary: 'Import global exercises from a ZIP export archive' })
+  @ApiOperation({
+    summary: 'Import global exercises from a ZIP export archive',
+  })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(FileInterceptor('file', ZIP_IMPORT_OPTIONS))
   async importExercises(
@@ -623,16 +670,24 @@ export class AdminController {
     for (const name of entryNames) {
       const ext = name.split('.').pop()?.toLowerCase() ?? '';
       if (name.includes('..') || name.startsWith('/') || name.includes('\\')) {
-        throw new BadRequestException(`Invalid path in ZIP: ${name.slice(0, 100)}`);
+        throw new BadRequestException(
+          `Invalid path in ZIP: ${name.slice(0, 100)}`,
+        );
       }
-      if (!IMPORT_ALLOWED_EXTENSIONS.includes(ext) && !name.startsWith('__MACOSX/') && !name.endsWith('.DS_Store')) {
+      if (
+        !IMPORT_ALLOWED_EXTENSIONS.includes(ext) &&
+        !name.startsWith('__MACOSX/') &&
+        !name.endsWith('.DS_Store')
+      ) {
         throw new BadRequestException(
           `Unsupported file type in ZIP: ${name.slice(0, 100)}`,
         );
       }
       const size = Number(zip.files[name]?._data?.uncompressedSize ?? 0);
       if (size > IMPORT_MAX_ENTRY_BYTES) {
-        throw new BadRequestException(`File too large in ZIP: ${name.slice(0, 100)}`);
+        throw new BadRequestException(
+          `File too large in ZIP: ${name.slice(0, 100)}`,
+        );
       }
       declaredTotal += size;
     }
@@ -679,7 +734,9 @@ export class AdminController {
     );
 
     if (exerciseJsonPaths.length === 0) {
-      throw new BadRequestException('No exercise.json files found in ZIP — is this a valid exercises export?');
+      throw new BadRequestException(
+        'No exercise.json files found in ZIP — is this a valid exercises export?',
+      );
     }
     if (exerciseJsonPaths.length > IMPORT_MAX_EXERCISES) {
       throw new BadRequestException(
@@ -713,7 +770,9 @@ export class AdminController {
           JSON.parse(jsonContent),
         );
         if (parsed.errors) {
-          errors.push(`${jsonPath}: invalid exercise.json (${parsed.errors.join('; ')})`);
+          errors.push(
+            `${jsonPath}: invalid exercise.json (${parsed.errors.join('; ')})`,
+          );
           continue;
         }
         item = parsed.value;
@@ -788,7 +847,10 @@ export class AdminController {
         existingTitles.add(titleDefault.toLowerCase());
         created++;
       } catch (err: any) {
-        if (err instanceof BadRequestException && err.message === 'ZIP content is too large') {
+        if (
+          err instanceof BadRequestException &&
+          err.message === 'ZIP content is too large'
+        ) {
           await this.uploadCleanupService.deleteIfUnreferenced(writtenFiles);
           throw err;
         }
@@ -824,7 +886,9 @@ export class AdminController {
     }
 
     if (payload?.type !== 'activities' || !Array.isArray(payload.activities)) {
-      throw new BadRequestException('File does not appear to be an activities export');
+      throw new BadRequestException(
+        'File does not appear to be an activities export',
+      );
     }
     if (payload.activities.length > IMPORT_MAX_ACTIVITIES) {
       throw new BadRequestException(

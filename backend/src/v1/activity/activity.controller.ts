@@ -126,6 +126,10 @@ export class ActivityController {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.activityService.duplicateGlobalActivity(id, +req.user.id, body.transferStats ?? false);
+    return this.activityService.duplicateGlobalActivity(
+      id,
+      +req.user.id,
+      body.transferStats ?? false,
+    );
   }
 }

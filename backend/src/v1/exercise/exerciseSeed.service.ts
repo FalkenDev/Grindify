@@ -39,7 +39,9 @@ export class ExerciseSeedService implements OnModuleInit {
   }
 
   async seedGlobalExercises(): Promise<void> {
-    const existing = await this.exerciseRepo.count({ where: { isGlobal: true } });
+    const existing = await this.exerciseRepo.count({
+      where: { isGlobal: true },
+    });
     if (existing > 0) return;
 
     this.logger.log('No global exercises found – seeding defaults…');
@@ -55,7 +57,9 @@ export class ExerciseSeedService implements OnModuleInit {
         .filter((mg): mg is NonNullable<typeof mg> => !!mg);
 
       const primaryMuscleGroups = def.primaryMuscleGroup
-        ? [mgMap.get(def.primaryMuscleGroup)].filter((mg): mg is NonNullable<typeof mg> => !!mg)
+        ? [mgMap.get(def.primaryMuscleGroup)].filter(
+            (mg): mg is NonNullable<typeof mg> => !!mg,
+          )
         : [];
 
       const exercise = this.exerciseRepo.create({
@@ -72,7 +76,9 @@ export class ExerciseSeedService implements OnModuleInit {
         isGlobal: true,
         createdBy: null,
         exerciseType: def.exerciseType,
-        equipmentI18n: def.equipment ? { default: def.equipment, eng: def.equipment } : undefined,
+        equipmentI18n: def.equipment
+          ? { default: def.equipment, eng: def.equipment }
+          : undefined,
         instructionsI18n: def.instructions?.length
           ? { default: def.instructions, eng: def.instructions }
           : undefined,
