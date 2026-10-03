@@ -50,7 +50,7 @@ async function handleSubmit() {
             placeholder="you@example.com"
             :disabled="loading"
             required
-            class="px-3 py-2 bg-surface-2 border border-border-2 rounded-chip text-[13.5px] text-text outline-none focus:border-border-strong placeholder:text-faint disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            class="px-3 py-2 bg-surface-2 border border-border-2 rounded-chip text-base md:text-[13.5px] text-text outline-none focus:border-border-strong placeholder:text-faint disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           />
         </div>
 
@@ -64,7 +64,7 @@ async function handleSubmit() {
             placeholder="••••••••"
             :disabled="loading"
             required
-            class="px-3 py-2 bg-surface-2 border border-border-2 rounded-chip text-[13.5px] text-text outline-none focus:border-border-strong placeholder:text-faint disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            class="px-3 py-2 bg-surface-2 border border-border-2 rounded-chip text-base md:text-[13.5px] text-text outline-none focus:border-border-strong placeholder:text-faint disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           />
         </div>
 

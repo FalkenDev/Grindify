@@ -7,8 +7,11 @@ import { storeToRefs } from 'pinia'
 import { ADMIN_NAV, isNavSection, isNavItem } from '@/config/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import { useStatsStore } from '@/stores/stats.store'
+import { useSidebar } from '@/composables/useSidebar'
 
-defineProps<{ collapsed: boolean }>()
+defineProps<{ collapsed: boolean; mobileOpen?: boolean }>()
+const emit = defineEmits<{ navigate: [] }>()
+const { isMobile } = useSidebar()
 
 const route = useRoute()
 const router = useRouter()
@@ -29,8 +32,14 @@ const menuOpen = ref(false)
 const menuRef = ref<HTMLElement | null>(null)
 onClickOutside(menuRef, () => { menuOpen.value = false })
 
+function navigate(path: string) {
+  emit('navigate')
+  router.push(path)
+}
+
 async function handleLogout() {
   menuOpen.value = false
+  emit('navigate')
   await logout()
   router.replace('/login')
 }
@@ -51,9 +60,15 @@ const displayName = computed(() => {
 </script>
 
 <template>
+  <!-- Below md the sidebar is an off-canvas drawer (fixed, closed by default);
+       from md up it is a sticky column that can collapse to an icon rail. -->
   <aside
-    class="sidebar sticky top-0 h-screen border-r border-border flex flex-col overflow-hidden transition-[width] duration-200 shrink-0"
-    :class="collapsed ? 'w-sidebar-collapsed' : 'w-sidebar'"
+    class="sidebar fixed inset-y-0 left-0 z-50 w-sidebar h-screen border-r border-border flex flex-col overflow-hidden transition-[width,transform] duration-200 shrink-0 md:sticky md:top-0 md:z-auto md:translate-x-0"
+    :class="[
+      collapsed ? 'md:w-sidebar-collapsed' : 'md:w-sidebar',
+      mobileOpen ? 'translate-x-0' : '-translate-x-full',
+    ]"
+    :inert="isMobile && !mobileOpen"
     style="background: linear-gradient(180deg, #0b0b0d 0%, #0a0a0c 100%)"
   >
     <!-- Brand -->
@@ -89,7 +104,7 @@ const displayName = computed(() => {
             collapsed ? 'justify-center !px-[9px]' : '',
           ]"
           :title="collapsed ? entry.label : undefined"
-          @click="router.push(entry.path)"
+          @click="navigate(entry.path)"
         >
           <component
             :is="getIcon(entry.icon)"

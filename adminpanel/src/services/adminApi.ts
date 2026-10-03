@@ -20,10 +20,6 @@ export interface AdminUserDetail extends AdminUser {
   streakFreezes: number
   completedGoalWeeksCount: number
   unitScale: string | null
-  weight: number | null
-  height: number | null
-  dateOfBirth: string | null
-  gender: string | null
   primaryGoal: string | null
   showRpe: boolean
   showWeightTracking: boolean
@@ -67,7 +63,37 @@ export interface ReleasesResponse {
 
 export interface HealthResponse {
   ok: boolean
-  at: string
+  db?: 'up' | 'down'
+  at?: string
+}
+
+// --- Audit log ---
+
+export interface AuditLogEntry {
+  id: number | string
+  createdAt: string
+  actorId: number | null
+  actorEmail: string | null
+  action: string
+  targetType: string | null
+  targetId: string | number | null
+  ip: string | null
+  userAgent: string | null
+  metadata: Record<string, unknown> | null
+}
+
+export interface AuditLogsResponse {
+  items: AuditLogEntry[]
+  total: number
+  page: number
+  limit: number
+}
+
+export interface AuditLogQuery {
+  page?: number
+  limit?: number
+  action?: string
+  actorId?: number
 }
 
 // --- i18n types ---
@@ -201,6 +227,12 @@ export const adminApi = {
   getUser: (id: number) => apiFetch<AdminUserDetail>(`/admin/users/${id}`),
   getReleases: () => apiFetch<ReleasesResponse>('/releases'),
   getHealth: () => apiFetch<HealthResponse>('/auth/health'),
+  getAuditLogs: ({ page = 1, limit = 50, action, actorId }: AuditLogQuery = {}) => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+    if (action) params.set('action', action)
+    if (actorId !== undefined) params.set('actorId', String(actorId))
+    return apiFetch<AuditLogsResponse>(`/admin/audit-logs?${params}`)
+  },
 
   // Global Exercises
   getGlobalExercises: () => apiFetch<GlobalExercise[]>('/admin/exercises'),

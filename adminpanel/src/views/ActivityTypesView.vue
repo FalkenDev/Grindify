@@ -160,7 +160,7 @@ function trackingFlags(a: GlobalActivity): string {
   </div>
 
   <div class="flex gap-2 mb-3.5">
-    <div class="relative w-[260px]">
+    <div class="relative w-full sm:w-[260px]">
       <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
       <input v-model="search" type="text" placeholder="Search activities…" autocomplete="off"
         class="w-full pl-8 pr-3 py-2 bg-surface border border-border-2 rounded-chip text-[13px] text-text outline-none focus:border-border-strong placeholder:text-faint transition-colors" />
@@ -173,49 +173,52 @@ function trackingFlags(a: GlobalActivity): string {
   </div>
 
   <div v-else class="bg-surface border border-border rounded-card overflow-hidden">
-    <table class="w-full border-collapse">
-      <thead>
-        <tr class="border-b border-border">
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Title (default)</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Icon</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Tracking</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Translations</th>
-          <th class="px-4 py-2.5 text-right text-[11.5px] font-bold uppercase tracking-widest text-dim">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-if="loading">
-          <td colspan="5" class="px-4 py-8">
-            <div class="flex items-center gap-2.5 text-mute text-[13px]">
-              <Loader2 :size="18" class="animate-spin" />
-              <span>Loading activities…</span>
-            </div>
-          </td>
-        </tr>
-        <tr v-else-if="filteredActivities.length === 0">
-          <td colspan="5" class="px-4 py-8 text-[13px] text-faint">No activities found</td>
-        </tr>
-        <tr v-for="a in filteredActivities" :key="a.id"
-          class="border-b border-border last:border-0 hover:bg-surface-2 transition-colors">
-          <td class="px-4 py-2.5 text-[13px] font-medium text-text">{{ a.title?.default ?? '—' }}</td>
-          <td class="px-4 py-2.5 text-[12.5px] text-mute font-mono">{{ a.icon }}</td>
-          <td class="px-4 py-2.5 text-[12px] text-mute">{{ trackingFlags(a) }}</td>
-          <td class="px-4 py-2.5 text-[12px] text-mute">
-            {{ [a.title?.eng ? 'eng' : '', a.title?.swe ? 'swe' : ''].filter(Boolean).join(', ') || 'default only' }}
-          </td>
-          <td class="px-4 py-2.5 text-right">
-            <div class="flex items-center justify-end gap-1">
-              <button class="p-1.5 rounded hover:bg-surface-3 text-mute hover:text-text transition-colors" title="Edit" @click="openEdit(a)">
-                <Pencil :size="14" />
-              </button>
-              <button class="p-1.5 rounded hover:bg-red/10 text-mute hover:text-red transition-colors" title="Delete" @click="deleteConfirmId = a.id">
-                <Trash2 :size="14" />
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Wide tables scroll inside their card instead of widening the page -->
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse min-w-[640px]">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Title (default)</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Icon</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Tracking</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Translations</th>
+            <th class="px-4 py-2.5 text-right text-[11.5px] font-bold uppercase tracking-widest text-dim">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading">
+            <td colspan="5" class="px-4 py-8">
+              <div class="flex items-center gap-2.5 text-mute text-[13px]">
+                <Loader2 :size="18" class="animate-spin" />
+                <span>Loading activities…</span>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="filteredActivities.length === 0">
+            <td colspan="5" class="px-4 py-8 text-[13px] text-faint">No activities found</td>
+          </tr>
+          <tr v-for="a in filteredActivities" :key="a.id"
+            class="border-b border-border last:border-0 hover:bg-surface-2 transition-colors">
+            <td class="px-4 py-2.5 text-[13px] font-medium text-text">{{ a.title?.default ?? '—' }}</td>
+            <td class="px-4 py-2.5 text-[12.5px] text-mute font-mono">{{ a.icon }}</td>
+            <td class="px-4 py-2.5 text-[12px] text-mute">{{ trackingFlags(a) }}</td>
+            <td class="px-4 py-2.5 text-[12px] text-mute">
+              {{ [a.title?.eng ? 'eng' : '', a.title?.swe ? 'swe' : ''].filter(Boolean).join(', ') || 'default only' }}
+            </td>
+            <td class="px-4 py-2.5 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <button class="p-1.5 rounded hover:bg-surface-3 text-mute hover:text-text transition-colors" title="Edit" @click="openEdit(a)">
+                  <Pencil :size="14" />
+                </button>
+                <button class="p-1.5 rounded hover:bg-red/10 text-mute hover:text-red transition-colors" title="Delete" @click="deleteConfirmId = a.id">
+                  <Trash2 :size="14" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Create/Edit Dialog -->

@@ -6,16 +6,19 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppTopbar from '@/components/layout/AppTopbar.vue'
 import { useSidebar } from '@/composables/useSidebar'
 
-const { collapsed, toggle } = useSidebar()
+const { railCollapsed, mobileOpen, toggle, closeMobile } = useSidebar()
 const route = useRoute()
 
 watch(
-  collapsed,
+  railCollapsed,
   (val) => {
     document.getElementById('app')?.classList.toggle('collapsed', val)
   },
   { immediate: true },
 )
+
+// The mobile drawer closes whenever the user navigates.
+watch(() => route.fullPath, closeMobile)
 </script>
 
 <template>
@@ -23,7 +26,14 @@ watch(
     <RouterView />
   </template>
   <template v-else>
-    <AppSidebar :collapsed="collapsed" />
+    <AppSidebar :collapsed="railCollapsed" :mobile-open="mobileOpen" @navigate="closeMobile" />
+    <!-- Backdrop for the off-canvas sidebar on small screens -->
+    <div
+      v-if="mobileOpen"
+      class="fixed inset-0 z-40 bg-black/60 md:hidden"
+      aria-hidden="true"
+      @click="closeMobile"
+    />
     <div class="admin-main">
       <AppTopbar @toggle-sidebar="toggle" />
       <main class="admin-content">

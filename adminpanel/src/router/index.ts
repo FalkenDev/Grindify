@@ -140,6 +140,12 @@ const router = createRouter({
         navId: 'a-settings',
       },
     },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/NotFoundView.vue'),
+      meta: { title: 'Not found' },
+    },
   ],
 })
 

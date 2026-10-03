@@ -5,6 +5,7 @@ import { useMagicKeys, whenever, onClickOutside } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import {
   PanelLeft,
+  Menu,
   ChevronRight,
   Search,
   Moon,
@@ -45,23 +46,24 @@ const avatarInitials = computed(() => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-30 h-topbar flex items-center px-6 gap-4 bg-bg/85 backdrop-blur-md border-b border-border shrink-0">
+  <header class="sticky top-0 z-30 h-topbar flex items-center px-4 md:px-6 gap-3 md:gap-4 bg-bg/85 backdrop-blur-md border-b border-border shrink-0">
 
     <button
       class="flex items-center justify-center w-8 h-8 rounded-[8px] text-mute hover:bg-surface-2 hover:text-text-2 transition-colors cursor-pointer shrink-0"
       aria-label="Toggle sidebar"
       @click="emit('toggleSidebar')"
     >
-      <PanelLeft :size="16" />
+      <Menu :size="18" class="md:hidden" />
+      <PanelLeft :size="16" class="hidden md:block" />
     </button>
 
-    <div class="flex items-center gap-2 text-[13px] text-mute whitespace-nowrap">
-      <span>Admin</span>
-      <ChevronRight :size="12" class="text-faint" />
-      <span class="text-text font-medium">{{ currentTitle }}</span>
+    <div class="flex items-center gap-2 text-[13px] text-mute whitespace-nowrap min-w-0">
+      <span class="hidden sm:inline">Admin</span>
+      <ChevronRight :size="12" class="text-faint hidden sm:block" />
+      <span class="text-text font-medium truncate">{{ currentTitle }}</span>
     </div>
 
-    <div class="flex flex-1 max-w-[420px] items-center gap-2 px-2.5 py-[7px] bg-surface-2 border border-border rounded-[10px] text-mute hover:border-border-strong hover:bg-surface transition-colors cursor-text">
+    <div class="hidden md:flex flex-1 max-w-[420px] items-center gap-2 px-2.5 py-[7px] bg-surface-2 border border-border rounded-[10px] text-mute hover:border-border-strong hover:bg-surface transition-colors cursor-text">
       <Search :size="14" class="shrink-0" />
       <input
         placeholder="Search users, exercises, settings…"

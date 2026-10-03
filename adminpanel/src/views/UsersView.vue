@@ -67,7 +67,7 @@ function formatDate(iso: string) {
   </div>
 
   <div class="mb-3.5">
-    <div class="relative w-[280px]">
+    <div class="relative w-full sm:w-[280px]">
       <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
       <input
         v-model="search"
@@ -85,72 +85,75 @@ function formatDate(iso: string) {
   </div>
 
   <div v-else class="bg-surface border border-border rounded-card overflow-hidden">
-    <table class="w-full border-collapse">
-      <thead>
-        <tr class="border-b border-border">
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">User</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Role</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Streak</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Verified</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Onboarded</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Joined</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-if="loading">
-          <td colspan="6" class="px-4 py-8">
-            <div class="flex items-center gap-2.5 text-mute text-[13px]">
-              <Loader2 :size="18" class="animate-spin" />
-              <span>Loading users…</span>
-            </div>
-          </td>
-        </tr>
-        <tr v-else-if="users.length === 0">
-          <td colspan="6" class="px-4 py-8 text-[13px] text-faint">No users found</td>
-        </tr>
-        <tr
-          v-else
-          v-for="user in users"
-          :key="user.id"
-          class="border-b border-border last:border-0 hover:bg-surface-2 transition-colors"
-        >
-          <td class="px-4 py-2.5 align-middle">
-            <div class="flex items-center gap-2.5">
-              <div class="w-[30px] h-[30px] rounded-full bg-surface-hi text-text-2 text-[11px] font-bold flex items-center justify-center shrink-0">
-                {{ initials(user) }}
+    <!-- Wide tables scroll inside their card instead of widening the page -->
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse min-w-[640px]">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">User</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Role</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Streak</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Verified</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Onboarded</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading">
+            <td colspan="6" class="px-4 py-8">
+              <div class="flex items-center gap-2.5 text-mute text-[13px]">
+                <Loader2 :size="18" class="animate-spin" />
+                <span>Loading users…</span>
               </div>
-              <div class="flex flex-col gap-px">
-                <span class="text-[13px] font-medium text-text">{{ displayName(user) }}</span>
-                <span class="text-[12px] text-dim">{{ user.email }}</span>
+            </td>
+          </tr>
+          <tr v-else-if="users.length === 0">
+            <td colspan="6" class="px-4 py-8 text-[13px] text-faint">No users found</td>
+          </tr>
+          <tr
+            v-else
+            v-for="user in users"
+            :key="user.id"
+            class="border-b border-border last:border-0 hover:bg-surface-2 transition-colors"
+          >
+            <td class="px-4 py-2.5 align-middle">
+              <div class="flex items-center gap-2.5">
+                <div class="w-[30px] h-[30px] rounded-full bg-surface-hi text-text-2 text-[11px] font-bold flex items-center justify-center shrink-0">
+                  {{ initials(user) }}
+                </div>
+                <div class="flex flex-col gap-px">
+                  <span class="text-[13px] font-medium text-text">{{ displayName(user) }}</span>
+                  <span class="text-[12px] text-dim">{{ user.email }}</span>
+                </div>
               </div>
-            </div>
-          </td>
-          <td class="px-4 py-2.5 align-middle">
-            <span
-              class="inline-block px-2 py-0.5 rounded-pill text-[11.5px] font-semibold"
-              :class="user.role === 'superadmin' ? 'bg-violet-soft text-violet' : 'bg-surface-3 text-mute'"
-            >
-              {{ user.role }}
-            </span>
-          </td>
-          <td class="px-4 py-2.5 align-middle">
-            <span v-if="user.currentStreak > 0" class="flex items-center gap-1 text-[13px] font-semibold text-amber">
-              <Flame :size="13" />{{ user.currentStreak }}
-            </span>
-            <span v-else class="text-ghost text-[13px]">—</span>
-          </td>
-          <td class="px-4 py-2.5 align-middle">
-            <CheckCircle2 v-if="user.emailVerified" :size="16" class="text-emerald" />
-            <XCircle v-else :size="16" class="text-faint" />
-          </td>
-          <td class="px-4 py-2.5 align-middle">
-            <CheckCircle2 v-if="user.onboardingCompleted" :size="16" class="text-emerald" />
-            <XCircle v-else :size="16" class="text-faint" />
-          </td>
-          <td class="px-4 py-2.5 align-middle text-[12.5px] text-dim whitespace-nowrap">{{ formatDate(user.createdAt) }}</td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td class="px-4 py-2.5 align-middle">
+              <span
+                class="inline-block px-2 py-0.5 rounded-pill text-[11.5px] font-semibold"
+                :class="user.role === 'superadmin' ? 'bg-violet-soft text-violet' : 'bg-surface-3 text-mute'"
+              >
+                {{ user.role }}
+              </span>
+            </td>
+            <td class="px-4 py-2.5 align-middle">
+              <span v-if="user.currentStreak > 0" class="flex items-center gap-1 text-[13px] font-semibold text-amber">
+                <Flame :size="13" />{{ user.currentStreak }}
+              </span>
+              <span v-else class="text-ghost text-[13px]">—</span>
+            </td>
+            <td class="px-4 py-2.5 align-middle">
+              <CheckCircle2 v-if="user.emailVerified" :size="16" class="text-emerald" />
+              <XCircle v-else :size="16" class="text-faint" />
+            </td>
+            <td class="px-4 py-2.5 align-middle">
+              <CheckCircle2 v-if="user.onboardingCompleted" :size="16" class="text-emerald" />
+              <XCircle v-else :size="16" class="text-faint" />
+            </td>
+            <td class="px-4 py-2.5 align-middle text-[12.5px] text-dim whitespace-nowrap">{{ formatDate(user.createdAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div v-if="!loading && totalPages() > 1" class="flex items-center justify-center gap-3 p-3.5 border-t border-border">
       <button

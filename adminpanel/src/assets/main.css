@@ -73,6 +73,17 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Prevent iOS Safari auto-zoom on focus: form controls must be >= 16px on
+   small screens. Overrides the compact arbitrary text-[..px] sizes used in
+   views; desktop keeps the compact sizing. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 body {
   font-size: 14px;
   line-height: 1.45;
@@ -123,16 +134,22 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.02em; }
 #app {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: var(--side-w) 1fr;
+  /* minmax(0, 1fr) keeps wide content (tables) from stretching the page. */
+  grid-template-columns: var(--side-w) minmax(0, 1fr);
   transition: grid-template-columns 0.2s ease;
 }
 
 #app.collapsed {
-  grid-template-columns: var(--side-w-collapsed) 1fr;
+  grid-template-columns: var(--side-w-collapsed) minmax(0, 1fr);
 }
 
-@media (max-width: 900px) {
-  #app { grid-template-columns: 1fr; }
+/* Below md the sidebar is an off-canvas drawer (position: fixed), so the
+   content gets the full width. */
+@media (max-width: 767.98px) {
+  #app,
+  #app.collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ── Main content area ────────────────────────────────────────── */
@@ -145,6 +162,22 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.02em; }
 
 .admin-content {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
   padding: 28px 28px 40px;
+}
+
+@media (max-width: 767.98px) {
+  .admin-content {
+    padding: 20px 16px 32px;
+  }
+
+  .page-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .page-head .actions {
+    flex-wrap: wrap;
+  }
 }

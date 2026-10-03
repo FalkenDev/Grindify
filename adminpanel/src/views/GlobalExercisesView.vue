@@ -304,7 +304,7 @@ function mgName(mg: AdminMuscleGroup): string {
 
   <!-- Filters -->
   <div class="flex gap-2 mb-3.5">
-    <div class="relative w-[260px]">
+    <div class="relative w-full sm:w-[260px]">
       <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
       <input v-model="search" type="text" placeholder="Search exercises…" autocomplete="off"
         class="w-full pl-8 pr-3 py-2 bg-surface border border-border-2 rounded-chip text-[13px] text-text outline-none focus:border-border-strong placeholder:text-faint transition-colors" />
@@ -324,56 +324,59 @@ function mgName(mg: AdminMuscleGroup): string {
   </div>
 
   <div v-else class="bg-surface border border-border rounded-card overflow-hidden">
-    <table class="w-full border-collapse">
-      <thead>
-        <tr class="border-b border-border">
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Image</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Title (default)</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Type</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Translations</th>
-          <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Muscles</th>
-          <th class="px-4 py-2.5 text-right text-[11.5px] font-bold uppercase tracking-widest text-dim">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-if="loading">
-          <td colspan="6" class="px-4 py-8">
-            <div class="flex items-center gap-2.5 text-mute text-[13px]">
-              <Loader2 :size="18" class="animate-spin" />
-              <span>Loading exercises…</span>
-            </div>
-          </td>
-        </tr>
-        <tr v-else-if="filteredExercises.length === 0">
-          <td colspan="6" class="px-4 py-8 text-[13px] text-faint">No exercises found</td>
-        </tr>
-        <tr v-for="ex in filteredExercises" :key="ex.id"
-          class="border-b border-border last:border-0 hover:bg-surface-2 transition-colors">
-          <td class="px-4 py-2.5">
-            <div class="w-9 h-9 rounded overflow-hidden bg-surface-3 flex items-center justify-center shrink-0">
-              <img v-if="ex.image" :src="resolveUrl(ex.image)" :alt="ex.title?.default ?? ''" class="w-full h-full object-cover" />
-              <ImageIcon v-else :size="16" class="text-faint" />
-            </div>
-          </td>
-          <td class="px-4 py-2.5 text-[13px] font-medium text-text">{{ ex.title?.default ?? '—' }}</td>
-          <td class="px-4 py-2.5 text-[12.5px] text-mute capitalize">{{ ex.exerciseType ?? '—' }}</td>
-          <td class="px-4 py-2.5 text-[12px] text-mute">{{ coverageFor(ex) }}</td>
-          <td class="px-4 py-2.5 text-[12px] text-mute">
-            {{ ex.muscleGroups?.map(m => m.name).join(', ') || '—' }}
-          </td>
-          <td class="px-4 py-2.5 text-right">
-            <div class="flex items-center justify-end gap-1">
-              <button class="p-1.5 rounded hover:bg-surface-3 text-mute hover:text-text transition-colors" title="Edit" @click="openEdit(ex)">
-                <Pencil :size="14" />
-              </button>
-              <button class="p-1.5 rounded hover:bg-red/10 text-mute hover:text-red transition-colors" title="Delete" @click="deleteConfirmId = ex.id">
-                <Trash2 :size="14" />
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Wide tables scroll inside their card instead of widening the page -->
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse min-w-[640px]">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Image</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Title (default)</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Type</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Translations</th>
+            <th class="px-4 py-2.5 text-left text-[11.5px] font-bold uppercase tracking-widest text-dim">Muscles</th>
+            <th class="px-4 py-2.5 text-right text-[11.5px] font-bold uppercase tracking-widest text-dim">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="loading">
+            <td colspan="6" class="px-4 py-8">
+              <div class="flex items-center gap-2.5 text-mute text-[13px]">
+                <Loader2 :size="18" class="animate-spin" />
+                <span>Loading exercises…</span>
+              </div>
+            </td>
+          </tr>
+          <tr v-else-if="filteredExercises.length === 0">
+            <td colspan="6" class="px-4 py-8 text-[13px] text-faint">No exercises found</td>
+          </tr>
+          <tr v-for="ex in filteredExercises" :key="ex.id"
+            class="border-b border-border last:border-0 hover:bg-surface-2 transition-colors">
+            <td class="px-4 py-2.5">
+              <div class="w-9 h-9 rounded overflow-hidden bg-surface-3 flex items-center justify-center shrink-0">
+                <img v-if="ex.image" :src="resolveUrl(ex.image)" :alt="ex.title?.default ?? 'Exercise image'" class="w-full h-full object-cover" loading="lazy" decoding="async" />
+                <ImageIcon v-else :size="16" class="text-faint" />
+              </div>
+            </td>
+            <td class="px-4 py-2.5 text-[13px] font-medium text-text">{{ ex.title?.default ?? '—' }}</td>
+            <td class="px-4 py-2.5 text-[12.5px] text-mute capitalize">{{ ex.exerciseType ?? '—' }}</td>
+            <td class="px-4 py-2.5 text-[12px] text-mute">{{ coverageFor(ex) }}</td>
+            <td class="px-4 py-2.5 text-[12px] text-mute">
+              {{ ex.muscleGroups?.map(m => m.name).join(', ') || '—' }}
+            </td>
+            <td class="px-4 py-2.5 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <button class="p-1.5 rounded hover:bg-surface-3 text-mute hover:text-text transition-colors" title="Edit" @click="openEdit(ex)">
+                  <Pencil :size="14" />
+                </button>
+                <button class="p-1.5 rounded hover:bg-red/10 text-mute hover:text-red transition-colors" title="Delete" @click="deleteConfirmId = ex.id">
+                  <Trash2 :size="14" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ── Create/Edit Dialog ─────────────────────────────────────────────────── -->
@@ -474,7 +477,7 @@ function mgName(mg: AdminMuscleGroup): string {
             <label class="block text-[11.5px] font-bold uppercase tracking-widest text-dim mb-1.5">Thumbnail Image</label>
             <div class="flex items-start gap-3">
               <div class="w-20 h-20 rounded-card border border-border-2 bg-surface-3 flex items-center justify-center overflow-hidden shrink-0">
-                <img v-if="form.imageUrl" :src="resolveUrl(form.imageUrl)" alt="Thumbnail" class="w-full h-full object-cover" />
+                <img v-if="form.imageUrl" :src="resolveUrl(form.imageUrl)" alt="Thumbnail" class="w-full h-full object-cover" loading="lazy" decoding="async" />
                 <ImageIcon v-else :size="22" class="text-faint" />
               </div>
               <div class="flex flex-col gap-1.5 pt-1">
@@ -554,7 +557,7 @@ function mgName(mg: AdminMuscleGroup): string {
                 style="width: 90px; height: 90px;"
               >
                 <video v-if="item.type === 'video'" :src="resolveUrl(item.url)" class="w-full h-full object-cover" muted />
-                <img v-else :src="resolveUrl(item.url)" class="w-full h-full object-cover" />
+                <img v-else :src="resolveUrl(item.url)" :alt="`Exercise media ${idx + 1}`" class="w-full h-full object-cover" loading="lazy" decoding="async" />
                 <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
                   <div class="flex gap-1">
                     <button
