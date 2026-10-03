@@ -15,25 +15,31 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class WorkoutExerciseDto {
   @ApiProperty({ example: 1 })
+  @Type(() => Number)
   @IsNumber()
   order!: number;
 
   @ApiProperty({ example: 3 })
+  @Type(() => Number)
   @IsNumber()
   sets!: number;
 
   @ApiProperty({ example: 10 })
+  @Type(() => Number)
   @IsNumber()
   reps!: number;
 
   @ApiProperty({ example: 60 })
+  @Type(() => Number)
   @IsNumber()
   pauseSeconds!: number;
 
   @ApiProperty({ example: 50 })
+  @Type(() => Number)
   @IsNumber()
   weight!: number;
 
@@ -41,6 +47,7 @@ export class WorkoutExerciseDto {
   setWeights!: number[] | null;
 
   @ApiProperty({ example: 5 })
+  @Type(() => Number)
   @IsNumber()
   exerciseId!: number;
 }

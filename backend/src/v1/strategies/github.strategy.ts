@@ -17,7 +17,14 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-github2';
 import { ConfigService } from '@nestjs/config';
-import { AuthService } from '../auth/auth.service';
+import { AuthService, OAuthResult } from '../auth/auth.service';
+import { CookieStateStore } from './cookieState.store';
+
+interface GithubEmail {
+  value: string;
+  primary?: boolean;
+  verified?: boolean;
+}
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
@@ -30,24 +37,33 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       clientSecret: configService.get<string>('GITHUB_CLIENT_SECRET') as string,
       callbackURL: `${configService.get<string>('BACKEND_URL') ?? 'http://localhost:1337'}/v1/auth/github/callback`,
       scope: ['user:email'],
-    });
+      // Return all emails incl. primary/verified flags from /user/emails
+      allRawEmails: true,
+      state: true,
+      store: new CookieStateStore('github'),
+    } as any);
   }
 
   async validate(
     _accessToken: string,
     _refreshToken: string,
     profile: any,
-  ): Promise<any> {
-    const email: string | undefined =
-      profile.emails?.find((e: any) => e.verified)?.value ??
-      profile.emails?.[0]?.value;
+  ): Promise<OAuthResult> {
+    const emails: GithubEmail[] = Array.isArray(profile.emails)
+      ? profile.emails
+      : [];
+    // Only ever trust a verified address — prefer the primary one
+    const email =
+      emails.find((e) => e.primary && e.verified === true)?.value ??
+      emails.find((e) => e.verified === true)?.value;
 
-    const firstName = profile.displayName?.split(' ')[0] ?? profile.username ?? '';
+    const firstName =
+      profile.displayName?.split(' ')[0] ?? profile.username ?? '';
     const lastName = profile.displayName?.split(' ').slice(1).join(' ') ?? '';
     const avatar = profile.photos?.[0]?.value;
 
-    return this.authService.findOrCreateGithubUser({
-      githubId: profile.id,
+    return this.authService.findOrCreateOAuthUser('github', {
+      providerId: String(profile.id),
       email,
       firstName,
       lastName,

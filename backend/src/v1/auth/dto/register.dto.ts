@@ -13,34 +13,56 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
-import { Equals } from 'class-validator';
+import {
+  Equals,
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
   @ApiProperty()
   @IsEmail()
   @IsNotEmpty()
+  @MaxLength(254)
   email: string;
 
   @ApiProperty()
+  @IsString()
   @IsNotEmpty()
   @MinLength(8)
+  // bcrypt only uses the first 72 bytes
+  @MaxLength(72)
   password: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
   firstName?: string;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
   lastName?: string;
 
-  @ApiProperty({ required: false })
-  avatar?: string;
-
-  @ApiProperty()
+  @ApiProperty({ description: 'Must be true: accepts the terms of service' })
   @IsBoolean()
   @Equals(true, { message: 'You must accept the terms and conditions' })
   termsAccepted: boolean;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'Optional (voluntary): consent to processing of health data (GDPR art. 9)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  healthDataConsent?: boolean;
 }

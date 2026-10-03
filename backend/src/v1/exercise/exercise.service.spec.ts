@@ -22,6 +22,7 @@ import { Exercise, ExerciseType } from './exercise.entity';
 import { ExerciseMedia } from './exerciseMedia.entity';
 import { MuscleGroupService } from '../muscleGroup/muscleGroup.service';
 import { UploadService } from '../upload/upload.service';
+import { UploadCleanupService } from '../upload/uploadCleanup.service';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -66,7 +67,7 @@ function makeMockManager(affectedUsers: { userId: number }[] = [], copyId = 200)
       .mockResolvedValue(undefined),
     create: jest.fn((_entity: any, data: any) => ({ ...data })),
     save: jest.fn((_entity: any, data: any) => Promise.resolve({ ...data, id: copyId++ })),
-    softRemove: jest.fn().mockResolvedValue(undefined),
+    softDelete: jest.fn().mockResolvedValue(undefined),
     findOne: jest.fn(),
   };
 }
@@ -86,7 +87,7 @@ describe('ExerciseService', () => {
       findOne: jest.fn(),
       create: jest.fn((_data: any) => ({ ..._data })),
       save: jest.fn((e: any) => Promise.resolve({ ...e, id: e.id ?? 99 })),
-      softRemove: jest.fn().mockResolvedValue(undefined),
+      softDelete: jest.fn().mockResolvedValue(undefined),
     };
 
     mediaRepo = {
@@ -109,6 +110,10 @@ describe('ExerciseService', () => {
         { provide: MuscleGroupService, useValue: muscleGroupService },
         { provide: UploadService, useValue: { deleteImage: jest.fn() } },
         { provide: DataSource, useValue: dataSource },
+        {
+          provide: UploadCleanupService,
+          useValue: { deleteIfUnreferenced: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -301,7 +306,7 @@ describe('ExerciseService', () => {
 
       const result = await service.remove(1, 1);
 
-      expect(exerciseRepo.softRemove).toHaveBeenCalledWith(ex);
+      expect(exerciseRepo.softDelete).toHaveBeenCalledWith({ id: ex.id });
       expect(result).toEqual({ message: 'Exercise deleted' });
     });
 
@@ -311,10 +316,10 @@ describe('ExerciseService', () => {
       await expect(service.remove(100, 1)).rejects.toThrow(NotFoundException);
     });
 
-    it('does NOT hard-delete — only softRemove', async () => {
+    it('does NOT hard-delete — only softDelete', async () => {
       const ex = makeExercise();
       exerciseRepo.findOne.mockResolvedValue(ex);
-      const removeSpy = jest.spyOn(exerciseRepo, 'softRemove');
+      const removeSpy = jest.spyOn(exerciseRepo, 'softDelete');
 
       await service.remove(1, 1);
 
@@ -341,7 +346,9 @@ describe('ExerciseService', () => {
 
       await service.deleteGlobal(100);
 
-      expect(manager.softRemove).toHaveBeenCalledWith(Exercise, globalEx);
+      expect(manager.softDelete).toHaveBeenCalledWith(Exercise, {
+        id: globalEx.id,
+      });
     });
 
     it('skips copy creation when no users have data on the exercise', async () => {
@@ -355,7 +362,9 @@ describe('ExerciseService', () => {
 
       expect(manager.create).not.toHaveBeenCalled();
       expect(manager.save).not.toHaveBeenCalled();
-      expect(manager.softRemove).toHaveBeenCalledWith(Exercise, globalEx);
+      expect(manager.softDelete).toHaveBeenCalledWith(Exercise, {
+        id: globalEx.id,
+      });
     });
 
     it('creates a personalized copy for each affected user', async () => {
@@ -415,7 +424,7 @@ describe('ExerciseService', () => {
           .mockResolvedValue(undefined),
         create: jest.fn((_e: any, data: any) => data),
         save: jest.fn((_e: any, data: any) => Promise.resolve({ ...data, id: savedId++ })),
-        softRemove: jest.fn().mockResolvedValue(undefined),
+        softDelete: jest.fn().mockResolvedValue(undefined),
       };
       dataSource.transaction.mockImplementation(async (cb: any) => cb(manager));
 

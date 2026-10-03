@@ -33,6 +33,8 @@ import { ActivityLog } from './activityLog/activityLog.entity';
 import { ExerciseRecord } from './statistics/exerciseRecord.entity';
 import { WeightLog } from './weightLog/weightLog.entity';
 import { ProgressPhoto } from './progressPhoto/progressPhoto.entity';
+import { AuditLog } from './audit/auditLog.entity';
+import { getDbLogging } from './common/dbLogging.util';
 
 dotenv.config();
 
@@ -40,11 +42,12 @@ export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DATABASE_HOST || 'postgres',
   port: +(process.env.DATABASE_PORT || 5432),
-  username: process.env.DATABASE_USER || 'user',
-  password: process.env.DATABASE_PASSWORD || 'password',
+  // No default credentials — must come from the environment
+  username: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME || 'grindifydb',
   synchronize: false,
-  logging: ['error', 'warn'],
+  logging: getDbLogging(),
   entities: [
     User,
     MuscleGroup,
@@ -62,6 +65,7 @@ export const AppDataSource = new DataSource({
     ExerciseRecord,
     WeightLog,
     ProgressPhoto,
+    AuditLog,
   ],
   migrations: [__dirname + '/migrations/*.{ts,js}'],
 });

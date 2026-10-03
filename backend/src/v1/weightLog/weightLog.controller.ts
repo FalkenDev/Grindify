@@ -36,6 +36,8 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { ConsentGuard } from '../guards/consent.guard';
+import { HealthConsentGuard } from '../guards/healthConsent.guard';
 import { JwtAuthGuard } from '../guards/jwtAuth.guard';
 import {
   WeightLogResponseDto,
@@ -45,7 +47,7 @@ import { RequestWithUser } from '../types/requestWithUser.type';
 
 @ApiTags('weight-logs')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ConsentGuard, HealthConsentGuard)
 @Controller('weight-logs')
 export class WeightLogController {
   constructor(private readonly weightLogService: WeightLogService) {}

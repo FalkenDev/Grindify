@@ -23,11 +23,15 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { MuscleGroupService } from './muscleGroup.service';
 import { CreateMuscleGroupDto } from './dto/createMuscleGroup.dto';
 import { UpdateMuscleGroupDto } from './dto/updateMuscleGroup.dto';
 import { JwtAuthGuard } from '../guards/jwtAuth.guard';
+import { SuperAdminGuard } from '../guards/superAdmin.guard';
+import { AuditService } from '../audit/audit.service';
+import { RequestWithUser } from '../types/requestWithUser.type';
 import {
   ApiBearerAuth,
   ApiTags,
@@ -41,7 +45,10 @@ import { MuscleGroupResponseDto } from './dto/muscleGroupResponse.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('muscleGroups')
 export class MuscleGroupController {
-  constructor(private readonly muscleGroupService: MuscleGroupService) {}
+  constructor(
+    private readonly muscleGroupService: MuscleGroupService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all muscle groups' })
@@ -58,20 +65,39 @@ export class MuscleGroupController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new muscle group' })
+  @UseGuards(SuperAdminGuard)
+  @ApiOperation({ summary: 'Create a new muscle group (superadmin)' })
   @ApiOkResponse({ type: MuscleGroupResponseDto })
-  create(@Body() dto: CreateMuscleGroupDto) {
-    return this.muscleGroupService.create(dto);
+  async create(@Body() dto: CreateMuscleGroupDto, @Req() req: RequestWithUser) {
+    const created = await this.muscleGroupService.create(dto);
+    await this.auditService.log({
+      action: 'admin.muscle_group_created',
+      actor: req.user,
+      targetType: 'muscle_group',
+      targetId: created?.id,
+      req,
+    });
+    return created;
   }
 
   @Put(':id')
-  @ApiOperation({ summary: 'Update a muscle group' })
+  @UseGuards(SuperAdminGuard)
+  @ApiOperation({ summary: 'Update a muscle group (superadmin)' })
   @ApiOkResponse({ type: MuscleGroupResponseDto })
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateMuscleGroupDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.muscleGroupService.update(id, dto);
+    const updated = await this.muscleGroupService.update(id, dto);
+    await this.auditService.log({
+      action: 'admin.muscle_group_updated',
+      actor: req.user,
+      targetType: 'muscle_group',
+      targetId: id,
+      req,
+    });
+    return updated;
   }
 
   @Delete(':id')
@@ -79,7 +105,19 @@ export class MuscleGroupController {
   @ApiOkResponse({
     schema: { example: { message: 'Muscle group deleted' } },
   })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.muscleGroupService.remove(id);
+  @UseGuards(SuperAdminGuard)
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
+  ) {
+    const result = await this.muscleGroupService.remove(id);
+    await this.auditService.log({
+      action: 'admin.muscle_group_deleted',
+      actor: req.user,
+      targetType: 'muscle_group',
+      targetId: id,
+      req,
+    });
+    return result;
   }
 }

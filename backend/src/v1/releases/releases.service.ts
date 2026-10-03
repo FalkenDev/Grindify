@@ -44,13 +44,45 @@ export interface ReleaseHistoryResponse {
   message: string | null;
 }
 
+const CACHE_TTL_MS = 20 * 60 * 1000; // successful responses: 20 minutes
+const FAILURE_CACHE_TTL_MS = 2 * 60 * 1000; // failures: retry after 2 minutes
+
 @Injectable()
 export class ReleasesService {
   private readonly logger = new Logger(ReleasesService.name);
+  private cache: { value: ReleaseHistoryResponse; expiresAt: number } | null =
+    null;
+  private inflight: Promise<ReleaseHistoryResponse> | null = null;
 
   constructor(private readonly configService: ConfigService) {}
 
+  /**
+   * Cached in memory so clients cannot drive the GitHub API rate limit
+   * (unauthenticated: 60 req/h per IP) or slow down the API.
+   */
   async getReleaseHistory(): Promise<ReleaseHistoryResponse> {
+    if (this.cache && this.cache.expiresAt > Date.now()) {
+      return this.cache.value;
+    }
+    if (!this.inflight) {
+      this.inflight = this.fetchReleaseHistory()
+        .then((value) => {
+          this.cache = {
+            value,
+            expiresAt:
+              Date.now() +
+              (value.status === 'ok' ? CACHE_TTL_MS : FAILURE_CACHE_TTL_MS),
+          };
+          return value;
+        })
+        .finally(() => {
+          this.inflight = null;
+        });
+    }
+    return this.inflight;
+  }
+
+  private async fetchReleaseHistory(): Promise<ReleaseHistoryResponse> {
     const repo = this.getConfiguredRepo();
     if (!repo) {
       return this.buildFallbackResponse(
@@ -74,11 +106,11 @@ export class ReleasesService {
 
       const response = await fetch(
         `https://api.github.com/repos/${repo.owner}/${repo.name}/releases?per_page=12`,
-        { headers },
+        { headers, signal: AbortSignal.timeout(10_000) },
       );
 
       if (!response.ok) {
-        const details = await response.text();
+        const details = (await response.text()).slice(0, 500);
         this.logger.warn(
           `GitHub releases request failed with ${response.status}: ${details}`,
         );

@@ -14,6 +14,8 @@
  */
 
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExerciseModule } from './exercise/exercise.module';
@@ -32,6 +34,14 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { ProgressPhotoModule } from './progressPhoto/progressPhoto.module';
 import { ReleasesModule } from './releases/releases.module';
 import { AdminModule } from './admin/admin.module';
+import { AuditModule } from './audit/audit.module';
+import { ClientIpThrottlerGuard } from './guards/clientIpThrottler.guard';
+import { getDbLogging } from './common/dbLogging.util';
+
+const positiveInt = (raw: string | undefined, fallback: number): number => {
+  const n = parseInt(raw ?? '', 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+};
 
 @Module({
   imports: [
@@ -51,10 +61,20 @@ import { AdminModule } from './admin/admin.module';
         synchronize: false,
         migrations: [__dirname + '/migrations/*.{ts,js}'],
         migrationsRun: true,
-        logging: ['error', 'warn', 'query'],
+        logging: getDbLogging(configService.get<string>('DB_LOGGING')),
       }),
       inject: [ConfigService],
     }),
+    // Global default rate limit; auth endpoints set stricter limits.
+    // THROTTLE_TTL is in seconds, THROTTLE_LIMIT = requests per TTL window.
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: positiveInt(process.env.THROTTLE_TTL, 60) * 1000,
+        limit: positiveInt(process.env.THROTTLE_LIMIT, 300),
+      },
+    ]),
+    AuditModule,
     AuthModule,
     ExerciseModule,
     MuscleGroupModule,
@@ -70,6 +90,10 @@ import { AdminModule } from './admin/admin.module';
     ReleasesModule,
     AdminModule,
   ],
-  providers: [AppService, JwtStrategy],
+  providers: [
+    AppService,
+    JwtStrategy,
+    { provide: APP_GUARD, useClass: ClientIpThrottlerGuard },
+  ],
 })
 export class AppModule {}

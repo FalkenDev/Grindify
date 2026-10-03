@@ -19,10 +19,12 @@ import { Type } from 'class-transformer';
 
 class ExerciseOrder {
   @ApiProperty({ description: 'The workout exercise ID', example: 1 })
+  @Type(() => Number)
   @IsNumber()
   workoutExerciseId!: number;
 
   @ApiProperty({ description: 'The new order position', example: 1 })
+  @Type(() => Number)
   @IsNumber()
   order!: number;
 }

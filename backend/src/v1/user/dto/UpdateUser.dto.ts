@@ -21,34 +21,39 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   firstName?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   lastName?: string;
 
+  // Changing email requires currentPassword for accounts with a password
   @IsOptional()
+  @IsString()
   @IsEmail()
+  @MaxLength(254)
   email?: string;
 
   @IsOptional()
   @IsString()
-  avatar?: string;
-
-  @IsOptional()
-  @IsString()
+  @MaxLength(72)
   currentPassword?: string;
 
   @IsOptional()
   @IsString()
   @MinLength(8)
+  @MaxLength(72)
   newPassword?: string;
 
   @IsOptional()
@@ -67,23 +72,28 @@ export class UpdateUserDto {
 
   @IsOptional()
   @ValidateIf((_, value) => value !== null)
+  @Type(() => Number)
   @IsNumber()
   targetWeight?: number | null;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   startWeight?: number;
 
   @IsOptional()
   @ValidateIf((_, value) => value !== null)
+  @Type(() => Number)
   @IsNumber()
   goalTimeframe?: number | null;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   weight?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   height?: number;
 

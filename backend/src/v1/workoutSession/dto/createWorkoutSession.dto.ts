@@ -14,12 +14,15 @@
  */
 
 import { IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateWorkoutSessionDto {
+  @Type(() => Number)
   @IsNumber()
   workoutId: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   scheduledSessionId?: number;
 }

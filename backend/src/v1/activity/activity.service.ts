@@ -129,7 +129,7 @@ export class ActivityService {
     await this.dataSource.transaction(async (manager) => {
       // Find all users with activity logs referencing this activity
       const affectedUsers: { userId: number }[] = await manager.query(`
-        SELECT DISTINCT user_id AS "userId"
+        SELECT DISTINCT "userId" AS "userId"
         FROM activity_log
         WHERE "activityId" = $1
       `, [id]);
@@ -152,7 +152,7 @@ export class ActivityService {
         const saved = await manager.save(Activity, copy);
 
         await manager.query(
-          `UPDATE activity_log SET "activityId" = $1 WHERE "activityId" = $2 AND user_id = $3`,
+          `UPDATE activity_log SET "activityId" = $1 WHERE "activityId" = $2 AND "userId" = $3`,
           [saved.id, id, userId],
         );
       }
@@ -218,7 +218,7 @@ export class ActivityService {
 
       if (transferStats) {
         await manager.query(
-          `UPDATE activity_log SET "activityId" = $1 WHERE "activityId" = $2 AND user_id = $3`,
+          `UPDATE activity_log SET "activityId" = $1 WHERE "activityId" = $2 AND "userId" = $3`,
           [saved.id, activityId, userId],
         );
       }

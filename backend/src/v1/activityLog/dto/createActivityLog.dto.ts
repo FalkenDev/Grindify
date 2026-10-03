@@ -22,10 +22,12 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateActivityLogDto {
   @ApiProperty({ example: 1, description: 'Activity ID' })
+  @Type(() => Number)
   @IsInt()
   @IsNotEmpty()
   activityId: number;
@@ -39,6 +41,7 @@ export class CreateActivityLogDto {
   date: string;
 
   @ApiProperty({ example: 45, description: 'Duration in minutes' })
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   duration: number;
@@ -49,6 +52,7 @@ export class CreateActivityLogDto {
     required: false,
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   distance?: number;
@@ -59,6 +63,7 @@ export class CreateActivityLogDto {
     required: false,
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   elevationGain?: number;
@@ -69,6 +74,7 @@ export class CreateActivityLogDto {
     required: false,
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   maxElevation?: number;
@@ -79,6 +85,7 @@ export class CreateActivityLogDto {
     required: false,
   })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   calories?: number;
@@ -90,6 +97,7 @@ export class CreateActivityLogDto {
 
   @ApiProperty({ required: false, description: 'Linked scheduled session ID' })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   scheduledSessionId?: number;
 }

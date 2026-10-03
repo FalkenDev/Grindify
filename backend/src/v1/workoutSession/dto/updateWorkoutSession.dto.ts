@@ -58,6 +58,7 @@ export class UpdateWorkoutSessionDto {
     description: 'Calories burned during the session',
   })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   caloriesBurned?: number;

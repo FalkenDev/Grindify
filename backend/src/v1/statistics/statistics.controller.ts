@@ -27,6 +27,11 @@ import { StatisticsService } from './statistics.service';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../guards/jwtAuth.guard';
 import { RequestWithUser } from '../types/requestWithUser.type';
+import {
+  ExerciseProgressQueryDto,
+  PaginationQueryDto,
+  WeeksQueryDto,
+} from './dto/statistics-query.dto';
 
 @ApiTags('statistics')
 @ApiBearerAuth()
@@ -52,14 +57,13 @@ export class StatisticsController {
   getExerciseHistory(
     @Req() req: RequestWithUser,
     @Param('exerciseId', ParseIntPipe) exerciseId: number,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query() query: PaginationQueryDto,
   ) {
     return this.statisticsService.getExerciseHistory(
       this.getUserId(req),
       exerciseId,
-      parseInt(page ?? '1', 10),
-      parseInt(limit ?? '20', 10),
+      query.page ?? 1,
+      query.limit ?? 20,
     );
   }
 
@@ -80,14 +84,13 @@ export class StatisticsController {
   getExerciseProgress(
     @Req() req: RequestWithUser,
     @Param('exerciseId', ParseIntPipe) exerciseId: number,
-    @Query('metric') metric: string = 'estimated_1rm',
-    @Query('period') period: string = 'all',
+    @Query() query: ExerciseProgressQueryDto,
   ) {
     return this.statisticsService.getExerciseProgress(
       this.getUserId(req),
       exerciseId,
-      metric as any,
-      period as any,
+      query.metric ?? 'estimated_1rm',
+      query.period ?? 'all',
     );
   }
 
@@ -108,14 +111,13 @@ export class StatisticsController {
   getWorkoutHistory(
     @Req() req: RequestWithUser,
     @Param('workoutId', ParseIntPipe) workoutId: number,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query() query: PaginationQueryDto,
   ) {
     return this.statisticsService.getWorkoutHistory(
       this.getUserId(req),
       workoutId,
-      parseInt(page ?? '1', 10),
-      parseInt(limit ?? '20', 10),
+      query.page ?? 1,
+      query.limit ?? 20,
     );
   }
 
@@ -135,10 +137,10 @@ export class StatisticsController {
   @ApiOperation({
     summary: 'Get weekly volume/workout trends for the last N weeks',
   })
-  getWeeklyTrends(@Req() req: RequestWithUser, @Query('weeks') weeks?: string) {
+  getWeeklyTrends(@Req() req: RequestWithUser, @Query() query: WeeksQueryDto) {
     return this.statisticsService.getWeeklyTrends(
       this.getUserId(req),
-      parseInt(weeks ?? '12', 10),
+      query.weeks ?? 12,
     );
   }
 
@@ -157,11 +159,11 @@ export class StatisticsController {
   })
   getActivityHeatmap(
     @Req() req: RequestWithUser,
-    @Query('weeks') weeks?: string,
+    @Query() query: WeeksQueryDto,
   ) {
     return this.statisticsService.getActivityHeatmap(
       this.getUserId(req),
-      parseInt(weeks ?? '12', 10),
+      query.weeks ?? 12,
     );
   }
 }

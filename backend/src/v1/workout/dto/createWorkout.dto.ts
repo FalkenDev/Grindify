@@ -20,11 +20,15 @@ import {
   IsNumber,
   IsArray,
   IsEnum,
+  IsIn,
+  MaxLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateWorkoutDto {
   @ApiProperty({ example: 'Push Day A' })
   @IsString()
+  @MaxLength(200)
   title!: string;
 
   @ApiProperty({ example: 'Chest, shoulders, triceps', required: false })
@@ -38,6 +42,7 @@ export class CreateWorkoutDto {
     description: 'Planned workout time in minutes',
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   time?: number;
 
@@ -52,6 +57,7 @@ export class CreateWorkoutDto {
 
   @ApiProperty({ example: 'default', required: false })
   @IsOptional()
+  @IsIn(['default', 'latest'])
   defaultWeightAndReps?: 'default' | 'latest';
 
   @ApiProperty({
@@ -61,6 +67,7 @@ export class CreateWorkoutDto {
   })
   @IsOptional()
   @IsArray()
+  @Type(() => Number)
   @IsNumber({}, { each: true })
   targetMuscleGroupIds?: number[];
 }

@@ -27,6 +27,7 @@ import { CreateActivityLogDto } from './dto/createActivityLog.dto';
 import { UpdateActivityLogDto } from './dto/updateActivityLog.dto';
 import { ActivityLogResponseDto } from './dto/activityLogResponse.dto';
 import { UserService } from '../user/user.service';
+import { assertOwnedScheduledSession } from '../common/ownership.util';
 
 @Injectable()
 export class ActivityLogService {
@@ -116,14 +117,24 @@ export class ActivityLogService {
     dto: CreateActivityLogDto,
     userId: number,
   ): Promise<ActivityLogResponseDto> {
-    // Verify activity exists and belongs to user
+    // The activity must be global or one of the user's own activities
     const activity = await this.activityRepo.findOne({
-      where: { id: dto.activityId, createdBy: { id: userId } },
+      where: [
+        { id: dto.activityId, isGlobal: true },
+        { id: dto.activityId, isGlobal: false, createdBy: { id: userId } },
+      ],
     });
 
     if (!activity) {
       throw new NotFoundException('Activity not found');
     }
+
+    // A log may only be linked to the user's own scheduled session
+    await assertOwnedScheduledSession(
+      this.activityLogRepo.manager,
+      dto.scheduledSessionId,
+      userId,
+    );
 
     // Calculate pace if distance and duration are provided
     const pace =

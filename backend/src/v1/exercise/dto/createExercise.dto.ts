@@ -20,7 +20,10 @@ import {
   IsArray,
   IsInt,
   IsEnum,
+  MaxLength,
+  ArrayMaxSize,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { ExerciseType } from '../exercise.entity';
 
@@ -28,20 +31,14 @@ export class CreateExerciseDto {
   @ApiProperty({ example: 'Bench Press' })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(200)
   name: string;
 
   @ApiProperty({ example: 'Push movement for chest', required: false })
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   description?: string;
-
-  @ApiProperty({
-    example: 'https://example.com/image.jpg',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  image?: string;
 
   @ApiProperty({
     example: 'compound',
@@ -60,6 +57,8 @@ export class CreateExerciseDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(100)
+  @Type(() => Number)
   @IsInt({ each: true })
   muscleGroupIds?: number[];
 
@@ -71,6 +70,8 @@ export class CreateExerciseDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(100)
+  @Type(() => Number)
   @IsInt({ each: true })
   primaryMuscleGroupIds?: number[];
 
@@ -82,7 +83,9 @@ export class CreateExerciseDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(100)
   @IsString({ each: true })
+  @MaxLength(2000, { each: true })
   equipment?: string[];
 
   @ApiProperty({
@@ -93,7 +96,9 @@ export class CreateExerciseDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(100)
   @IsString({ each: true })
+  @MaxLength(2000, { each: true })
   instructions?: string[];
 
   @ApiProperty({
@@ -104,7 +109,9 @@ export class CreateExerciseDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(100)
   @IsString({ each: true })
+  @MaxLength(2000, { each: true })
   proTips?: string[];
 
   @ApiProperty({
@@ -115,6 +122,8 @@ export class CreateExerciseDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(100)
   @IsString({ each: true })
+  @MaxLength(2000, { each: true })
   mistakes?: string[];
 }

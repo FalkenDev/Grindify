@@ -37,6 +37,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
 } from '@nestjs/swagger';
+import { DuplicateGlobalDto } from '../common/dto/duplicateGlobal.dto';
 import { JwtAuthGuard } from '../guards/jwtAuth.guard';
 import { ActivityResponseDto } from './dto/activityResponse.dto';
 import { RequestWithUser } from '../types/requestWithUser.type';
@@ -119,7 +120,7 @@ export class ActivityController {
   @ApiCreatedResponse({ type: ActivityResponseDto })
   duplicateActivity(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { transferStats?: boolean },
+    @Body() body: DuplicateGlobalDto,
     @Req() req: RequestWithUser,
   ): Promise<ActivityResponseDto> {
     if (!req.user?.id) {

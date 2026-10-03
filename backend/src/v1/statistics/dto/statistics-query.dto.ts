@@ -13,11 +13,14 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { IsEnum, IsOptional, IsString, IsNumberString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class ExerciseProgressQueryDto {
+  @IsOptional()
   @IsEnum(['estimated_1rm', 'max_weight', 'total_volume', 'max_reps'])
-  metric: 'estimated_1rm' | 'max_weight' | 'total_volume' | 'max_reps';
+  metric?: 'estimated_1rm' | 'max_weight' | 'total_volume' | 'max_reps' =
+    'estimated_1rm';
 
   @IsOptional()
   @IsEnum(['1m', '3m', '6m', '1y', 'all'])
@@ -26,22 +29,25 @@ export class ExerciseProgressQueryDto {
 
 export class PaginationQueryDto {
   @IsOptional()
-  @IsString()
-  page?: string = '1';
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10000)
+  page?: number = 1;
 
   @IsOptional()
-  @IsString()
-  limit?: string = '20';
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
 }
 
-export class WeeklyTrendsQueryDto {
+export class WeeksQueryDto {
   @IsOptional()
-  @IsNumberString()
-  weeks?: string = '12';
-}
-
-export class HeatmapQueryDto {
-  @IsOptional()
-  @IsNumberString()
-  weeks?: string = '12';
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(260)
+  weeks?: number = 12;
 }

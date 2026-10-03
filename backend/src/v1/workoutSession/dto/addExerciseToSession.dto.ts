@@ -13,30 +13,48 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { IsNumber, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsNumber,
+  IsArray,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  ArrayMaxSize,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class SetDto {
+  @Type(() => Number)
   @IsNumber()
   setNumber: number;
 
+  @Type(() => Number)
   @IsNumber()
   weight: number;
 
+  @Type(() => Number)
   @IsNumber()
   reps: number;
 
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   rpe?: number;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
   notes?: string;
 }
 
 export class AddExerciseToSessionDto {
+  @Type(() => Number)
   @IsNumber()
   exerciseId: number;
 
   @IsArray()
+  @ArrayMaxSize(200)
   @ValidateNested({ each: true })
   @Type(() => SetDto)
   sets: SetDto[];

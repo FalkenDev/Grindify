@@ -21,6 +21,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateWeightLogDto {
@@ -30,6 +31,7 @@ export class CreateWeightLogDto {
   date: string;
 
   @ApiProperty({ example: 82.5, description: 'Weight in kg' })
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   weight: number;

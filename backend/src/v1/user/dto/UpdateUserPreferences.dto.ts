@@ -20,19 +20,24 @@ import {
   IsDateString,
   IsBoolean,
   IsIn,
+  MaxLength,
   ValidateIf,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UpdateUserPreferencesDto {
   @IsOptional()
   @IsString()
+  @MaxLength(20)
   unitScale?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   weight?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   height?: number;
 
@@ -42,23 +47,28 @@ export class UpdateUserPreferencesDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   gender?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   primaryGoal?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   weeklyWorkoutGoal?: number;
 
   @IsOptional()
   @ValidateIf((_, value) => value !== null)
+  @Type(() => Number)
   @IsNumber()
   targetWeight?: number | null;
 
   @IsOptional()
   @ValidateIf((_, value) => value !== null)
+  @Type(() => Number)
   @IsNumber()
   goalTimeframe?: number | null;
 
@@ -77,9 +87,11 @@ export class UpdateUserPreferencesDto {
   @IsOptional()
   @ValidateIf((_, value) => value !== null)
   @IsString()
+  @MaxLength(20)
   weightGoalType?: string | null;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   startWeight?: number;
 

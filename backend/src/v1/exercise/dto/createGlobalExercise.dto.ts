@@ -21,6 +21,7 @@ import {
   IsEnum,
   IsObject,
   ValidateNested,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -35,10 +36,12 @@ export class I18nStringDto implements I18nString {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @IsString()
   eng?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
+  @IsString()
   swe?: string;
 }
 
@@ -46,16 +49,19 @@ export class I18nStringArrayDto implements I18nStringArray {
   @ApiProperty({ required: false, type: [String] })
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   default?: string[];
 
   @ApiProperty({ required: false, type: [String] })
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   eng?: string[];
 
   @ApiProperty({ required: false, type: [String] })
   @IsOptional()
   @IsArray()
+  @IsString({ each: true })
   swe?: string[];
 }
 
@@ -97,10 +103,16 @@ export class CreateGlobalExerciseDto {
   @Type(() => I18nStringArrayDto)
   equipmentI18n?: I18nStringArrayDto;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    required: false,
+    description: 'URL of an image from the exercise image library (/uploads/exercises/...)',
+  })
   @IsOptional()
   @IsString()
-  imageUrl?: string;
+  @Matches(/^\/uploads\/exercises\/[a-f0-9]{32}\.(webp|jpe?g|png)$/, {
+    message: 'imageUrl must reference an uploaded exercise image',
+  })
+  imageUrl?: string | null;
 
   @ApiProperty({ type: I18nStringArrayDto, required: false })
   @IsOptional()

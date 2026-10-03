@@ -26,7 +26,7 @@ const newValues = [
 export class AddNewActivityIcons1774400000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "activity" ALTER COLUMN "icon" TYPE TEXT`,
+      `ALTER TABLE "activity" ALTER COLUMN "icon" DROP DEFAULT, ALTER COLUMN "icon" TYPE TEXT`,
     );
 
     await queryRunner.query(`DROP TYPE IF EXISTS "activity_icon_enum"`);
@@ -59,7 +59,7 @@ export class AddNewActivityIcons1774400000000 implements MigrationInterface {
     }
 
     await queryRunner.query(
-      `ALTER TABLE "activity" ALTER COLUMN "icon" TYPE TEXT`,
+      `ALTER TABLE "activity" ALTER COLUMN "icon" DROP DEFAULT, ALTER COLUMN "icon" TYPE TEXT`,
     );
 
     await queryRunner.query(`DROP TYPE IF EXISTS "activity_icon_enum"`);

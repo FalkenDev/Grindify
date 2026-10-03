@@ -21,6 +21,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateActivityLogDto {
@@ -31,30 +32,35 @@ export class UpdateActivityLogDto {
 
   @ApiProperty({ example: 45, required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   duration?: number;
 
   @ApiProperty({ example: 8.5, required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   distance?: number;
 
   @ApiProperty({ example: 150, required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   elevationGain?: number;
 
   @ApiProperty({ example: 320, required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   maxElevation?: number;
 
   @ApiProperty({ example: 350, required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   calories?: number;

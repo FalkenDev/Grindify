@@ -133,10 +133,23 @@ export class User {
   passwordResetExpires: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  termsAcceptedAt: Date;
+  termsAcceptedAt: Date | null;
 
   @Column({ type: 'varchar', length: 10, nullable: true })
-  termsVersion: string;
+  termsVersion: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  healthDataConsentAt: Date | null;
+
+  // Incremented to revoke all issued JWTs (logout, password change/reset)
+  @Column({ type: 'int', default: 0, select: false })
+  tokenVersion: number;
+
+  @Column({ type: 'int', default: 0, select: false })
+  emailVerificationAttempts: number;
+
+  @Column({ type: 'int', default: 0, select: false })
+  passwordResetAttempts: number;
 
   @CreateDateColumn()
   createdAt: Date;

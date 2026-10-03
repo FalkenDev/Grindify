@@ -25,17 +25,21 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export class LogPastSetDto {
+  @Type(() => Number)
   @IsNumber()
   setNumber: number;
 
+  @Type(() => Number)
   @IsNumber()
   weight: number;
 
+  @Type(() => Number)
   @IsNumber()
   reps: number;
 }
 
 export class LogPastExerciseDto {
+  @Type(() => Number)
   @IsNumber()
   exerciseId: number;
 
@@ -48,6 +52,7 @@ export class LogPastExerciseDto {
 export class LogPastWorkoutSessionDto {
   @ApiProperty({ example: 1, description: 'Workout ID', required: false })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   workoutId?: number;
 
@@ -72,6 +77,7 @@ export class LogPastWorkoutSessionDto {
 
   @ApiProperty({ required: false, description: 'Linked scheduled session ID' })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   scheduledSessionId?: number;
 

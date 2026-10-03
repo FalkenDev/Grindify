@@ -24,6 +24,7 @@ import { ExerciseResponseDto } from './dto/exerciseResponse.dto';
 import { CreateGlobalExerciseDto, UpdateGlobalExerciseDto } from './dto/createGlobalExercise.dto';
 import { MuscleGroupService } from '../muscleGroup/muscleGroup.service';
 import { UploadService } from '../upload/upload.service';
+import { UploadCleanupService } from '../upload/uploadCleanup.service';
 import { MuscleGroupResponseDto } from '../muscleGroup/dto/muscleGroupResponse.dto';
 import { MuscleGroup } from '../muscleGroup/muscleGroup.entity';
 
@@ -39,7 +40,26 @@ export class ExerciseService {
     private readonly muscleGroupService: MuscleGroupService,
     private readonly uploadService: UploadService,
     private readonly dataSource: DataSource,
+    private readonly uploadCleanupService: UploadCleanupService,
   ) {}
+
+  /**
+   * Throws 404 unless the exercise is a personal exercise of the user.
+   * Used before any file is processed/written for an upload.
+   */
+  async assertOwnsExercise(id: number, userId: number): Promise<void> {
+    const exists = await this.exerciseRepo.exists({
+      where: { id, createdBy: { id: userId }, isGlobal: false },
+    });
+    if (!exists) throw new NotFoundException('Exercise not found');
+  }
+
+  async assertGlobalExerciseExists(id: number): Promise<void> {
+    const exists = await this.exerciseRepo.exists({
+      where: { id, isGlobal: true },
+    });
+    if (!exists) throw new NotFoundException('Global exercise not found');
+  }
 
   private toMuscleGroupDto(mg: MuscleGroup): MuscleGroupResponseDto {
     return {
@@ -138,10 +158,10 @@ export class ExerciseService {
   }
 
   async create(dto: CreateExerciseDto, userId: number): Promise<ExerciseResponseDto> {
-    const { muscleGroupIds, primaryMuscleGroupIds, name, description, instructions, proTips, mistakes, equipment, ...rest } = dto;
+    const { muscleGroupIds, primaryMuscleGroupIds, name, description, instructions, proTips, mistakes, equipment, exerciseType } = dto;
 
     const exercise = this.exerciseRepo.create({
-      ...rest,
+      exerciseType,
       title: { default: name },
       descriptionI18n: description ? { default: description } : undefined,
       equipmentI18n: equipment?.length ? { default: equipment } : undefined,
@@ -196,8 +216,14 @@ export class ExerciseService {
     });
     if (!existing) throw new NotFoundException('Global exercise not found');
 
-    const { muscleGroupIds, primaryMuscleGroupIds, imageUrl, description, ...rest } = dto;
-    Object.assign(existing, rest);
+    const { muscleGroupIds, primaryMuscleGroupIds, imageUrl, description } = dto;
+    // Explicit field mapping — never Object.assign request bodies onto entities
+    if (dto.title !== undefined) existing.title = dto.title;
+    if (dto.exerciseType !== undefined) existing.exerciseType = dto.exerciseType;
+    if (dto.equipmentI18n !== undefined) existing.equipmentI18n = dto.equipmentI18n;
+    if (dto.instructionsI18n !== undefined) existing.instructionsI18n = dto.instructionsI18n;
+    if (dto.proTipsI18n !== undefined) existing.proTipsI18n = dto.proTipsI18n;
+    if (dto.mistakesI18n !== undefined) existing.mistakesI18n = dto.mistakesI18n;
     if (description !== undefined) existing.descriptionI18n = description;
     if (imageUrl !== undefined) existing.image = imageUrl;
 
@@ -282,15 +308,17 @@ export class ExerciseService {
         );
       }
 
-      // Soft-delete the global exercise — never hard-delete
-      await manager.softRemove(Exercise, exercise);
+      // Soft-delete the global exercise — never hard-delete. softDelete only
+      // sets deletedAt and does not cascade into relations (muscle groups and
+      // media have no deletedAt column and must stay untouched).
+      await manager.softDelete(Exercise, { id: exercise.id });
     });
 
     return { message: 'Global exercise deleted and user data preserved' };
   }
 
   async update(id: number, dto: UpdateExerciseDto, userId: number): Promise<ExerciseResponseDto> {
-    const { muscleGroupIds, primaryMuscleGroupIds, name, description, instructions, proTips, mistakes, equipment, ...rest } = dto;
+    const { muscleGroupIds, primaryMuscleGroupIds, name, description, instructions, proTips, mistakes, equipment } = dto;
 
     const existing = await this.exerciseRepo.findOne({
       where: { id, createdBy: { id: userId }, isGlobal: false },
@@ -298,7 +326,8 @@ export class ExerciseService {
     });
     if (!existing) throw new NotFoundException('Exercise not found');
 
-    Object.assign(existing, rest);
+    // Explicit field mapping — image is only set via POST /exercises/:id/image
+    if (dto.exerciseType !== undefined) existing.exerciseType = dto.exerciseType;
 
     if (name !== undefined) {
       existing.title = { ...existing.title, default: name };
@@ -338,7 +367,9 @@ export class ExerciseService {
     });
     if (!exercise) throw new NotFoundException('Exercise not found');
 
-    await this.exerciseRepo.softRemove(exercise);
+    // softDelete (not softRemove) so that the eager media relation is not
+    // cascaded into (ExerciseMedia has no deletedAt column)
+    await this.exerciseRepo.softDelete({ id: exercise.id });
     return { message: 'Exercise deleted' };
   }
 
@@ -405,25 +436,32 @@ export class ExerciseService {
 
   async updateImage(id: number, imageUrl: string, userId: number): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
-      where: { id, createdBy: { id: userId } },
+      where: { id, createdBy: { id: userId }, isGlobal: false },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
     });
-    if (!exercise) throw new NotFoundException('Exercise not found');
-
-    if (exercise.image) {
-      await this.uploadService.deleteImage(exercise.image);
+    if (!exercise) {
+      // Don't leave an orphaned upload behind
+      await this.uploadService.deleteImage(imageUrl);
+      throw new NotFoundException('Exercise not found');
     }
+
+    const previous = exercise.image;
     exercise.image = imageUrl;
     const updated = await this.exerciseRepo.save(exercise);
+    // The old image may be shared with a global exercise / the image library
+    await this.uploadCleanupService.deleteIfUnreferenced([previous]);
     return this.toResponseDto(updated);
   }
 
   async addMedia(exerciseId: number, userId: number, mediaUrl: string, mediaType: string): Promise<ExerciseResponseDto> {
     const exercise = await this.exerciseRepo.findOne({
-      where: { id: exerciseId, createdBy: { id: userId } },
+      where: { id: exerciseId, createdBy: { id: userId }, isGlobal: false },
       relations: ['muscleGroups', 'primaryMuscleGroups', 'media'],
     });
-    if (!exercise) throw new NotFoundException('Exercise not found');
+    if (!exercise) {
+      await this.uploadService.deleteImage(mediaUrl);
+      throw new NotFoundException('Exercise not found');
+    }
 
     const maxOrder = exercise.media?.length ? Math.max(...exercise.media.map((m) => m.order)) : -1;
     const media = this.mediaRepo.create({ type: mediaType as any, url: mediaUrl, order: maxOrder + 1, exercise });
@@ -443,8 +481,9 @@ export class ExerciseService {
     });
     if (!media) throw new NotFoundException('Media not found');
 
-    await this.uploadService.deleteImage(media.url);
+    const mediaUrl = media.url;
     await this.mediaRepo.remove(media);
+    await this.uploadCleanupService.deleteIfUnreferenced([mediaUrl]);
 
     return this.findOne(exerciseId, userId);
   }
@@ -505,8 +544,9 @@ export class ExerciseService {
     });
     if (!media) throw new NotFoundException('Media not found');
 
-    await this.uploadService.deleteImage(media.url);
+    const mediaUrl = media.url;
     await this.mediaRepo.remove(media);
+    await this.uploadCleanupService.deleteIfUnreferenced([mediaUrl]);
 
     const full = await this.exerciseRepo.findOne({
       where: { id: exerciseId },

@@ -33,7 +33,7 @@ export class MigrateActivityIconsToMdiNames1774300000000
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Change column to text so we can update values freely
     await queryRunner.query(
-      `ALTER TABLE "activity" ALTER COLUMN "icon" TYPE TEXT`,
+      `ALTER TABLE "activity" ALTER COLUMN "icon" DROP DEFAULT, ALTER COLUMN "icon" TYPE TEXT`,
     );
 
     // Drop old enum type
@@ -69,7 +69,7 @@ export class MigrateActivityIconsToMdiNames1774300000000
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Change column to text
     await queryRunner.query(
-      `ALTER TABLE "activity" ALTER COLUMN "icon" TYPE TEXT`,
+      `ALTER TABLE "activity" ALTER COLUMN "icon" DROP DEFAULT, ALTER COLUMN "icon" TYPE TEXT`,
     );
 
     // Drop new enum type

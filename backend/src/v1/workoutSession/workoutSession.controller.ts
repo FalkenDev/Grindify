@@ -44,6 +44,8 @@ import { LogPastWorkoutSessionDto } from './dto/logPastWorkoutSession.dto';
 import { WorkoutSession } from './workoutSession.entity';
 import { UpdateWorkoutSessionDto } from './dto/updateWorkoutSession.dto';
 import { UpdateSessionExerciseSetsDto } from './dto/updateSessionExerciseSets.dto';
+import { CompleteSessionDto } from './dto/completeSession.dto';
+import { CreateEmptySessionDto } from './dto/createEmptySession.dto';
 
 @ApiTags('workout-sessions')
 @ApiBearerAuth()
@@ -84,7 +86,7 @@ export class WorkoutSessionController {
   @ApiCreatedResponse({ type: WorkoutSession })
   createEmpty(
     @Req() req: RequestWithUser,
-    @Body() body: { scheduledSessionId?: number },
+    @Body() body: CreateEmptySessionDto,
   ): Promise<WorkoutSession> {
     return this.sessionService.createEmptySession(
       this.getUserId(req),
@@ -196,21 +198,7 @@ export class WorkoutSessionController {
   complete(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: RequestWithUser,
-    @Body()
-    payload: {
-      completedExercises?: {
-        exerciseId: number;
-        notes?: string;
-        sets: {
-          setNumber: number;
-          weight: number;
-          reps: number;
-          rpe?: number;
-          notes?: string;
-        }[];
-      }[];
-      notes?: string;
-    },
+    @Body() payload: CompleteSessionDto,
   ): Promise<WorkoutSession> {
     return this.sessionService.completeSession(
       id,

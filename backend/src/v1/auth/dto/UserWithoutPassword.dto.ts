@@ -15,6 +15,10 @@
 
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/v1/user/user.entity';
+import {
+  hasHealthDataConsent,
+  isConsentRequired,
+} from '../../common/consent.util';
 
 export class UserWithoutPasswordDto {
   @ApiProperty()
@@ -29,8 +33,8 @@ export class UserWithoutPasswordDto {
   @ApiProperty()
   lastName: string;
 
-  @ApiProperty({ required: false })
-  avatar?: string;
+  @ApiProperty({ required: false, nullable: true })
+  avatar?: string | null;
 
   @ApiProperty({ default: true })
   showRpe: boolean;
@@ -47,23 +51,25 @@ export class UserWithoutPasswordDto {
   @ApiProperty({ required: false })
   unitScale?: string;
 
-  @ApiProperty({ required: false })
-  weight?: number;
+  // Health data (GDPR art. 9): null unless the user has given health data
+  // consent. The stored values are not touched.
+  @ApiProperty({ required: false, nullable: true })
+  weight?: number | null;
 
-  @ApiProperty({ required: false })
-  height?: number;
+  @ApiProperty({ required: false, nullable: true })
+  height?: number | null;
 
-  @ApiProperty({ required: false })
-  dateOfBirth?: Date;
+  @ApiProperty({ required: false, nullable: true })
+  dateOfBirth?: Date | null;
 
-  @ApiProperty({ required: false })
-  gender?: string;
+  @ApiProperty({ required: false, nullable: true })
+  gender?: string | null;
 
   @ApiProperty({ required: false })
   primaryGoal?: string;
 
-  @ApiProperty({ required: false })
-  targetWeight?: number;
+  @ApiProperty({ required: false, nullable: true })
+  targetWeight?: number | null;
 
   @ApiProperty({ required: false })
   goalTimeframe?: number;
@@ -83,36 +89,71 @@ export class UserWithoutPasswordDto {
   @ApiProperty({ required: false })
   weightGoalType?: string;
 
-  @ApiProperty({ required: false })
-  startWeight?: number;
+  @ApiProperty({ required: false, nullable: true })
+  startWeight?: number | null;
 
   @ApiProperty({ default: 'default' })
   language: 'default' | 'eng' | 'swe';
 
-  constructor(user: User) {
+  @ApiProperty({ required: false, nullable: true })
+  termsAcceptedAt: Date | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  termsVersion: string | null;
+
+  @ApiProperty({ required: false, nullable: true })
+  healthDataConsentAt: Date | null;
+
+  @ApiProperty({
+    description: 'True when the user must (re-)accept the current terms',
+  })
+  consentRequired: boolean;
+
+  @ApiProperty({
+    description: 'True when the user has consented to health data processing',
+  })
+  healthDataConsent: boolean;
+
+  @ApiProperty({
+    description: 'True when the account has a password (vs. OAuth-only)',
+  })
+  hasPassword: boolean;
+
+  constructor(user: User, opts?: { hasPassword?: boolean }) {
     this.id = user.id;
     this.email = user.email;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
-    this.avatar = user.avatar;
+    // Only locally stored avatars are ever exposed
+    this.avatar =
+      typeof user.avatar === 'string' && user.avatar.startsWith('/uploads/')
+        ? user.avatar
+        : null;
     this.showRpe = user.showRpe ?? true;
     this.weeklyWorkoutGoal = user.weeklyWorkoutGoal ?? 3;
     this.currentStreak = user.currentStreak ?? 0;
     this.currentWeekWorkouts = user.currentWeekWorkouts ?? 0;
+    const healthConsent = hasHealthDataConsent(user);
     this.unitScale = user.unitScale;
-    this.weight = user.weight;
-    this.height = user.height;
-    this.dateOfBirth = user.dateOfBirth;
-    this.gender = user.gender;
+    this.weight = healthConsent ? user.weight : null;
+    this.height = healthConsent ? user.height : null;
+    this.dateOfBirth = healthConsent ? user.dateOfBirth : null;
+    this.gender = healthConsent ? user.gender : null;
     this.primaryGoal = user.primaryGoal;
-    this.targetWeight = user.targetWeight ?? undefined;
+    this.targetWeight = healthConsent ? (user.targetWeight ?? undefined) : null;
     this.goalTimeframe = user.goalTimeframe ?? undefined;
     this.onboardingCompleted = user.onboardingCompleted ?? false;
     this.emailVerified = user.emailVerified ?? false;
     this.showWeightTracking = user.showWeightTracking ?? false;
     this.weightGoalType = user.weightGoalType ?? undefined;
-    this.startWeight = user.startWeight;
+    this.startWeight = healthConsent ? user.startWeight : null;
     this.role = user.role ?? 'user';
     this.language = user.language ?? 'default';
+    this.termsAcceptedAt = user.termsAcceptedAt ?? null;
+    this.termsVersion = user.termsVersion ?? null;
+    this.healthDataConsentAt = user.healthDataConsentAt ?? null;
+    this.consentRequired = isConsentRequired(user);
+    this.healthDataConsent = healthConsent;
+    this.hasPassword = opts?.hasPassword ?? !!user.password;
   }
 }

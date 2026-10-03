@@ -19,6 +19,8 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
+import { JWT_ALGORITHM } from '../common/constants';
+import { AUTH_COOKIE_NAME } from '../common/cookie.util';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -34,22 +36,33 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => {
-          return req?.cookies?.auth_token || null;
+          return req?.cookies?.[AUTH_COOKIE_NAME] || null;
         },
       ]),
       secretOrKey: jwtSecret,
       ignoreExpiration: false,
+      algorithms: [JWT_ALGORITHM],
     });
   }
 
   async validate(payload: any) {
-    if (!payload) {
+    if (!payload || typeof payload.id !== 'number') {
       throw new UnauthorizedException('Invalid token payload');
     }
-    const user = await this.userService.findOneById(payload.id);
-    if (!user) {
+    const state = await this.userService.findAuthState(payload.id);
+    if (!state) {
       throw new UnauthorizedException('User not found');
     }
-    return { id: user.id, email: user.email, role: user.role };
+    // Tokens issued before logout / password change carry an old version
+    if (typeof payload.tv !== 'number' || payload.tv !== state.tokenVersion) {
+      throw new UnauthorizedException('Token revoked');
+    }
+    return {
+      id: state.id,
+      email: state.email,
+      role: state.role,
+      consentRequired: state.consentRequired,
+      healthDataConsent: state.healthDataConsent,
+    };
   }
 }

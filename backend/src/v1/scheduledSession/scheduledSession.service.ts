@@ -61,32 +61,62 @@ export class ScheduledSessionService {
     private readonly activityRepo: Repository<Activity>,
   ) {}
 
+  private static readonly DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  private static readonly MAX_RANGE_DAYS = 400;
+
+  private assertDateString(value: string, name: string): void {
+    if (
+      typeof value !== 'string' ||
+      !ScheduledSessionService.DATE_RE.test(value) ||
+      Number.isNaN(new Date(value + 'T12:00:00').getTime())
+    ) {
+      throw new BadRequestException(`${name} must be a date (YYYY-MM-DD)`);
+    }
+  }
+
+  /**
+   * Validates that the referenced workout/activity belongs to the user and
+   * returns the relation values to store: only the one matching `type` is
+   * kept, the other is always cleared.
+   */
+  private async resolveTarget(
+    userId: number,
+    type: ScheduledSessionType,
+    workoutId: number | null | undefined,
+    activityId: number | null | undefined,
+  ): Promise<{ workout: Workout | null; activity: Activity | null }> {
+    if (type === ScheduledSessionType.WORKOUT) {
+      if (!workoutId || !Number.isInteger(workoutId)) {
+        throw new BadRequestException('workoutId is required for workout type');
+      }
+      const workout = await this.workoutRepo.findOne({
+        where: { id: workoutId, createdBy: { id: userId } },
+      });
+      if (!workout) throw new NotFoundException('Workout not found');
+      return { workout: { id: workout.id } as Workout, activity: null };
+    }
+
+    if (!activityId || !Number.isInteger(activityId)) {
+      throw new BadRequestException('activityId is required for activity type');
+    }
+    const activity = await this.activityRepo.findOne({
+      where: { id: activityId, createdBy: { id: userId } },
+    });
+    if (!activity) throw new NotFoundException('Activity not found');
+    return { workout: null, activity: { id: activity.id } as Activity };
+  }
+
   async create(
     userId: number,
     dto: CreateScheduledSessionDto,
   ): Promise<ScheduledSession> {
-    // Validate references
-    if (dto.type === ScheduledSessionType.WORKOUT) {
-      if (!dto.workoutId) {
-        throw new BadRequestException('workoutId is required for workout type');
-      }
-      const workout = await this.workoutRepo.findOne({
-        where: { id: dto.workoutId, createdBy: { id: userId } },
-      });
-      if (!workout) throw new NotFoundException('Workout not found');
-    }
-
-    if (dto.type === ScheduledSessionType.ACTIVITY) {
-      if (!dto.activityId) {
-        throw new BadRequestException(
-          'activityId is required for activity type',
-        );
-      }
-      const activity = await this.activityRepo.findOne({
-        where: { id: dto.activityId, createdBy: { id: userId } },
-      });
-      if (!activity) throw new NotFoundException('Activity not found');
-    }
+    // Validate references (both are checked; only the matching one is stored)
+    const target = await this.resolveTarget(
+      userId,
+      dto.type,
+      dto.workoutId,
+      dto.activityId,
+    );
 
     if (dto.isRecurring && dto.dayOfWeek === undefined) {
       throw new BadRequestException(
@@ -102,8 +132,8 @@ export class ScheduledSessionService {
     const scheduled = this.scheduledRepo.create({
       user: { id: userId } as any,
       type: dto.type,
-      workout: dto.workoutId ? ({ id: dto.workoutId } as any) : null,
-      activity: dto.activityId ? ({ id: dto.activityId } as any) : null,
+      workout: target.workout,
+      activity: target.activity,
       scheduledDate: dto.scheduledDate ? new Date(dto.scheduledDate) : null,
       dayOfWeek: dto.dayOfWeek ?? null,
       isRecurring: dto.isRecurring,
@@ -114,7 +144,8 @@ export class ScheduledSessionService {
         : null,
     });
 
-    return this.scheduledRepo.save(scheduled);
+    const saved = await this.scheduledRepo.save(scheduled);
+    return this.findOne(userId, saved.id);
   }
 
   async findAllForUser(userId: number): Promise<ScheduledSession[]> {
@@ -129,6 +160,7 @@ export class ScheduledSessionService {
     userId: number,
     dateStr: string,
   ): Promise<ScheduledSessionForDate[]> {
+    this.assertDateString(dateStr, 'date');
     const dayOfWeek = this.getDayOfWeek(dateStr);
 
     // Get all scheduled sessions for this user
@@ -166,6 +198,17 @@ export class ScheduledSessionService {
     startDate: string,
     endDate: string,
   ): Promise<ScheduledSessionForDate[]> {
+    this.assertDateString(startDate, 'start');
+    this.assertDateString(endDate, 'end');
+    const spanDays =
+      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
+      (24 * 60 * 60 * 1000);
+    if (spanDays < 0 || spanDays > ScheduledSessionService.MAX_RANGE_DAYS) {
+      throw new BadRequestException(
+        `Date range must be between 0 and ${ScheduledSessionService.MAX_RANGE_DAYS} days`,
+      );
+    }
+
     const allScheduled = await this.scheduledRepo.find({
       where: { user: { id: userId } },
       relations: ['workout', 'activity'],
@@ -229,14 +272,21 @@ export class ScheduledSessionService {
   ): Promise<ScheduledSession> {
     const scheduled = await this.findOne(userId, id);
 
-    if (dto.type !== undefined) scheduled.type = dto.type;
-    if (dto.workoutId !== undefined) {
-      scheduled.workout = dto.workoutId ? ({ id: dto.workoutId } as any) : null;
-    }
-    if (dto.activityId !== undefined) {
-      scheduled.activity = dto.activityId
-        ? ({ id: dto.activityId } as any)
-        : null;
+    const touchesTarget =
+      dto.type !== undefined ||
+      dto.workoutId !== undefined ||
+      dto.activityId !== undefined;
+    if (touchesTarget) {
+      const type = dto.type ?? scheduled.type;
+      const target = await this.resolveTarget(
+        userId,
+        type,
+        dto.workoutId !== undefined ? dto.workoutId : scheduled.workout?.id,
+        dto.activityId !== undefined ? dto.activityId : scheduled.activity?.id,
+      );
+      scheduled.type = type;
+      scheduled.workout = target.workout;
+      scheduled.activity = target.activity;
     }
     if (dto.scheduledDate !== undefined) {
       scheduled.scheduledDate = dto.scheduledDate
@@ -256,7 +306,8 @@ export class ScheduledSessionService {
       scheduled.recurringEndDate = null;
     }
 
-    return this.scheduledRepo.save(scheduled);
+    await this.scheduledRepo.save(scheduled);
+    return this.findOne(userId, id);
   }
 
   async deleteScheduledSession(
@@ -304,6 +355,7 @@ export class ScheduledSessionService {
       const linked = await this.workoutSessionRepo.findOne({
         where: {
           scheduledSession: { id: scheduled.id },
+          user: { id: userId },
           status: 'finished',
         },
       });
@@ -344,6 +396,7 @@ export class ScheduledSessionService {
         .where('log.scheduledSessionId = :scheduledId', {
           scheduledId: scheduled.id,
         })
+        .andWhere('log.userId = :userId', { userId })
         .andWhere('log.date = :date', { date: dateStr })
         .getOne();
       if (linked) {

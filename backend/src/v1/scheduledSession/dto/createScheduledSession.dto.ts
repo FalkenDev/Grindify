@@ -24,6 +24,7 @@ import {
   Max,
   ValidateIf,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { ScheduledSessionType } from '../scheduledSession.entity';
 
@@ -37,11 +38,13 @@ export class CreateScheduledSessionDto {
 
   @ApiProperty({ example: 1, description: 'Workout ID', required: false })
   @ValidateIf((o) => o.type === ScheduledSessionType.WORKOUT)
+  @Type(() => Number)
   @IsInt()
   workoutId?: number;
 
   @ApiProperty({ example: 1, description: 'Activity ID', required: false })
   @ValidateIf((o) => o.type === ScheduledSessionType.ACTIVITY)
+  @Type(() => Number)
   @IsInt()
   activityId?: number;
 
@@ -60,6 +63,7 @@ export class CreateScheduledSessionDto {
     required: false,
   })
   @ValidateIf((o) => o.isRecurring)
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   @Max(6)

@@ -28,6 +28,7 @@ import { Exercise } from '../exercise/exercise.entity';
 import { MuscleGroup } from '../muscleGroup/muscleGroup.entity';
 import { UpdateWorkoutExerciseDto } from './dto/updateWorkoutExercise.dto';
 import { DataSource } from 'typeorm';
+import { assertAccessibleExercises } from '../common/ownership.util';
 
 @Injectable()
 export class WorkoutService {
@@ -63,6 +64,12 @@ export class WorkoutService {
     userId: number,
   ): Promise<WorkoutResponseDto> {
     const workout = await this.findWorkoutForUser(workoutId, userId);
+    // Only global exercises or the user's own may be added
+    await assertAccessibleExercises(
+      this.dataSource.manager,
+      dto.exerciseIds ?? [],
+      userId,
+    );
     const newExercises = (dto.exerciseIds ?? []).map((exerciseId, index) =>
       this.workoutExerciseRepo.create({
         workout,
@@ -145,7 +152,12 @@ export class WorkoutService {
       throw new NotFoundException('Exercise not found in this workout');
     }
 
-    Object.assign(workoutExercise, dto);
+    if (dto.sets !== undefined) workoutExercise.sets = dto.sets;
+    if (dto.reps !== undefined) workoutExercise.reps = dto.reps;
+    if (dto.weight !== undefined) workoutExercise.weight = dto.weight;
+    if (dto.pauseSeconds !== undefined)
+      workoutExercise.pauseSeconds = dto.pauseSeconds;
+    if (dto.setWeights !== undefined) workoutExercise.setWeights = dto.setWeights;
 
     // Keep `weight` in sync with the first set's weight when setWeights is provided
     if (dto.setWeights && dto.setWeights.length > 0) {
@@ -197,6 +209,8 @@ export class WorkoutService {
     const { targetMuscleGroupIds, type, ...workoutData } = dto;
     const workout = this.workoutRepo.create({
       ...workoutData,
+      // `time` is NOT NULL in the database; it is optional in the API
+      time: workoutData.time ?? 0,
       ...(type ? { type: type as WorkoutType } : {}),
       createdBy: { id: userId } as User,
     });
@@ -221,8 +235,12 @@ export class WorkoutService {
     });
     if (!workout) throw new NotFoundException('Workout not found');
 
-    const { targetMuscleGroupIds, type, ...workoutData } = dto;
-    Object.assign(workout, workoutData);
+    const { targetMuscleGroupIds, type } = dto;
+    if (dto.title !== undefined) workout.title = dto.title;
+    if (dto.description !== undefined) workout.description = dto.description;
+    if (dto.time !== undefined) workout.time = dto.time ?? 0;
+    if (dto.defaultWeightAndReps !== undefined)
+      workout.defaultWeightAndReps = dto.defaultWeightAndReps;
     if (type !== undefined) {
       workout.type = type as WorkoutType;
     }

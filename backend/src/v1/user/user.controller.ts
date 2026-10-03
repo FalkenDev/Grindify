@@ -27,6 +27,8 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -46,6 +48,16 @@ import { UpdateUserDto } from './dto/UpdateUser.dto';
 import { UpdateUserPreferencesDto } from './dto/UpdateUserPreferences.dto';
 import { UseStreakFreezeDto } from './dto/UseStreakFreeze.dto';
 import { UploadService } from '../upload/upload.service';
+import { IMAGE_UPLOAD_OPTIONS } from '../upload/upload.constants';
+import { UpdateWeeklyGoalDto } from './dto/UpdateWeeklyGoal.dto';
+import { GiveConsentDto } from './dto/GiveConsent.dto';
+import { AuditService } from '../audit/audit.service';
+import { TokenService } from '../auth/token.service';
+import {
+  AUTH_COOKIE_NAME,
+  authCookieOptions,
+  clearAuthCookieOptions,
+} from '../common/cookie.util';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -55,6 +67,8 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     private readonly uploadService: UploadService,
+    private readonly auditService: AuditService,
+    private readonly tokenService: TokenService,
   ) {}
 
   @Get()
@@ -70,11 +84,43 @@ export class UserController {
   @Put()
   @ApiOperation({ summary: 'Update the authenticated user profile' })
   @ApiOkResponse({ type: UserWithoutPasswordDto })
-  updateProfile(@Req() req: RequestWithUser, @Body() dto: UpdateUserDto) {
+  async updateProfile(
+    @Req() req: RequestWithUser,
+    @Body() dto: UpdateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<UserWithoutPasswordDto> {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.userService.updateUser(+req.user.id, dto);
+    const result = await this.userService.updateUser(+req.user.id, dto);
+
+    if (result.passwordChanged) {
+      // All other sessions were revoked; keep this one alive with a fresh token
+      const subject = await this.userService.getTokenSubject(+req.user.id);
+      res.cookie(
+        AUTH_COOKIE_NAME,
+        this.tokenService.sign(subject),
+        authCookieOptions(req),
+      );
+      await this.auditService.log({
+        action: 'user.password_changed',
+        actor: result.user,
+        targetType: 'user',
+        targetId: result.user.id,
+        req,
+      });
+    }
+    if (result.emailChanged) {
+      await this.auditService.log({
+        action: 'user.email_changed',
+        actor: result.user,
+        targetType: 'user',
+        targetId: result.user.id,
+        metadata: { previousEmail: result.previousEmail },
+        req,
+      });
+    }
+    return result.user;
   }
 
   @Delete()
@@ -85,11 +131,101 @@ export class UserController {
       example: { message: 'User and all related data deleted' },
     },
   })
-  deleteProfile(@Req() req: RequestWithUser) {
+  async deleteProfile(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return this.userService.deleteUser(+req.user.id);
+    const result = await this.userService.deleteUser(+req.user.id);
+    res.clearCookie(AUTH_COOKIE_NAME, clearAuthCookieOptions(req));
+    await this.auditService.log({
+      action: 'user.deleted',
+      actor: { id: req.user.id, email: req.user.email },
+      targetType: 'user',
+      targetId: req.user.id,
+      req,
+    });
+    return result;
+  }
+
+  @Post('consent')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Accept the current terms and give health data consent (GDPR art. 9)',
+  })
+  @ApiOkResponse({ type: UserWithoutPasswordDto })
+  async giveConsent(
+    @Req() req: RequestWithUser,
+    @Body() dto: GiveConsentDto,
+  ): Promise<UserWithoutPasswordDto> {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    const user = await this.userService.giveConsent(
+      +req.user.id,
+      dto.healthDataConsent,
+    );
+    await this.auditService.log({
+      action: 'user.consent_given',
+      actor: user,
+      targetType: 'user',
+      targetId: user.id,
+      metadata: {
+        termsVersion: user.termsVersion,
+        healthDataConsent: dto.healthDataConsent === true,
+      },
+      req,
+    });
+    return user;
+  }
+
+  @Post('consent/health')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Give (voluntary) consent to processing of health data',
+  })
+  @ApiOkResponse({ type: UserWithoutPasswordDto })
+  async giveHealthConsent(
+    @Req() req: RequestWithUser,
+  ): Promise<UserWithoutPasswordDto> {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    const user = await this.userService.giveHealthConsent(+req.user.id);
+    await this.auditService.log({
+      action: 'user.health_consent_given',
+      actor: user,
+      targetType: 'user',
+      targetId: user.id,
+      req,
+    });
+    return user;
+  }
+
+  @Delete('consent/health')
+  @ApiOperation({
+    summary:
+      'Withdraw health data consent — deletes weight logs, progress photos and body metrics',
+  })
+  @ApiOkResponse({ type: UserWithoutPasswordDto })
+  async withdrawHealthConsent(
+    @Req() req: RequestWithUser,
+  ): Promise<UserWithoutPasswordDto> {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+    const user = await this.userService.withdrawHealthConsent(+req.user.id);
+    await this.auditService.log({
+      action: 'user.health_consent_withdrawn',
+      actor: user,
+      targetType: 'user',
+      targetId: user.id,
+      req,
+    });
+    return user;
   }
 
   @Post('avatar')
@@ -107,9 +243,9 @@ export class UserController {
     },
   })
   @ApiOkResponse({ type: UserWithoutPasswordDto })
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', IMAGE_UPLOAD_OPTIONS))
   async uploadAvatar(
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: RequestWithUser,
   ): Promise<UserWithoutPasswordDto> {
     if (!req.user?.id) {
@@ -155,7 +291,10 @@ export class UserController {
   @ApiOkResponse({
     description: 'Updated streak info after consuming the freeze',
   })
-  useStreakFreeze(@Req() req: RequestWithUser, @Body() body: UseStreakFreezeDto) {
+  useStreakFreeze(
+    @Req() req: RequestWithUser,
+    @Body() body: UseStreakFreezeDto,
+  ) {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
@@ -167,7 +306,7 @@ export class UserController {
   @ApiOkResponse({ type: UserWithoutPasswordDto })
   updateWeeklyGoal(
     @Req() req: RequestWithUser,
-    @Body() body: { weeklyWorkoutGoal: number },
+    @Body() body: UpdateWeeklyGoalDto,
   ) {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
@@ -197,7 +336,7 @@ export class UserController {
   })
   @ApiOkResponse({
     description:
-      'JSON file containing all personal data for the authenticated user',
+      'ZIP archive with data.json and all uploaded files of the authenticated user',
   })
   async exportData(
     @Req() req: RequestWithUser,
@@ -206,12 +345,20 @@ export class UserController {
     if (!req.user?.id) {
       throw new UnauthorizedException('User not authenticated');
     }
-    const data = await this.userService.exportUserData(+req.user.id);
+    const zip = await this.userService.exportUserDataZip(+req.user.id);
+    await this.auditService.log({
+      action: 'user.export',
+      actor: { id: req.user.id, email: req.user.email },
+      targetType: 'user',
+      targetId: req.user.id,
+      req,
+    });
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename="grindify-data-export.json"',
+      'attachment; filename="grindify-export.zip"',
     );
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(data, null, 2));
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Length', zip.length.toString());
+    res.send(zip);
   }
 }

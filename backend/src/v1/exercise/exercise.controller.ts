@@ -47,6 +47,12 @@ import { JwtAuthGuard } from '../guards/jwtAuth.guard';
 import { ExerciseResponseDto } from './dto/exerciseResponse.dto';
 import { RequestWithUser } from '../types/requestWithUser.type';
 import { UploadService } from '../upload/upload.service';
+import {
+  IMAGE_UPLOAD_OPTIONS,
+  MEDIA_UPLOAD_OPTIONS,
+} from '../upload/upload.constants';
+import { DuplicateGlobalDto } from '../common/dto/duplicateGlobal.dto';
+import { ReorderMediaDto } from '../common/dto/reorderMedia.dto';
 
 @ApiTags('exercises')
 @ApiBearerAuth()
@@ -136,7 +142,7 @@ export class ExerciseController {
     },
   })
   @ApiOkResponse({ type: ExerciseResponseDto })
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', IMAGE_UPLOAD_OPTIONS))
   async uploadExerciseImage(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
@@ -149,6 +155,9 @@ export class ExerciseController {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
+
+    // Check ownership before anything is written to disk
+    await this.exerciseService.assertOwnsExercise(id, +req.user.id);
 
     // Validate the uploaded file
     const validation = this.uploadService.validateImageFile(file);
@@ -168,7 +177,7 @@ export class ExerciseController {
   @ApiCreatedResponse({ type: ExerciseResponseDto })
   duplicateExercise(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { transferStats?: boolean },
+    @Body() body: DuplicateGlobalDto,
     @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
     if (!req.user?.id) {
@@ -191,7 +200,7 @@ export class ExerciseController {
     },
   })
   @ApiOkResponse({ type: ExerciseResponseDto })
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', MEDIA_UPLOAD_OPTIONS))
   async uploadExerciseMedia(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
@@ -204,6 +213,9 @@ export class ExerciseController {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
+
+    // Check ownership before anything is written to disk
+    await this.exerciseService.assertOwnsExercise(id, +req.user.id);
 
     const validation = this.uploadService.validateMediaFile(file);
     if (!validation.valid) {
@@ -240,7 +252,7 @@ export class ExerciseController {
   @ApiOkResponse({ type: ExerciseResponseDto })
   async reorderExerciseMedia(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { mediaIds: number[] },
+    @Body() body: ReorderMediaDto,
     @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
     if (!req.user?.id) {

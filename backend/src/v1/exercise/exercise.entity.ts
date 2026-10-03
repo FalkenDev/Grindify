@@ -80,7 +80,9 @@ export class Exercise {
   @JoinTable()
   primaryMuscleGroups: MuscleGroup[];
 
-  @ManyToMany(() => MuscleGroup, (mg) => mg.exercises, { cascade: true })
+  // No cascade: muscle groups are managed separately and must never be
+  // inserted, updated or (soft-)removed through an exercise
+  @ManyToMany(() => MuscleGroup, (mg) => mg.exercises)
   @JoinTable()
   muscleGroups: MuscleGroup[];
 

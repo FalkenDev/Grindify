@@ -29,6 +29,11 @@ import { WorkoutStatus } from '../types/WorkoutStatus.type';
 import { UserService } from '../user/user.service';
 import { StatisticsService } from '../statistics/statistics.service';
 import { UpdateWorkoutSessionDto } from './dto/updateWorkoutSession.dto';
+import {
+  assertAccessibleExercises,
+  assertOwnedScheduledSession,
+  findAccessibleExercise,
+} from '../common/ownership.util';
 
 export interface PreviousSetItem {
   setNumber: number;
@@ -82,6 +87,15 @@ export class WorkoutSessionService {
     });
 
     if (!session) throw new NotFoundException('Workout session not found');
+
+    // Legacy rows may reference another user's workout template — never expose it
+    if (session.workout) {
+      const ownsWorkout = await this.workoutRepo.exists({
+        where: { id: session.workout.id, createdBy: { id: userId } },
+        withDeleted: true,
+      });
+      if (!ownsWorkout) session.workout = null;
+    }
 
     // Sort session exercises by order
     if (session.exercises) {
@@ -176,11 +190,16 @@ export class WorkoutSessionService {
     scheduledSessionId?: number,
   ): Promise<WorkoutSession> {
     const workout = await this.workoutRepo.findOne({
-      where: { id: workoutId },
+      where: { id: workoutId, createdBy: { id: userId } },
       relations: ['exercises', 'exercises.exercise'],
     });
 
     if (!workout) throw new NotFoundException('Workout not found');
+    await assertOwnedScheduledSession(
+      this.sessionRepo.manager,
+      scheduledSessionId,
+      userId,
+    );
 
     // Sort workout exercises by order
     const sortedExercises = [...(workout.exercises || [])].sort(
@@ -213,6 +232,11 @@ export class WorkoutSessionService {
     userId: number,
     scheduledSessionId?: number,
   ): Promise<WorkoutSession> {
+    await assertOwnedScheduledSession(
+      this.sessionRepo.manager,
+      scheduledSessionId,
+      userId,
+    );
     const session = this.sessionRepo.create({
       user: { id: userId },
       workout: null,
@@ -244,10 +268,21 @@ export class WorkoutSessionService {
       let workout: Workout | null = null;
       if (dto.workoutId) {
         workout = await manager.findOne(Workout, {
-          where: { id: dto.workoutId },
+          where: { id: dto.workoutId, createdBy: { id: userId } },
           withDeleted: true,
         });
+        if (!workout) throw new NotFoundException('Workout not found');
       }
+      await assertOwnedScheduledSession(
+        manager,
+        dto.scheduledSessionId,
+        userId,
+      );
+      await assertAccessibleExercises(
+        manager,
+        (dto.completedExercises ?? []).map((ce) => ce.exerciseId),
+        userId,
+      );
 
       const session = manager.create(WorkoutSession, {
         user: { id: userId },
@@ -272,12 +307,11 @@ export class WorkoutSessionService {
         const allSets: WorkoutSessionSet[] = [];
 
         for (const ce of dto.completedExercises) {
-          const exercise = await manager.findOne(Exercise, {
-            where: { id: ce.exerciseId },
-            withDeleted: true,
-          });
-          if (!exercise)
-            throw new NotFoundException(`Exercise ${ce.exerciseId} not found`);
+          const exercise = await findAccessibleExercise(
+            manager,
+            ce.exerciseId,
+            userId,
+          );
 
           const sessionExercise = manager.create(WorkoutSessionExercise, {
             session: saved,
@@ -383,13 +417,12 @@ export class WorkoutSessionService {
 
     if (!session) throw new NotFoundException('Session not found');
 
-    const exercise = await this.exerciseRepo.findOne({
-      where: { id: exerciseId },
-      relations: ['muscleGroups'],
-      withDeleted: true,
-    });
-
-    if (!exercise) throw new NotFoundException('Exercise not found');
+    const exercise = await findAccessibleExercise(
+      this.exerciseRepo.manager,
+      exerciseId,
+      userId,
+      ['muscleGroups'],
+    );
 
     // Assign order as next after current max
     const maxOrder = session.exercises.reduce(
@@ -450,11 +483,11 @@ export class WorkoutSessionService {
           let sessionExercise = existingByExerciseId.get(ce.exerciseId);
 
           if (!sessionExercise) {
-            const exercise = await manager.findOne(Exercise, {
-              where: { id: ce.exerciseId },
-              withDeleted: true,
-            });
-            if (!exercise) throw new NotFoundException('Exercise not found');
+            const exercise = await findAccessibleExercise(
+              manager,
+              ce.exerciseId,
+              userId,
+            );
 
             // Assign order as next after current max
             const currentMax = (session.exercises ?? []).reduce(
@@ -595,7 +628,19 @@ export class WorkoutSessionService {
         withDeleted: true,
       });
 
-      return { ...result, newRecords } as any;
+      // Include the exercise title (i18n object) so the session summary can
+      // name the exercise each record belongs to
+      const titleByExerciseId = new Map(
+        (result.exercises ?? [])
+          .filter((ex) => ex.exercise?.id)
+          .map((ex) => [ex.exercise.id, ex.exercise.title] as const),
+      );
+      const recordsWithTitle = newRecords.map((record) => ({
+        ...record,
+        exerciseTitle: titleByExerciseId.get(record.exerciseId) ?? null,
+      }));
+
+      return { ...result, newRecords: recordsWithTitle } as any;
     });
   }
 

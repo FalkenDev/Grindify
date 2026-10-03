@@ -26,6 +26,8 @@ import { WeightLog } from '../weightLog/weightLog.entity';
 import { ProgressPhoto } from '../progressPhoto/progressPhoto.entity';
 import { ExerciseRecord } from '../statistics/exerciseRecord.entity';
 import { UploadModule } from '../upload/upload.module';
+import { EmailModule } from '../email/email.module';
+import { TokenModule } from '../auth/token.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { UploadModule } from '../upload/upload.module';
       ExerciseRecord,
     ]),
     UploadModule,
+    EmailModule,
+    TokenModule,
   ],
   controllers: [UserController],
   providers: [UserService],

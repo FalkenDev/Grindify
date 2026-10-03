@@ -14,7 +14,8 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNumber } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class AddRemoveExercisesDto {
   @ApiProperty({
@@ -23,6 +24,8 @@ export class AddRemoveExercisesDto {
     example: [1, 2, 3],
   })
   @IsArray()
+  @ArrayMaxSize(100)
+  @Type(() => Number)
   @IsNumber({}, { each: true })
   exerciseIds!: number[];
 }

@@ -15,9 +15,10 @@
 
 import { Module } from '@nestjs/common';
 import { UploadService } from './upload.service';
+import { UploadCleanupService } from './uploadCleanup.service';
 
 @Module({
-  providers: [UploadService],
-  exports: [UploadService],
+  providers: [UploadService, UploadCleanupService],
+  exports: [UploadService, UploadCleanupService],
 })
 export class UploadModule {}

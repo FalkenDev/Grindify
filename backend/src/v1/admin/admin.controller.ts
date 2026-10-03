@@ -44,6 +44,7 @@ import {
   ApiConsumes,
 } from '@nestjs/swagger';
 import { Request } from 'express';
+import * as JSZip from 'jszip';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminService } from './admin.service';
@@ -68,6 +69,27 @@ import { CreateMuscleGroupAdminDto } from '../muscleGroup/dto/createMuscleGroupA
 import { ExerciseImage } from '../exercise/exerciseImage.entity';
 import { ExerciseImageResponseDto } from '../exercise/dto/exerciseImageResponse.dto';
 import { UploadService } from '../upload/upload.service';
+import { UploadCleanupService } from '../upload/uploadCleanup.service';
+import {
+  IMAGE_UPLOAD_OPTIONS,
+  MEDIA_UPLOAD_OPTIONS,
+  ZIP_IMPORT_OPTIONS,
+  JSON_IMPORT_OPTIONS,
+} from '../upload/upload.constants';
+import { AuditService } from '../audit/audit.service';
+import { AuditLogQueryDto } from '../audit/auditLogQuery.dto';
+import { ReorderMediaDto } from '../common/dto/reorderMedia.dto';
+import { ImportExerciseItemDto } from './dto/importExercise.dto';
+import { validatePlain } from '../common/validatePlain.util';
+
+// Hard limits for admin imports (zip bombs / resource exhaustion)
+const IMPORT_MAX_EXERCISES = 500;
+const IMPORT_MAX_ZIP_ENTRIES = 5000;
+const IMPORT_MAX_UNCOMPRESSED_BYTES = 300 * 1024 * 1024; // 300MB
+const IMPORT_MAX_ENTRY_BYTES = 50 * 1024 * 1024; // 50MB per file
+const IMPORT_MAX_JSON_BYTES = 1024 * 1024; // 1MB per exercise.json
+const IMPORT_MAX_ACTIVITIES = 1000;
+const IMPORT_ALLOWED_EXTENSIONS = ['json', 'webp', 'jpg', 'jpeg', 'png', 'mp4'];
 
 interface RequestWithUser extends Request {
   user: { id: number; email: string; role: string };
@@ -84,9 +106,28 @@ export class AdminController {
     private readonly activityService: ActivityService,
     private readonly muscleGroupService: MuscleGroupService,
     private readonly uploadService: UploadService,
+    private readonly uploadCleanupService: UploadCleanupService,
+    private readonly auditService: AuditService,
     @InjectRepository(ExerciseImage)
     private readonly exerciseImageRepo: Repository<ExerciseImage>,
   ) {}
+
+  private audit(
+    req: RequestWithUser,
+    action: string,
+    targetType?: string | null,
+    targetId?: number | string | null,
+    metadata?: Record<string, unknown>,
+  ) {
+    return this.auditService.log({
+      action: `admin.${action}`,
+      actor: req.user,
+      targetType,
+      targetId,
+      metadata,
+      req,
+    });
+  }
 
   // --- Admin meta ---
 
@@ -111,17 +152,37 @@ export class AdminController {
     @Query('limit') limit?: string,
     @Query('search') search?: string,
   ) {
+    const pageNum = Math.max(1, parseInt(page ?? '1', 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10) || 20));
     return this.adminService.listUsers(
-      parseInt(page ?? '1', 10),
-      parseInt(limit ?? '20', 10),
-      search,
+      pageNum,
+      limitNum,
+      search?.slice(0, 100),
     );
   }
 
   @Get('users/:id')
   @ApiOperation({ summary: 'Get a single user by ID' })
-  getUser(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.getUserById(id);
+  async getUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
+  ) {
+    const user = await this.adminService.getUserById(id);
+    await this.audit(req, 'user_viewed', 'user', id);
+    return user;
+  }
+
+  // --- Audit log ---
+
+  @Get('audit-logs')
+  @ApiOperation({ summary: 'List audit log entries (newest first)' })
+  listAuditLogs(@Query() query: AuditLogQueryDto) {
+    return this.auditService.list({
+      page: query.page ?? 1,
+      limit: query.limit ?? 50,
+      action: query.action || undefined,
+      actorId: query.actorId,
+    });
   }
 
   // --- Global Exercises ---
@@ -136,29 +197,38 @@ export class AdminController {
   @Post('exercises')
   @ApiOperation({ summary: 'Create a global exercise' })
   @ApiCreatedResponse({ type: ExerciseResponseDto })
-  createGlobalExercise(
+  async createGlobalExercise(
     @Body() dto: CreateGlobalExerciseDto,
+    @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
-    return this.exerciseService.createGlobal(dto);
+    const created = await this.exerciseService.createGlobal(dto);
+    await this.audit(req, 'exercise_created', 'exercise', created.id);
+    return created;
   }
 
   @Put('exercises/:id')
   @ApiOperation({ summary: 'Update a global exercise' })
   @ApiOkResponse({ type: ExerciseResponseDto })
-  updateGlobalExercise(
+  async updateGlobalExercise(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateGlobalExerciseDto,
+    @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
-    return this.exerciseService.updateGlobal(id, dto);
+    const updated = await this.exerciseService.updateGlobal(id, dto);
+    await this.audit(req, 'exercise_updated', 'exercise', id);
+    return updated;
   }
 
   @Delete('exercises/:id')
   @ApiOperation({ summary: 'Soft-delete a global exercise (user data preserved)' })
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteGlobalExercise(
+  async deleteGlobalExercise(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    return this.exerciseService.deleteGlobal(id);
+    const result = await this.exerciseService.deleteGlobal(id);
+    await this.audit(req, 'exercise_deleted', 'exercise', id);
+    return result;
   }
 
   // --- Global Exercise Media ---
@@ -167,35 +237,45 @@ export class AdminController {
   @ApiOperation({ summary: 'Upload instructional media (image or video) to a global exercise' })
   @ApiCreatedResponse({ type: ExerciseResponseDto })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', MEDIA_UPLOAD_OPTIONS))
   async addGlobalExerciseMedia(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
+    await this.exerciseService.assertGlobalExerciseExists(id);
     const validation = this.uploadService.validateMediaFile(file);
     if (!validation.valid) throw new BadRequestException(validation.error);
 
     const { url, type } = await this.uploadService.processExerciseMedia(file);
-    return this.exerciseService.addGlobalMedia(id, url, type);
+    const result = await this.exerciseService.addGlobalMedia(id, url, type);
+    await this.audit(req, 'exercise_media_added', 'exercise', id, { type });
+    return result;
   }
 
   @Delete('exercises/:id/media/:mediaId')
   @ApiOperation({ summary: 'Delete a media item from a global exercise' })
   @HttpCode(HttpStatus.OK)
-  deleteGlobalExerciseMedia(
+  async deleteGlobalExerciseMedia(
     @Param('id', ParseIntPipe) id: number,
     @Param('mediaId', ParseIntPipe) mediaId: number,
+    @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
-    return this.exerciseService.removeGlobalMedia(id, mediaId);
+    const result = await this.exerciseService.removeGlobalMedia(id, mediaId);
+    await this.audit(req, 'exercise_media_deleted', 'exercise', id, { mediaId });
+    return result;
   }
 
   @Put('exercises/:id/media/reorder')
   @ApiOperation({ summary: 'Reorder media items for a global exercise' })
-  reorderGlobalExerciseMedia(
+  async reorderGlobalExerciseMedia(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { mediaIds: number[] },
+    @Body() body: ReorderMediaDto,
+    @Req() req: RequestWithUser,
   ): Promise<ExerciseResponseDto> {
-    return this.exerciseService.reorderGlobalMedia(id, body.mediaIds);
+    const result = await this.exerciseService.reorderGlobalMedia(id, body.mediaIds);
+    await this.audit(req, 'exercise_media_reordered', 'exercise', id);
+    return result;
   }
 
   // --- Exercise Image Library ---
@@ -239,16 +319,19 @@ export class AdminController {
   @ApiOperation({ summary: 'Upload an image to the exercise image library' })
   @ApiCreatedResponse({ type: ExerciseImageResponseDto })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', IMAGE_UPLOAD_OPTIONS))
   async uploadExerciseImage(
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
   ): Promise<ExerciseImageResponseDto> {
     const validation = this.uploadService.validateImageFile(file);
     if (!validation.valid) throw new BadRequestException(validation.error);
 
     const { url, fileSize } = await this.uploadService.processExerciseImage(file);
     const record = this.exerciseImageRepo.create({ url, fileSize });
-    return this.exerciseImageRepo.save(record);
+    const saved = await this.exerciseImageRepo.save(record);
+    await this.audit(req, 'exercise_image_uploaded', 'exercise_image', saved.id);
+    return saved;
   }
 
   @Delete('exercise-images/:id')
@@ -256,6 +339,7 @@ export class AdminController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteExerciseImage(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
   ): Promise<void> {
     const image = await this.exerciseImageRepo.findOne({ where: { id } });
     if (!image) return;
@@ -273,8 +357,11 @@ export class AdminController {
       );
     }
 
-    await this.uploadService.deleteImage(image.url);
+    const url = image.url;
     await this.exerciseImageRepo.remove(image);
+    // Personal copies (incl. soft-deleted ones) may still use the file
+    await this.uploadCleanupService.deleteIfUnreferenced([url]);
+    await this.audit(req, 'exercise_image_deleted', 'exercise_image', id);
   }
 
   // --- Global Activities ---
@@ -289,29 +376,38 @@ export class AdminController {
   @Post('activities')
   @ApiOperation({ summary: 'Create a global activity' })
   @ApiCreatedResponse({ type: ActivityResponseDto })
-  createGlobalActivity(
+  async createGlobalActivity(
     @Body() dto: CreateGlobalActivityDto,
+    @Req() req: RequestWithUser,
   ): Promise<ActivityResponseDto> {
-    return this.activityService.createGlobal(dto);
+    const created = await this.activityService.createGlobal(dto);
+    await this.audit(req, 'activity_created', 'activity', created.id);
+    return created;
   }
 
   @Put('activities/:id')
   @ApiOperation({ summary: 'Update a global activity' })
   @ApiOkResponse({ type: ActivityResponseDto })
-  updateGlobalActivity(
+  async updateGlobalActivity(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateGlobalActivityDto,
+    @Req() req: RequestWithUser,
   ): Promise<ActivityResponseDto> {
-    return this.activityService.updateGlobal(id, dto);
+    const updated = await this.activityService.updateGlobal(id, dto);
+    await this.audit(req, 'activity_updated', 'activity', id);
+    return updated;
   }
 
   @Delete('activities/:id')
   @ApiOperation({ summary: 'Soft-delete a global activity (user data preserved)' })
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteGlobalActivity(
+  async deleteGlobalActivity(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    return this.activityService.deleteGlobal(id);
+    const result = await this.activityService.deleteGlobal(id);
+    await this.audit(req, 'activity_deleted', 'activity', id);
+    return result;
   }
 
   // --- Muscle Groups ---
@@ -325,23 +421,29 @@ export class AdminController {
   @Post('muscle-groups')
   @ApiOperation({ summary: 'Create a new muscle group' })
   @ApiCreatedResponse({ type: MuscleGroup })
-  createMuscleGroup(
+  async createMuscleGroup(
     @Body() dto: CreateMuscleGroupAdminDto,
+    @Req() req: RequestWithUser,
   ): Promise<MuscleGroup> {
-    return this.muscleGroupService.create({
+    const created = await this.muscleGroupService.create({
       name: dto.name,
       nameI18n: dto.nameI18n ?? { default: dto.name },
       descriptionI18n: dto.descriptionI18n,
-    } as any);
+    });
+    await this.audit(req, 'muscle_group_created', 'muscle_group', created.id);
+    return created;
   }
 
   @Put('muscle-groups/:id')
   @ApiOperation({ summary: 'Update muscle group translations' })
-  updateMuscleGroup(
+  async updateMuscleGroup(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateMuscleGroupAdminDto,
+    @Req() req: RequestWithUser,
   ): Promise<MuscleGroup> {
-    return this.muscleGroupService.update(id, dto as any);
+    const updated = await this.muscleGroupService.update(id, dto);
+    await this.audit(req, 'muscle_group_updated', 'muscle_group', id);
+    return updated;
   }
 
   @Get('muscle-groups/:id/exercises')
@@ -363,10 +465,13 @@ export class AdminController {
   @Delete('muscle-groups/:id')
   @ApiOperation({ summary: 'Delete a muscle group (removes association from all exercises)' })
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteMuscleGroup(
+  async deleteMuscleGroup(
     @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    return this.muscleGroupService.remove(id);
+    const result = await this.muscleGroupService.remove(id);
+    await this.audit(req, 'muscle_group_deleted', 'muscle_group', id);
+    return result;
   }
 
   // --- Export ---
@@ -374,9 +479,7 @@ export class AdminController {
   @Get('export/exercises')
   @ApiOperation({ summary: 'Export all global exercises as a ZIP archive (one folder per exercise)' })
   @Header('Content-Type', 'application/zip')
-  async exportExercises(): Promise<StreamableFile> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const JSZip = require('jszip');
+  async exportExercises(@Req() req: RequestWithUser): Promise<StreamableFile> {
     const zip = new JSZip();
 
     const exercises = await this.exerciseService.findAll(0, 'global');
@@ -443,6 +546,7 @@ export class AdminController {
     }
 
     const zipBuffer: Buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+    await this.audit(req, 'export_exercises', null, null, { count: exercises.length });
     const filename = `exercises-export-${new Date().toISOString().slice(0, 10)}.zip`;
 
     return new StreamableFile(zipBuffer, {
@@ -455,8 +559,9 @@ export class AdminController {
   @Get('export/activities')
   @ApiOperation({ summary: 'Export all global activities as JSON' })
   @Header('Content-Type', 'application/json')
-  async exportActivities(): Promise<StreamableFile> {
+  async exportActivities(@Req() req: RequestWithUser): Promise<StreamableFile> {
     const activities = await this.activityService.findAll(0, 'global');
+    await this.audit(req, 'export_activities', null, null, { count: activities.length });
 
     const payload = {
       version: 1,
@@ -490,28 +595,96 @@ export class AdminController {
   @Post('import/exercises')
   @ApiOperation({ summary: 'Import global exercises from a ZIP export archive' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', ZIP_IMPORT_OPTIONS))
   async importExercises(
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
   ): Promise<{ created: number; skipped: number; errors: string[] }> {
     if (!file) throw new BadRequestException('No file provided');
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const JSZip = require('jszip');
     let zip: any;
     try {
-      zip = await JSZip.loadAsync(file.buffer);
+      zip = await JSZip.loadAsync(file.buffer, { checkCRC32: true });
     } catch {
       throw new BadRequestException('Invalid ZIP file');
     }
 
+    const entryNames: string[] = Object.keys(zip.files).filter(
+      (p: string) => !zip.files[p].dir,
+    );
+    if (entryNames.length > IMPORT_MAX_ZIP_ENTRIES) {
+      throw new BadRequestException(
+        `ZIP contains too many files (max ${IMPORT_MAX_ZIP_ENTRIES})`,
+      );
+    }
+
+    // Declared sizes are checked up front; actual sizes are enforced while reading
+    let declaredTotal = 0;
+    for (const name of entryNames) {
+      const ext = name.split('.').pop()?.toLowerCase() ?? '';
+      if (name.includes('..') || name.startsWith('/') || name.includes('\\')) {
+        throw new BadRequestException(`Invalid path in ZIP: ${name.slice(0, 100)}`);
+      }
+      if (!IMPORT_ALLOWED_EXTENSIONS.includes(ext) && !name.startsWith('__MACOSX/') && !name.endsWith('.DS_Store')) {
+        throw new BadRequestException(
+          `Unsupported file type in ZIP: ${name.slice(0, 100)}`,
+        );
+      }
+      const size = Number(zip.files[name]?._data?.uncompressedSize ?? 0);
+      if (size > IMPORT_MAX_ENTRY_BYTES) {
+        throw new BadRequestException(`File too large in ZIP: ${name.slice(0, 100)}`);
+      }
+      declaredTotal += size;
+    }
+    if (declaredTotal > IMPORT_MAX_UNCOMPRESSED_BYTES) {
+      throw new BadRequestException('ZIP content is too large');
+    }
+
+    let bytesRead = 0;
+    const readEntry = (entry: any, maxBytes: number): Promise<Buffer> =>
+      new Promise((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        let size = 0;
+        let done = false;
+        const stream = entry.internalStream('uint8array');
+        stream
+          .on('data', (chunk: Uint8Array) => {
+            if (done) return;
+            size += chunk.length;
+            bytesRead += chunk.length;
+            if (size > maxBytes || bytesRead > IMPORT_MAX_UNCOMPRESSED_BYTES) {
+              done = true;
+              stream.pause();
+              reject(new BadRequestException('ZIP content is too large'));
+              return;
+            }
+            chunks.push(Buffer.from(chunk));
+          })
+          .on('error', (err: Error) => {
+            if (done) return;
+            done = true;
+            reject(err);
+          })
+          .on('end', () => {
+            if (done) return;
+            done = true;
+            resolve(Buffer.concat(chunks));
+          })
+          .resume();
+      });
+
     // Find all exercise.json entries (not directories)
-    const exerciseJsonPaths: string[] = Object.keys(zip.files).filter(
-      (p: string) => p.endsWith('/exercise.json') && !zip.files[p].dir,
+    const exerciseJsonPaths = entryNames.filter(
+      (p) => p.endsWith('/exercise.json') && !p.startsWith('__MACOSX/'),
     );
 
     if (exerciseJsonPaths.length === 0) {
       throw new BadRequestException('No exercise.json files found in ZIP — is this a valid exercises export?');
+    }
+    if (exerciseJsonPaths.length > IMPORT_MAX_EXERCISES) {
+      throw new BadRequestException(
+        `Too many exercises in ZIP (max ${IMPORT_MAX_EXERCISES})`,
+      );
     }
 
     const allMuscleGroups = await this.muscleGroupService.findAll();
@@ -530,31 +703,48 @@ export class AdminController {
 
     for (const jsonPath of exerciseJsonPaths) {
       const folderPrefix = jsonPath.slice(0, jsonPath.lastIndexOf('/') + 1); // e.g. "Bench Press/"
-      let item: any;
+      let item: ImportExerciseItemDto;
       try {
-        const jsonContent = await zip.files[jsonPath].async('string');
-        item = JSON.parse(jsonContent);
-      } catch {
+        const jsonContent = (
+          await readEntry(zip.files[jsonPath], IMPORT_MAX_JSON_BYTES)
+        ).toString('utf-8');
+        const parsed = await validatePlain(
+          ImportExerciseItemDto,
+          JSON.parse(jsonContent),
+        );
+        if (parsed.errors) {
+          errors.push(`${jsonPath}: invalid exercise.json (${parsed.errors.join('; ')})`);
+          continue;
+        }
+        item = parsed.value;
+      } catch (err) {
+        if (err instanceof BadRequestException) throw err;
         errors.push(`${jsonPath}: failed to parse exercise.json`);
         continue;
       }
 
       const titleDefault = item.title?.default ?? '';
+      if (!titleDefault.trim()) {
+        errors.push(`${jsonPath}: missing title.default`);
+        continue;
+      }
       if (existingTitles.has(titleDefault.toLowerCase())) {
         skipped++;
         continue;
       }
 
+      const writtenFiles: string[] = [];
       try {
-        // Cover image
+        // Cover image (always re-encoded with sharp)
         let imageUrl: string | undefined;
         if (item.coverImage) {
-          const coverPath = `${folderPrefix}${item.coverImage}`;
-          const coverFile = zip.files[coverPath];
+          const coverFile = zip.files[`${folderPrefix}${item.coverImage}`];
           if (coverFile && !coverFile.dir) {
-            const buffer: Buffer = await coverFile.async('nodebuffer');
-            const ext = coverPath.split('.').pop() ?? 'webp';
-            imageUrl = await this.uploadService.writeExerciseImageFromBuffer(buffer, ext);
+            const buffer = await readEntry(coverFile, IMPORT_MAX_ENTRY_BYTES);
+            const { url } =
+              await this.uploadService.writeExerciseImageFromBuffer(buffer);
+            writtenFiles.push(url);
+            imageUrl = url;
           }
         }
 
@@ -577,20 +767,20 @@ export class AdminController {
           instructionsI18n: item.instructionsI18n ?? undefined,
           proTipsI18n: item.proTipsI18n ?? undefined,
           mistakesI18n: item.mistakesI18n ?? undefined,
-        } as any);
+        });
 
-        // Media items
-        for (const mediaEntry of (item.media ?? []) as { order: number; type: string; file: string }[]) {
-          const mediaPath = `${folderPrefix}${mediaEntry.file}`;
-          const mediaFile = zip.files[mediaPath];
+        // Media items (images re-encoded, videos must be real MP4)
+        for (const mediaEntry of item.media ?? []) {
+          const mediaFile = zip.files[`${folderPrefix}${mediaEntry.file}`];
           if (mediaFile && !mediaFile.dir) {
-            const buffer: Buffer = await mediaFile.async('nodebuffer');
-            const ext = mediaPath.split('.').pop() ?? 'webp';
-            const mediaUrl = await this.uploadService.writeExerciseMediaFromBuffer(buffer, ext);
+            const buffer = await readEntry(mediaFile, IMPORT_MAX_ENTRY_BYTES);
+            const { url, type } =
+              await this.uploadService.writeExerciseMediaFromBuffer(buffer);
+            writtenFiles.push(url);
             await this.exerciseService.addGlobalMedia(
               created_exercise.id,
-              mediaUrl,
-              mediaEntry.type as 'image' | 'video',
+              url,
+              type,
             );
           }
         }
@@ -598,9 +788,20 @@ export class AdminController {
         existingTitles.add(titleDefault.toLowerCase());
         created++;
       } catch (err: any) {
+        if (err instanceof BadRequestException && err.message === 'ZIP content is too large') {
+          await this.uploadCleanupService.deleteIfUnreferenced(writtenFiles);
+          throw err;
+        }
+        await this.uploadCleanupService.deleteIfUnreferenced(writtenFiles);
         errors.push(`"${titleDefault}": ${err?.message ?? 'unknown error'}`);
       }
     }
+
+    await this.audit(req, 'import_exercises', null, null, {
+      created,
+      skipped,
+      errors: errors.length,
+    });
 
     return { created, skipped, errors };
   }
@@ -608,9 +809,10 @@ export class AdminController {
   @Post('import/activities')
   @ApiOperation({ summary: 'Import global activities from a JSON export file' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', JSON_IMPORT_OPTIONS))
   async importActivities(
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: RequestWithUser,
   ): Promise<{ created: number; skipped: number; errors: string[] }> {
     if (!file) throw new BadRequestException('No file provided');
 
@@ -621,8 +823,13 @@ export class AdminController {
       throw new BadRequestException('Invalid JSON file');
     }
 
-    if (payload.type !== 'activities' || !Array.isArray(payload.activities)) {
+    if (payload?.type !== 'activities' || !Array.isArray(payload.activities)) {
       throw new BadRequestException('File does not appear to be an activities export');
+    }
+    if (payload.activities.length > IMPORT_MAX_ACTIVITIES) {
+      throw new BadRequestException(
+        `Too many activities in file (max ${IMPORT_MAX_ACTIVITIES})`,
+      );
     }
 
     const existingActivities = await this.activityService.findAll(0, 'global');
@@ -634,7 +841,26 @@ export class AdminController {
     let skipped = 0;
     const errors: string[] = [];
 
-    for (const item of payload.activities) {
+    for (const [index, raw] of (payload.activities as unknown[]).entries()) {
+      const candidate =
+        raw && typeof raw === 'object'
+          ? {
+              ...(raw as Record<string, unknown>),
+              description: (raw as any).description ?? undefined,
+              equipment: (raw as any).equipment ?? [],
+              trackDistance: (raw as any).trackDistance ?? false,
+              trackPace: (raw as any).trackPace ?? false,
+              trackElevation: (raw as any).trackElevation ?? false,
+              trackCalories: (raw as any).trackCalories ?? false,
+            }
+          : raw;
+      const parsed = await validatePlain(CreateGlobalActivityDto, candidate);
+      if (parsed.errors) {
+        errors.push(`activities[${index}]: ${parsed.errors.join('; ')}`);
+        continue;
+      }
+      const item = parsed.value;
+
       const titleDefault = item.title?.default ?? '';
       if (existingTitles.has(titleDefault.toLowerCase())) {
         skipped++;
@@ -642,16 +868,7 @@ export class AdminController {
       }
 
       try {
-        await this.activityService.createGlobal({
-          title: item.title,
-          description: item.description ?? undefined,
-          icon: item.icon,
-          equipment: item.equipment ?? [],
-          trackDistance: item.trackDistance ?? false,
-          trackPace: item.trackPace ?? false,
-          trackElevation: item.trackElevation ?? false,
-          trackCalories: item.trackCalories ?? false,
-        });
+        await this.activityService.createGlobal(item);
 
         existingTitles.add(titleDefault.toLowerCase());
         created++;
@@ -659,6 +876,12 @@ export class AdminController {
         errors.push(`"${titleDefault}": ${err?.message ?? 'unknown error'}`);
       }
     }
+
+    await this.audit(req, 'import_activities', null, null, {
+      created,
+      skipped,
+      errors: errors.length,
+    });
 
     return { created, skipped, errors };
   }

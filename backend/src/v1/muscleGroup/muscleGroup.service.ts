@@ -26,6 +26,18 @@ import { MuscleGroup } from './muscleGroup.entity';
 import { CreateMuscleGroupDto } from './dto/createMuscleGroup.dto';
 import { UpdateMuscleGroupDto } from './dto/updateMuscleGroup.dto';
 import { muscleGroupsToSeed } from '../seed/data/muscleGroups.data';
+import { I18nString } from '../common/types/i18n.types';
+
+/**
+ * Input accepted by create/update. The public superadmin endpoint sends plain
+ * `name` / `description`, the admin panel sends the i18n objects directly.
+ */
+export interface MuscleGroupInput {
+  name?: string;
+  description?: string;
+  nameI18n?: Partial<I18nString>;
+  descriptionI18n?: Partial<I18nString>;
+}
 
 @Injectable()
 export class MuscleGroupService implements OnModuleInit {
@@ -91,9 +103,12 @@ export class MuscleGroupService implements OnModuleInit {
     });
   }
 
-  async create(dto: CreateMuscleGroupDto): Promise<MuscleGroup> {
+  async create(
+    dto: CreateMuscleGroupDto | (MuscleGroupInput & { name: string }),
+  ): Promise<MuscleGroup> {
+    const input = dto as MuscleGroupInput & { name: string };
     const existing = await this.muscleGroupRepo.findOne({
-      where: { name: dto.name },
+      where: { name: input.name },
     });
 
     if (existing) {
@@ -102,13 +117,57 @@ export class MuscleGroupService implements OnModuleInit {
       );
     }
 
-    const muscleGroup = this.muscleGroupRepo.create(dto);
+    // Map onto the real columns: `nameI18n` is NOT NULL and `description`
+    // only exists as `descriptionI18n`.
+    const muscleGroup = this.muscleGroupRepo.create({
+      name: input.name,
+      nameI18n: {
+        ...input.nameI18n,
+        default: input.nameI18n?.default || input.name,
+      },
+      descriptionI18n:
+        input.descriptionI18n !== undefined
+          ? { default: null, ...input.descriptionI18n }
+          : input.description !== undefined
+            ? { default: input.description }
+            : undefined,
+    });
     return this.muscleGroupRepo.save(muscleGroup);
   }
 
-  async update(id: number, dto: UpdateMuscleGroupDto): Promise<MuscleGroup> {
+  async update(
+    id: number,
+    dto: UpdateMuscleGroupDto | MuscleGroupInput,
+  ): Promise<MuscleGroup> {
+    const input = dto as MuscleGroupInput;
     const muscleGroup = await this.findOne(id);
-    Object.assign(muscleGroup, dto);
+
+    if (input.name !== undefined && input.name !== muscleGroup.name) {
+      const existing = await this.muscleGroupRepo.findOne({
+        where: { name: input.name },
+      });
+      if (existing) {
+        throw new BadRequestException(
+          'Muscle group with that name already exists',
+        );
+      }
+      muscleGroup.name = input.name;
+    }
+    // i18n objects from the admin panel replace the stored ones
+    if (input.nameI18n !== undefined) {
+      muscleGroup.nameI18n = {
+        ...input.nameI18n,
+        default: input.nameI18n.default || muscleGroup.name,
+      };
+    }
+    if (input.descriptionI18n !== undefined) {
+      muscleGroup.descriptionI18n = { default: null, ...input.descriptionI18n };
+    } else if (input.description !== undefined) {
+      muscleGroup.descriptionI18n = {
+        ...(muscleGroup.descriptionI18n ?? {}),
+        default: input.description,
+      };
+    }
     return this.muscleGroupRepo.save(muscleGroup);
   }
 

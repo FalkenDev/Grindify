@@ -14,11 +14,13 @@
  */
 
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateWeightLogDto {
   @ApiProperty({ example: 81.0, required: false, description: 'Weight in kg' })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   weight?: number;

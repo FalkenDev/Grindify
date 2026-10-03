@@ -27,7 +27,10 @@ import {
   UnauthorizedException,
   BadRequestException,
   ParseIntPipe,
+  Res,
+  NotFoundException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
@@ -41,10 +44,13 @@ import { RequestWithUser } from '../types/requestWithUser.type';
 import { ProgressPhotoService } from './progressPhoto.service';
 import { CreateProgressPhotoDto } from './dto/createProgressPhoto.dto';
 import { UploadService } from '../upload/upload.service';
+import { ConsentGuard } from '../guards/consent.guard';
+import { HealthConsentGuard } from '../guards/healthConsent.guard';
+import { IMAGE_UPLOAD_OPTIONS } from '../upload/upload.constants';
 
 @ApiTags('progress-photos')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ConsentGuard, HealthConsentGuard)
 @Controller('progress-photos')
 export class ProgressPhotoController {
   constructor(
@@ -66,9 +72,9 @@ export class ProgressPhotoController {
   @ApiOperation({ summary: 'Upload a new progress photo' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ description: 'Progress photo with optional metadata' })
-  @UseInterceptors(FileInterceptor('file', { storage: undefined }))
+  @UseInterceptors(FileInterceptor('file', IMAGE_UPLOAD_OPTIONS))
   async uploadPhoto(
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateProgressPhotoDto,
     @Req() req: RequestWithUser,
   ) {
@@ -80,6 +86,40 @@ export class ProgressPhotoController {
     if (!validation.valid) throw new BadRequestException(validation.error);
 
     return this.progressPhotoService.create(+req.user.id, file, body);
+  }
+
+  @Get(':id/file')
+  @ApiOperation({
+    summary: 'Get the image file of a progress photo (owner only)',
+  })
+  async getPhotoFile(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+  ): Promise<void> {
+    if (!req.user?.id)
+      throw new UnauthorizedException('User not authenticated');
+    const filepath = await this.progressPhotoService.getFilePath(
+      +req.user.id,
+      id,
+    );
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Content-Type', 'image/webp');
+    await new Promise<void>((resolve, reject) => {
+      res.sendFile(
+        filepath,
+        { dotfiles: 'deny', etag: false, lastModified: false },
+        (err) => {
+          if (err) {
+            if (!res.headersSent) {
+              reject(new NotFoundException('Photo not found'));
+              return;
+            }
+          }
+          resolve();
+        },
+      );
+    });
   }
 
   @Delete(':id')

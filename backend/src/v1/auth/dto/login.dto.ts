@@ -13,15 +13,18 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty()
   @IsEmail()
+  @MaxLength(254)
   email: string;
 
   @ApiProperty()
+  @IsString()
   @IsNotEmpty()
+  @MaxLength(72)
   password: string;
 }

@@ -34,13 +34,21 @@ import { seedUsers } from './seeders/users.seeder';
 import { seedMuscleGroups } from './seeders/muscleGroups.seeder';
 import { seedUserExercises } from './seeders/exercises.seeder';
 import { seedActivities } from './seeders/activities.seeder';
+import { getDbLogging } from '../common/dbLogging.util';
+
+// The seed script truncates tables and uses synchronize — never in production
+if (process.env.NODE_ENV === 'production') {
+  console.error('❌ Refusing to run the seed script with NODE_ENV=production');
+  process.exit(1);
+}
 
 const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DATABASE_HOST || 'postgres',
   port: +(process.env.DATABASE_PORT || 5432),
-  username: process.env.DATABASE_USER || 'user',
-  password: process.env.DATABASE_PASSWORD || 'password',
+  // No default credentials — must come from the environment
+  username: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME || 'grindifydb',
   entities: [
     User,
@@ -59,7 +67,7 @@ const AppDataSource = new DataSource({
   // Keep in sync with app.module.ts (synchronize: true). This makes the seed script
   // resilient when we add new entities.
   synchronize: true,
-  logging: ['error', 'warn', 'query'],
+  logging: getDbLogging(),
 });
 
 async function seed() {

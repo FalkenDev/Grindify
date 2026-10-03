@@ -13,13 +13,24 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 
+/** "john.doe@example.com" -> "jo***@example.com" (for logs only). */
+export function maskEmail(email: string): string {
+  const [local, domain] = (email ?? '').split('@');
+  if (!domain) return '***';
+  return `${local.slice(0, 2)}***@${domain}`;
+}
+
 @Injectable()
 export class EmailService {
-  private readonly resend: Resend;
+  private readonly resend: Resend | null;
   private readonly from: string;
   private readonly frontendUrl: string;
   private readonly logger = new Logger(EmailService.name);
@@ -28,7 +39,24 @@ export class EmailService {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
     this.from = this.configService.get<string>('EMAIL_FROM') ?? 'noreply@localhost';
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
-    this.resend = new Resend(apiKey);
+    // Resend throws on a missing key — only create the client when configured
+    this.resend = apiKey?.trim() ? new Resend(apiKey.trim()) : null;
+    if (!this.resend) {
+      this.logger.warn(
+        'RESEND_API_KEY is not set — outgoing email (verification / password reset) is disabled',
+      );
+    }
+  }
+
+  isConfigured(): boolean {
+    return this.resend !== null;
+  }
+
+  private getClient(): Resend {
+    if (!this.resend) {
+      throw new ServiceUnavailableException('Email delivery is not configured');
+    }
+    return this.resend;
   }
 
   async sendVerificationEmail(to: string, code: string): Promise<void> {
@@ -44,14 +72,17 @@ export class EmailService {
     `;
 
     try {
-      await this.resend.emails.send({
+      await this.getClient().emails.send({
         from: this.from,
         to,
         subject: `${code} is your Grindify verification code`,
         html,
       });
     } catch (error) {
-      this.logger.error(`Failed to send verification email to ${to}`, error);
+      this.logger.error(
+        `Failed to send verification email to ${maskEmail(to)}`,
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
@@ -69,14 +100,17 @@ export class EmailService {
     `;
 
     try {
-      await this.resend.emails.send({
+      await this.getClient().emails.send({
         from: this.from,
         to,
         subject: `${code} is your Grindify password reset code`,
         html,
       });
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${to}`, error);
+      this.logger.error(
+        `Failed to send password reset email to ${maskEmail(to)}`,
+        error instanceof Error ? error.message : String(error),
+      );
       throw error;
     }
   }
