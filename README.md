@@ -27,7 +27,7 @@ Grindify is a full-stack workout application designed for users who want full ow
 - **Exercise Library**: Manage a database of exercises with support for custom images and muscle group categorization.
 - **Progress Analytics**: View detailed statistics including volume, frequency, and personal records per exercise.
 - **Body Metrics**: Track weight logs and upload progress photos to monitor physical changes.
-- **Privacy Focused**: Complete data ownership with no third-party tracking or external dependencies.
+- **Privacy Focused**: Complete data ownership with no third-party tracking or external dependencies. Fonts are bundled and self-hosted, and OAuth profile pictures are downloaded once and served from your own server, so the browser never talks to Google/GitHub CDNs while using the app.
 
 ## Technology Stack
 
@@ -68,7 +68,14 @@ Grindify is a full-stack workout application designed for users who want full ow
    cd Grindify
    ```
 
-2. **Start the application**
+2. **Configure environment**
+
+   ```bash
+   cp .env.example .env
+   # set POSTGRES_PASSWORD and JWT_SECRET (openssl rand -base64 48)
+   ```
+
+3. **Start the application**
 
    ```bash
    docker compose up -d --build
@@ -76,17 +83,18 @@ Grindify is a full-stack workout application designed for users who want full ow
 
    The database migrations will run automatically on startup.
 
-3. **Seed initial data** (optional)
+4. **Seed initial data** (optional)
    Population of default exercises and muscle groups:
 
    ```bash
    docker exec -it grindify_backend npm run seed
    ```
 
-4. **Access the application**
+5. **Access the application**
    - **Frontend**: http://localhost:3000
-   - **API Documentation**: http://localhost:1337/api
-   - **Backend API**: http://localhost:1337
+   - **Admin panel**: http://localhost:3001
+   - **Backend API**: http://localhost:1337/v1
+   - **API Documentation**: http://localhost:1337/api/docs (only when `SWAGGER_ENABLED=true`, protected by `SWAGGER_USER`/`SWAGGER_PASSWORD`)
 
 ### Installation (Manual)
 
@@ -123,6 +131,24 @@ Grindify is a full-stack workout application designed for users who want full ow
    npm run build
    npm run preview
    ```
+
+## Deploying to production
+
+Checklist before exposing an instance to the internet:
+
+- **Secrets are enforced.** Production images run with `NODE_ENV=production`, and the backend **refuses to start** if `JWT_SECRET` is shorter than 32 characters or still `change-me`, or if `DATABASE_PASSWORD` is empty or `password`. Generate secrets with `openssl rand -base64 48`.
+- **Build-time config.** `VITE_API_URL`, `VITE_CONTACT_EMAIL`, `VITE_OPERATOR_NAME`, `VITE_OPERATOR_CITY`, `VITE_OPERATOR_COUNTRY` and (optional) `VITE_PUBLIC_URL`, `VITE_BACKUP_RETENTION_DAYS`, `VITE_LOG_RETENTION_DAYS` (retention periods shown in the Privacy Policy; set them to match your real backup/log rotation) are baked into the frontend/admin images at build time (build args; GitHub repository *variables* in CI). They are public; never put secrets there. The nginx Content-Security-Policy only allows API calls/images from the origin of `VITE_API_URL`, so rebuild the images if the API moves.
+- **Recommended settings:** `AUTH_COOKIE_SECURE=true` (the default in production), `REQUIRE_EMAIL_VERIFICATION=true` (Google/GitHub sign-ins are only linked to an existing account with a verified email) and `ALLOWED_ORIGINS` limited to your frontend and admin origins.
+- **Swagger is off by default.** Set `SWAGGER_ENABLED=true` plus `SWAGGER_USER`/`SWAGGER_PASSWORD` only when you need `/api/docs`.
+- **Reverse proxy + HTTPS.** Run the containers behind a TLS-terminating reverse proxy (Traefik, Caddy, nginx, Cloudflare Tunnel, ...). `docker-compose.prod.yml` binds ports to `127.0.0.1` and does not publish Postgres. Enable "Always Use HTTPS" and HSTS at the proxy/Cloudflare; the containers themselves only speak HTTP and do not send HSTS.
+- **Non-root containers.** The API runs as the `node` user (uid 1000) and the nginx images as uid 101. If you bind-mount a host directory for uploads, make it writable for uid 1000: `sudo chown -R 1000:1000 /path/to/uploads`.
+- **Backups: back up BOTH** the Postgres data (`docker compose exec postgres pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > grindify.sql`) **and** the uploads volume (`/app/uploads`: avatars, exercise media, progress photos). A database restore without the uploads leaves broken image references, and vice versa.
+- **Seeding in production.** The production API image has no dev tooling; seed with `docker compose exec backend node dist/seed/seed.js`.
+
+```bash
+cp .env.example .env   # fill in all CHANGE_ME / empty secrets, set NODE_ENV=production
+docker compose -f docker-compose.prod.yml up -d --build
+```
 
 ## Development
 

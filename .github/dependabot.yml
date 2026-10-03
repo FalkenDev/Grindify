@@ -1,17 +1,77 @@
+# Weekly dependency updates, grouped per ecosystem/directory to keep PR noise low.
+# Security updates are still raised individually by GitHub as they appear.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /backend
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      backend-minor-patch:
+        update-types: [minor, patch]
+      backend-major:
+        update-types: [major]
+
   - package-ecosystem: npm
     directory: /frontend
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      frontend-minor-patch:
+        update-types: [minor, patch]
+      frontend-major:
+        update-types: [major]
+
   - package-ecosystem: npm
     directory: /adminpanel
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      adminpanel-minor-patch:
+        update-types: [minor, patch]
+      adminpanel-major:
+        update-types: [major]
+
+  # FROM lines in Dockerfile.api / Dockerfile.frontend / Dockerfile.adminpanel.
   - package-ecosystem: docker
     directory: /
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      docker-images:
+        patterns: ["*"]
+    ignore:
+      # Stay on Node 22 LTS and Postgres 17 until a deliberate major upgrade.
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]
+
+  # postgres image in docker-compose*.yml.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      compose-images:
+        patterns: ["*"]
+    ignore:
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]
+
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      github-actions:
+        patterns: ["*"]

@@ -1,5 +1,24 @@
+# Dependencies and build output (rebuilt inside the image)
 **/node_modules
+**/dist
+**/.vite
+
+# VCS / editor / OS noise
 **/.git
+**/.github
+**/.vscode
+**/.idea
+**/.worktrees
+**/.claude
 **/.DS_Store
 **/npm-debug.log
-**/dist
+**/*.log
+
+# Secrets: never send env files into the build context
+**/.env
+**/.env.*
+!**/.env.example
+
+# Runtime data
+**/uploads
+**/coverage

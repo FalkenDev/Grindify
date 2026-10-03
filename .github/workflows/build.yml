@@ -41,6 +41,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.api
+          target: production
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
@@ -93,6 +94,7 @@ jobs:
         with:
           context: .
           file: Dockerfile.frontend
+          target: production
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
@@ -100,6 +102,12 @@ jobs:
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL }}
             VITE_CONTACT_EMAIL=${{ vars.VITE_CONTACT_EMAIL }}
+            VITE_OPERATOR_NAME=${{ vars.VITE_OPERATOR_NAME }}
+            VITE_OPERATOR_CITY=${{ vars.VITE_OPERATOR_CITY }}
+            VITE_OPERATOR_COUNTRY=${{ vars.VITE_OPERATOR_COUNTRY }}
+            VITE_PUBLIC_URL=${{ vars.VITE_PUBLIC_URL }}
+            VITE_BACKUP_RETENTION_DAYS=${{ vars.VITE_BACKUP_RETENTION_DAYS }}
+            VITE_LOG_RETENTION_DAYS=${{ vars.VITE_LOG_RETENTION_DAYS }}
             VERSION=${{ steps.build.outputs.version }}
             GIT_SHA=${{ steps.build.outputs.git_sha }}
             BUILD_TIME=${{ steps.build.outputs.build_time }}
@@ -145,5 +153,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_CONTACT_EMAIL=${{ vars.VITE_CONTACT_EMAIL }}
+            VITE_OPERATOR_NAME=${{ vars.VITE_OPERATOR_NAME }}
+            VITE_OPERATOR_CITY=${{ vars.VITE_OPERATOR_CITY }}
+            VITE_OPERATOR_COUNTRY=${{ vars.VITE_OPERATOR_COUNTRY }}
           cache-from: type=gha,scope=adminpanel
           cache-to: type=gha,mode=max,scope=adminpanel

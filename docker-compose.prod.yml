@@ -1,14 +1,27 @@
+# Production-style stack built from source.
+#
+# Assumes a reverse proxy (Traefik, Caddy, nginx, Cloudflare Tunnel, ...) on the
+# same host terminates TLS and forwards to the ports below. Published ports are
+# therefore bound to 127.0.0.1 by default so the containers are not reachable
+# directly from the network. Set BIND_ADDRESS=0.0.0.0 only if your proxy runs on
+# another machine (and firewall the ports).
+#
+# Postgres is NOT published at all; only the backend reaches it over the
+# compose network. Use `docker compose exec postgres psql ...` for admin work.
+#
+# Only backend receives the full .env (secrets). Postgres gets just its three
+# POSTGRES_* variables; frontend/adminpanel get build args only (VITE_* values
+# are baked into the static bundle and are public anyway).
+
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17.11
     container_name: grindify_postgres
     restart: unless-stopped
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
       PGDATA: /var/lib/postgresql/data/17/main
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -17,25 +30,31 @@ services:
       retries: 10
       start_period: 10s
     volumes:
+      # Back this volume up (pg_dump or volume snapshot) - see README.
       - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - .env
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.api
+      target: production
     container_name: grindify_backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "${BACKEND_PORT:-1337}:1337"
+      - "${BIND_ADDRESS:-127.0.0.1}:${BACKEND_PORT:-1337}:1337"
     volumes:
+      # User uploads (avatars, exercise media, progress photos). Back this up
+      # together with postgres_data - see README.
       - uploads_data:/app/uploads
     env_file:
       - .env
+    environment:
+      # Overrides anything in .env: production mode enables the startup
+      # secret checks, secure cookies by default and disables Swagger.
+      NODE_ENV: production
 
   frontend:
     build:
@@ -44,14 +63,19 @@ services:
       target: production
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:-}
+        VITE_OPERATOR_NAME: ${VITE_OPERATOR_NAME:-}
+        VITE_OPERATOR_CITY: ${VITE_OPERATOR_CITY:-}
+        VITE_OPERATOR_COUNTRY: ${VITE_OPERATOR_COUNTRY:-}
+        VITE_PUBLIC_URL: ${VITE_PUBLIC_URL:-}
+        VITE_BACKUP_RETENTION_DAYS: ${VITE_BACKUP_RETENTION_DAYS:-}
+        VITE_LOG_RETENTION_DAYS: ${VITE_LOG_RETENTION_DAYS:-}
     container_name: grindify_frontend
     restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
-    env_file:
-      - .env
+      - "${BIND_ADDRESS:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"
 
   adminpanel:
     build:
@@ -60,14 +84,17 @@ services:
       target: production
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:-}
+        VITE_OPERATOR_NAME: ${VITE_OPERATOR_NAME:-}
+        VITE_OPERATOR_CITY: ${VITE_OPERATOR_CITY:-}
+        VITE_OPERATOR_COUNTRY: ${VITE_OPERATOR_COUNTRY:-}
+        VITE_PUBLIC_URL: ${VITE_PUBLIC_URL:-}
     container_name: grindify_adminpanel
     restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "${ADMINPANEL_PORT:-3001}:3001"
-    env_file:
-      - .env
+      - "${BIND_ADDRESS:-127.0.0.1}:${ADMINPANEL_PORT:-3001}:3001"
 
 volumes:
   postgres_data:

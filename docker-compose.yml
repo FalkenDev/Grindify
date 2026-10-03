@@ -2,7 +2,7 @@ name: grindify
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17.11
     container_name: grindify_postgres
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
@@ -26,6 +26,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+      target: development
     container_name: grindify_backend
     ports:
       - "${BACKEND_PORT:-1337}:1337"
@@ -51,6 +52,11 @@ services:
       target: development
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:-}
+        VITE_OPERATOR_NAME: ${VITE_OPERATOR_NAME:-}
+        VITE_OPERATOR_CITY: ${VITE_OPERATOR_CITY:-}
+        VITE_OPERATOR_COUNTRY: ${VITE_OPERATOR_COUNTRY:-}
+        VITE_PUBLIC_URL: ${VITE_PUBLIC_URL:-}
     container_name: grindify_frontend
     command: npm run dev -- --port 3000
     ports:

@@ -1,10 +1,35 @@
+# syntax=docker/dockerfile:1
+#
+# Grindify admin panel (Vue SPA).
+#
+# Targets:
+#   development - Vite dev server (docker-compose.yml)
+#   builder     - `vue-tsc -b && vite build`
+#   production  - static files served by unprivileged nginx on port 3001
+#
+# All VITE_* values are baked in at BUILD time. The admin panel currently only
+# reads VITE_API_URL; the other VITE_* args are accepted for parity with the
+# frontend so one set of build args works for both images.
+
+# ---------------------------------------------------------------------------
 # Development stage
-FROM node:22-bookworm-slim AS development
+# ---------------------------------------------------------------------------
+FROM node:22.23-bookworm-slim AS development
 
 WORKDIR /app
 
 ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_CONTACT_EMAIL
+ARG VITE_OPERATOR_NAME
+ARG VITE_OPERATOR_CITY
+ARG VITE_OPERATOR_COUNTRY
+ARG VITE_PUBLIC_URL
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_CONTACT_EMAIL=$VITE_CONTACT_EMAIL \
+    VITE_OPERATOR_NAME=$VITE_OPERATOR_NAME \
+    VITE_OPERATOR_CITY=$VITE_OPERATOR_CITY \
+    VITE_OPERATOR_COUNTRY=$VITE_OPERATOR_COUNTRY \
+    VITE_PUBLIC_URL=$VITE_PUBLIC_URL
 
 COPY ./adminpanel/package*.json ./
 RUN npm ci
@@ -14,37 +39,96 @@ COPY ./adminpanel .
 EXPOSE 3001
 CMD ["npm", "run", "dev", "--", "--port", "3001", "--host"]
 
+# ---------------------------------------------------------------------------
 # Build stage
-FROM node:22-bookworm-slim AS builder
+# ---------------------------------------------------------------------------
+FROM node:22.23-bookworm-slim AS builder
 
 WORKDIR /app
 
 ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_CONTACT_EMAIL
+ARG VITE_OPERATOR_NAME
+ARG VITE_OPERATOR_CITY
+ARG VITE_OPERATOR_COUNTRY
+ARG VITE_PUBLIC_URL
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_CONTACT_EMAIL=$VITE_CONTACT_EMAIL \
+    VITE_OPERATOR_NAME=$VITE_OPERATOR_NAME \
+    VITE_OPERATOR_CITY=$VITE_OPERATOR_CITY \
+    VITE_OPERATOR_COUNTRY=$VITE_OPERATOR_COUNTRY \
+    VITE_PUBLIC_URL=$VITE_PUBLIC_URL
 
 COPY ./adminpanel/package*.json ./
 RUN npm ci
 
 COPY ./adminpanel .
-RUN npm run build
+# Unset VITE_* args that were passed empty so the app's own defaults apply
+# (an empty ENV would otherwise reach import.meta.env as "").
+RUN for v in VITE_API_URL VITE_CONTACT_EMAIL VITE_OPERATOR_NAME VITE_OPERATOR_CITY VITE_OPERATOR_COUNTRY VITE_PUBLIC_URL; do \
+      eval "[ -n \"\${$v:-}\" ] || unset $v"; \
+    done; \
+    npm run build
 
-# Serve stage
-FROM nginx:alpine AS production
+# ---------------------------------------------------------------------------
+# Production stage (nginx, runs as uid 101 - no root)
+# ---------------------------------------------------------------------------
+FROM nginxinc/nginx-unprivileged:1.30-alpine AS production
+
+# Used only to derive the API origin for the Content-Security-Policy.
+ARG VITE_API_URL
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-RUN echo 'server { \
-  listen 3001; \
-  root /usr/share/nginx/html; \
-  index index.html; \
-  \
-  location /assets/ { \
-    add_header Cache-Control "public, max-age=31536000, immutable"; \
-    try_files $uri =404; \
-  } \
-  \
-  location / { try_files $uri $uri/ /index.html; } \
-}' > /etc/nginx/conf.d/default.conf
+# Security headers - see Dockerfile.frontend for the reasoning behind each
+# directive (snippet include per location, build-time API origin, why HSTS is
+# left to the TLS terminator). The admin panel additionally sends
+# X-Robots-Tag so it is never indexed.
+COPY <<'EOF' /etc/nginx/snippets/security-headers.conf
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header X-Frame-Options "DENY" always;
+add_header X-Robots-Tag "noindex, nofollow" always;
+add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()" always;
+# add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: __API_ORIGIN__; media-src 'self' blob: __API_ORIGIN__; font-src 'self' data:; connect-src 'self' __API_ORIGIN__; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+EOF
+
+COPY <<'EOF' /etc/nginx/conf.d/default.conf
+server {
+  # Keep port 3001: reverse proxies (Traefik on the homelab) target it.
+  listen 3001;
+  server_name _;
+  server_tokens off;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  include /etc/nginx/snippets/security-headers.conf;
+
+  location = /index.html {
+    include /etc/nginx/snippets/security-headers.conf;
+    add_header Cache-Control "no-cache" always;
+  }
+
+  location /assets/ {
+    include /etc/nginx/snippets/security-headers.conf;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+    try_files $uri =404;
+  }
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}
+EOF
+
+# Derive scheme://host[:port] from VITE_API_URL (empty for relative URLs).
+USER root
+RUN set -eu; \
+    api_origin="$(printf '%s' "${VITE_API_URL:-}" | sed -nE 's|^(https?://[^/?#]+).*|\1|p')"; \
+    sed -i "s|__API_ORIGIN__|${api_origin}|g" /etc/nginx/snippets/security-headers.conf
+USER 101
+RUN nginx -t
 
 EXPOSE 3001
 CMD ["nginx", "-g", "daemon off;"]
