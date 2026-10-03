@@ -37,7 +37,7 @@
   "devDependencies": {
     "@microsoft/eslint-formatter-sarif": "^2.1.5",
     "@tsconfig/node22": "^22.0.0",
-    "@types/node": "^22.9.0",
+    "@types/node": "^26.6.3",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
     "@vite-pwa/assets-generator": "^1.0.2",
