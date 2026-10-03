@@ -19,7 +19,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@fontsource/roboto": "5.2.5",
+    "@fontsource/roboto": "5.3.0",
     "@mdi/font": "7.4.47",
     "chart.js": "^4.5.1",
     "countup.js": "^2.9.0",
