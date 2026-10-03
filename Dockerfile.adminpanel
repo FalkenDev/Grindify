@@ -73,7 +73,7 @@ RUN for v in VITE_API_URL VITE_CONTACT_EMAIL VITE_OPERATOR_NAME VITE_OPERATOR_CI
 # ---------------------------------------------------------------------------
 # Production stage (nginx, runs as uid 101 - no root)
 # ---------------------------------------------------------------------------
-FROM nginxinc/nginx-unprivileged:1.30-alpine AS production
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS production
 
 # Used only to derive the API origin for the Content-Security-Policy.
 ARG VITE_API_URL
