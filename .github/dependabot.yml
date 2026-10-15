@@ -25,6 +25,13 @@ updates:
         update-types: [minor, patch]
       frontend-major:
         update-types: [major]
+    ignore:
+      # TypeScript majors must move together with typescript-eslint/vue-tsc: typescript-eslint
+      # (via @vue/eslint-config-typescript) only accepts TypeScript < 6.1, so Dependabot's TS 7 bump
+      # cannot resolve its peer dependencies and fails the whole frontend update job (GRD-66).
+      # Upgrade TypeScript majors deliberately, like node/postgres below.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: npm
     directory: /adminpanel
