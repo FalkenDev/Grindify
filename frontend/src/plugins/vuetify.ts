@@ -22,12 +22,25 @@
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
+import '@/styles/legacy-reset.css'
+import '@/styles/legacy-typography.scss'
+import '@/styles/legacy-grid.css'
 
 // Composables
 import { createVuetify } from 'vuetify'
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
+  // Vuetify 4 lowered the md/lg/xl/xxl breakpoints; keep the Vuetify 3 values
+  // (matching $grid-breakpoints in styles/settings.scss).
+  display: {
+    thresholds: {
+      md: 960,
+      lg: 1280,
+      xl: 1920,
+      xxl: 2560,
+    },
+  },
   theme: {
     defaultTheme: 'dark',
     themes: {

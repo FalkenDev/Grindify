@@ -47,7 +47,7 @@
 import { useAuthStore } from './stores/auth.store'
 import { VSonner } from 'vuetify-sonner'
 import { useWorkoutSessionStore } from './stores/workoutSession.store'
-import 'vuetify-sonner/style.css'
+import '@/styles/vuetify-sonner.css'
 import router from './router'
 import { useRoute } from 'vue-router'
 import { useAppStore } from './stores/app'

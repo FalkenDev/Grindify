@@ -1,0 +1,43 @@
+/**
+ * src/styles/legacy-typography.scss
+ *
+ * The Vuetify 3 (MD2) typography classes the templates use (text-h4..h6,
+ * text-subtitle-*, text-body-*, text-caption, ...). Vuetify 4 only ships the
+ * MD3 names, so they are generated here from _md2-typography.scss, with the
+ * same precedence they had in Vuetify 3:
+ * - font-size and letter-spacing were !important (beat component and app CSS),
+ * - text-transform was !important too, but text-uppercase / text-none on the
+ *   same element still won, so it sits in Vuetify's typography utility layer
+ *   (before the text-transform helpers),
+ * - font-family, font-weight and line-height were plain declarations that
+ *   component styles (e.g. VBtn) and font-weight-* overrode, so they sit in a
+ *   layer below Vuetify's components.
+ */
+
+@use 'sass:map';
+@use './md2-typography' as md2;
+
+@layer vuetify-core.legacy-typography {
+  @each $name, $values in md2.$typography {
+    .text-#{$name} {
+      font-family: map.get($values, 'font-family');
+      font-weight: map.get($values, 'weight');
+      line-height: map.get($values, 'line-height');
+    }
+  }
+}
+
+@layer vuetify-utilities.typography {
+  @each $name, $values in md2.$typography {
+    .text-#{$name} {
+      text-transform: map.get($values, 'text-transform');
+    }
+  }
+}
+
+@each $name, $values in md2.$typography {
+  .text-#{$name} {
+    font-size: map.get($values, 'size') !important;
+    letter-spacing: map.get($values, 'letter-spacing') !important;
+  }
+}

@@ -1,0 +1,11 @@
+/**
+ * src/styles/vuetify-sonner.css
+ *
+ * vuetify-sonner's stylesheet is plain (unlayered) CSS. Since Vuetify 4 puts
+ * its own styles, theme classes (bg-error, text-white, ...) and utilities in
+ * cascade layers without !important, unlayered CSS would always beat them,
+ * e.g. `.card-snackbar { background: surface-variant }` would turn every
+ * coloured toast grey. Loading it into Vuetify's overrides layer keeps the
+ * Vuetify 3 precedence: it overrides component defaults, utilities win.
+ */
+@import 'vuetify-sonner/style.css' layer(vuetify-overrides);

@@ -5,9 +5,84 @@
  */
 
 // https://vuetifyjs.com/features/sass-variables/`
-// @use 'vuetify/settings' with (
-//   $color-pack: false
-// );
+//
+// Vuetify 4 compatibility: keep the Vuetify 3 look the app was designed with.
+// - $grid-breakpoints: Vuetify 3 breakpoints (v4 lowered md/lg/xl/xxl); the JS
+//   side is restored with `display.thresholds` in plugins/vuetify.ts.
+// - component font variables: the MD2 values v3 derived from its typography
+//   (the MD2 text-* classes themselves come from legacy-typography.scss).
+// - $button-text-transform: v4 no longer uppercases button labels.
+// See https://vuetifyjs.com/getting-started/upgrade-guide/
+@use 'sass:map';
+@use './md2-typography' as md2;
+@use 'vuetify/settings' with (
+  $grid-breakpoints: (
+    'md': 960px,
+    'lg': 1280px,
+    'xl': 1920px,
+    'xxl': 2560px,
+  ),
+  $button-text-transform: map.get(md2.$typography, 'button', 'text-transform'),
+  $alert-title-font-size: map.get(md2.$typography, 'h6', 'size'),
+  $alert-title-font-weight: map.get(md2.$typography, 'h6', 'weight'),
+  $alert-title-letter-spacing: map.get(md2.$typography, 'h6', 'letter-spacing'),
+  $banner-font-size: map.get(md2.$typography, 'body-2', 'size'),
+  $banner-line-height: map.get(md2.$typography, 'subtitle-2', 'line-height'),
+  $bottom-navigation-content-font-size: map.get(md2.$typography, 'caption', 'size'),
+  $breadcrumbs-item-icon-font-size: map.get(md2.$typography, 'body-1', 'size'),
+  $breadcrumbs-line-height: map.get(md2.$typography, 'subtitle-2', 'line-height'),
+  $button-font-size: map.get(md2.$typography, 'button', 'size'),
+  $button-font-weight: map.get(md2.$typography, 'button', 'weight'),
+  $button-text-letter-spacing: map.get(md2.$typography, 'button', 'letter-spacing'),
+  $card-subtitle-font-size: map.get(md2.$typography, 'body-2', 'size'),
+  $card-subtitle-font-weight: map.get(md2.$typography, 'body-2', 'weight'),
+  $card-subtitle-letter-spacing: map.get(md2.$typography, 'body-2', 'letter-spacing'),
+  $card-subtitle-line-height: map.get(md2.$typography, 'body-2', 'line-height'),
+  $card-text-font-size: map.get(md2.$typography, 'body-2', 'size'),
+  $card-text-font-weight: map.get(md2.$typography, 'body-2', 'weight'),
+  $card-text-letter-spacing: map.get(md2.$typography, 'body-2', 'letter-spacing'),
+  $card-text-line-height: map.get(md2.$typography, 'body-2', 'line-height'),
+  $card-title-font-size: map.get(md2.$typography, 'h6', 'size'),
+  $card-title-font-weight: map.get(md2.$typography, 'h6', 'weight'),
+  $card-title-letter-spacing: map.get(md2.$typography, 'h6', 'letter-spacing'),
+  $card-title-line-height: map.get(md2.$typography, 'h6', 'line-height'),
+  $chip-font-size: map.get(md2.$typography, 'button', 'size'),
+  $dialog-card-text-letter-spacing: map.get(md2.$typography, 'body-1', 'letter-spacing'),
+  $empty-state-headline-font-size: map.get(md2.$typography, 'h2', 'size'),
+  $empty-state-headline-font-weight: map.get(md2.$typography, 'h2', 'weight'),
+  $empty-state-headline-line-height: map.get(md2.$typography, 'h2', 'line-height'),
+  $empty-state-headline-mobile-font-size: map.get(md2.$typography, 'h4', 'size'),
+  $empty-state-text-font-size: map.get(md2.$typography, 'body-2', 'size'),
+  $empty-state-text-font-weight: map.get(md2.$typography, 'body-2', 'weight'),
+  $empty-state-text-line-height: map.get(md2.$typography, 'body-2', 'line-height'),
+  $empty-state-title-font-size: map.get(md2.$typography, 'h6', 'size'),
+  $empty-state-title-font-weight: map.get(md2.$typography, 'h6', 'weight'),
+  $empty-state-title-line-height: map.get(md2.$typography, 'h6', 'line-height'),
+  $fab-font-size: map.get(md2.$typography, 'button', 'size'),
+  $icon-btn-font-size: map.get(md2.$typography, 'button', 'size'),
+  $icon-btn-font-weight: map.get(md2.$typography, 'button', 'weight'),
+  $input-font-size: map.get(md2.$typography, 'body-1', 'size'),
+  $input-font-weight: map.get(md2.$typography, 'body-1', 'weight'),
+  $list-item-nav-subtitle-font-weight: map.get(md2.$typography, 'body-2', 'weight'),
+  $list-item-nav-subtitle-letter-spacing: map.get(md2.$typography, 'body-2', 'letter-spacing'),
+  $list-item-subtitle-font-size: map.get(md2.$typography, 'body-2', 'size'),
+  $list-item-subtitle-font-weight: map.get(md2.$typography, 'body-2', 'weight'),
+  $list-item-subtitle-letter-spacing: map.get(md2.$typography, 'body-2', 'letter-spacing'),
+  $list-item-title-font-size: map.get(md2.$typography, 'body-1', 'size'),
+  $list-item-title-font-weight: map.get(md2.$typography, 'body-1', 'weight'),
+  $list-item-title-letter-spacing: map.get(md2.$typography, 'subtitle-1', 'letter-spacing'),
+  $list-item-title-line-height: map.get(md2.$typography, 'body-1', 'line-height'),
+  $slider-thumb-label-font-size: map.get(md2.$typography, 'caption', 'size'),
+  $snackbar-font-size: map.get(md2.$typography, 'body-2', 'size'),
+  $snackbar-font-weight: map.get(md2.$typography, 'body-2', 'weight'),
+  $snackbar-letter-spacing: map.get(md2.$typography, 'body-2', 'letter-spacing'),
+  $snackbar-line-height: map.get(md2.$typography, 'body-2', 'line-height'),
+  $system-bar-font-size: map.get(md2.$typography, 'caption', 'size'),
+  $system-bar-font-weight: map.get(md2.$typography, 'caption', 'weight'),
+  $system-bar-letter-spacing: map.get(md2.$typography, 'caption', 'letter-spacing'),
+  $system-bar-line-height: map.get(md2.$typography, 'caption', 'line-height'),
+  $table-font-size: map.get(md2.$typography, 'body-2', 'size')
+);
 
 // Ensure iOS viewport transitions never expose the browser's black backdrop.
 html,
