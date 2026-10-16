@@ -31,7 +31,7 @@
     "vue-i18n": "^11.4.14",
     "vue-sonner": "^2.0.0",
     "vuedraggable": "^4.1.0",
-    "vuetify": "^4.2.4",
+    "vuetify": "^4.2.5",
     "vuetify-sonner": "^0.4.2"
   },
   "devDependencies": {
