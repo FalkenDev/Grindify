@@ -93,7 +93,7 @@
           </p>
         </div>
 
-        <v-btn block class="text-white" color="primary" rounded="lg" size="large" type="submit">
+        <v-btn block color="primary" rounded="lg" size="large" type="submit">
           {{ $t('common.next') }}
         </v-btn>
       </v-form>
@@ -208,7 +208,6 @@
 
         <v-btn
           block
-          class="text-white"
           color="primary"
           rounded="lg"
           size="large"

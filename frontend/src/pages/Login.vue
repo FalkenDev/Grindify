@@ -66,7 +66,7 @@
 
       <v-btn
         block
-        class="mt-2 text-white"
+        class="mt-2"
         color="primary"
         :disabled="authStore.loading"
         :loading="authStore.loading"

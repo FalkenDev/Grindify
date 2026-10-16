@@ -69,7 +69,7 @@
 
       <v-btn
         block
-        class="mt-6 text-white"
+        class="mt-6"
         color="primary"
         :disabled="isSaving"
         :loading="isSaving"

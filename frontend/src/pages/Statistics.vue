@@ -14,7 +14,7 @@
   -->
 
 <template>
-  <div class="pa-5 d-flex flex-column ga-4 statistics-page">
+  <div class="pa-5 d-flex flex-column ga-4">
     <div>
       <p class="text-textSecondary text-uppercase text-caption">{{ $t('statistics.title') }}</p>
       <h1>{{ $t('statistics.yourTraining') }}</h1>
@@ -350,10 +350,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.statistics-page {
-  padding-bottom: 80px;
-}
-
 .stats-tabs :deep(.v-tab) {
   text-transform: none;
   font-weight: 600;

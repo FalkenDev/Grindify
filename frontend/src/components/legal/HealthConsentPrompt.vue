@@ -34,7 +34,6 @@
     </p>
     <v-btn
       color="primary"
-      class="text-white"
       rounded="lg"
       :block="!compact"
       :loading="isSaving"

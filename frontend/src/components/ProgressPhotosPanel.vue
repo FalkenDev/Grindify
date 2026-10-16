@@ -169,7 +169,7 @@
       icon
       size="large"
       style="position: fixed; bottom: 100px; right: 20px; z-index: 10"
-      elevation="4"
+      elevation="2"
       @click="uploadSheetOpen = true"
     >
       <v-icon>mdi-camera-plus</v-icon>

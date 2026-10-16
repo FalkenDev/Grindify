@@ -107,10 +107,7 @@
       </v-text-field>
     </div>
 
-    <div
-      class="flex-grow-1 overflow-y-auto pa-0 bg-background d-flex ga-3 flex-column"
-      style="padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px))"
-    >
+    <div class="flex-grow-1 overflow-y-auto pa-0 bg-background d-flex ga-3 flex-column">
       <template v-if="ownExercises.length > 0">
         <p class="text-caption text-textSecondary font-weight-bold text-uppercase mx-5 mb-2">
           {{ $t('exercise.myExercises') }}

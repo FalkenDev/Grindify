@@ -20,7 +20,7 @@
     <v-progress-linear v-if="isRefreshing" color="primary" indeterminate />
 
     <v-container class="flex-grow-1 overflow-y-auto pa-4" fluid>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="12">
           <div variant="flat">
             <div class="d-flex align-center ga-4 mb-4">
@@ -58,7 +58,7 @@
               {{ deviceStatus.message }}
             </v-alert>
 
-            <v-row dense>
+            <v-row density="compact">
               <v-col cols="12" sm="6">
                 <v-btn
                   color="primary"

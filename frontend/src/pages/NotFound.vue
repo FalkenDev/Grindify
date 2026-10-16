@@ -20,7 +20,7 @@
     <h1 class="text-h4 font-weight-bold text-textPrimary mb-2">404</h1>
     <h2 class="text-h6 text-textPrimary mb-2">{{ $t('notFound.title') }}</h2>
     <p class="text-body-2 text-textSecondary mb-6">{{ $t('notFound.text') }}</p>
-    <v-btn color="primary" rounded="lg" size="large" class="text-white" to="/">
+    <v-btn color="primary" rounded="lg" size="large" to="/">
       {{ $t('notFound.goHome') }}
     </v-btn>
   </div>

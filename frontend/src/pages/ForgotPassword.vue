@@ -46,7 +46,7 @@
 
       <v-btn
         block
-        class="mb-4 text-white"
+        class="mb-4"
         color="primary"
         :disabled="loading"
         :loading="loading"
